@@ -1,0 +1,9 @@
+var a = 123
+
+if a > 100 {
+    Print(a)
+} else {
+    Print(4)
+}
+
+Print("Done")
