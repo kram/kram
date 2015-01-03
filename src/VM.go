@@ -180,6 +180,27 @@ func (v *VM) set(name Name, value GusToken) {
         return
     }
 
+    // a = "Hello World!"
+    if value.Token == TOKEN_STRING {
+
+        if name.Type != "String" {
+            log.Fatalf("Can only set variables of type String to a string")
+        }
+
+        str := new(String)
+        str.Init(value.Value)
+
+        v.names[name.Name] = Name{
+            Name:  name.Name,
+            Value: str,
+            Type:  "String",
+        }
+
+        v.advance()
+        return
+    }
+
+
     // a = b
     if value.Token == TOKEN_NAME {
 

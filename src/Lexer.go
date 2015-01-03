@@ -133,6 +133,13 @@ func (l *Lexer) tokenize() {
 			} else {
 				l.emitToken(TOKEN_MINUS)
 			}
+
+		case "\"":
+			str := l.readUntil("\"")
+			l.emitTokenValue(TOKEN_STRING, str)
+
+			// Advance for each character, and the ending "
+			l.advanceMulti(len(str) + 1)
 		}
 	}
 }
@@ -223,4 +230,14 @@ func (l *Lexer) readUntilWhitespace() string {
 	}
 
 	return ""
+}
+
+func (l *Lexer) readUntil(c string) string {
+	index := strings.Index(l.source[l.pos:], c)
+
+	if index < 0 {
+		return ""
+	}
+
+	return string(l.source[l.pos:l.pos+index])
 }
