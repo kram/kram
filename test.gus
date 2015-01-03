@@ -2,3 +2,5 @@ var Magic = 10
 var Harry = 20
 
 Magic = Harry
+
+Harry = 3

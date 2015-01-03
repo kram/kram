@@ -11,12 +11,16 @@ func main() {
     fmt.Println(files)
 
     for _, file := range files {
-    var lexer = Lexer{}
-    content, _ := ioutil.ReadFile(file)
-    lexer.init(string(content))
-    fmt.Println(lexer.Tokens)
+        var lexer = Lexer{}
+        content, _ := ioutil.ReadFile(file)
+        lexer.init(string(content))
+        fmt.Println(lexer.Tokens)
 
-    var vm = VM{}
-    vm.init(lexer.Tokens)
+        var vm = VM{}
+        vm.init(lexer.Tokens)
+
+        for key, value := range vm.names {
+            fmt.Println(key, value, value.Value.toString())
+        }
     }
 }

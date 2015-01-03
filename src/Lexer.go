@@ -91,9 +91,9 @@ func (l *Lexer) tokenize() {
 			continue
 		}
 
-		if l.isValue(c) {
+		if l.isNumber(c) {
 			value := l.readNameOrValue(c)
-			l.emitTokenValue(TOKEN_VALUE, value)
+			l.emitTokenValue(TOKEN_NUMBER, value)
 			continue
 		}
 
@@ -187,7 +187,7 @@ func (l *Lexer) isName(c string) bool {
 	return match
 }
 
-func (l *Lexer) isValue(c string) bool {
+func (l *Lexer) isNumber(c string) bool {
 	str := l.readUntilWhitespace()
 
 	match, _ := regexp.MatchString("^[0-9]+$", c+str)

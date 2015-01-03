@@ -3,12 +3,11 @@ package main
 import (
     "fmt"
     "log"
-    "strconv"
 )
 
 type Name struct {
     Name  string
-    Value string
+    Value Type
     Type  string
 }
 
@@ -59,7 +58,7 @@ func (v *VM) allocateVar() {
     name := v.peek()
 
     if name.Token != TOKEN_NAME {
-        log.Panic("Expected TOKEN_NAME, got ", name)
+        log.Panicf("Expected TOKEN_NAME, got %s", name)
     }
 
     v.advance()
@@ -68,7 +67,7 @@ func (v *VM) allocateVar() {
     eq := v.peek()
 
     if eq.Token != TOKEN_EQ {
-        log.Panic("Expected TOKEN_EQ, got ", name)
+        log.Panicf("Expected TOKEN_EQ, got %s", name)
     }
 
     v.advance()
@@ -76,17 +75,39 @@ func (v *VM) allocateVar() {
     // Variable value
     value := v.peek()
 
-    if value.Token != TOKEN_VALUE {
-        log.Panic("Expected TOKEN_VALUE, got ", name)
+    if value.Token == TOKEN_NUMBER {
+
+        number := new(Number)
+        number.Init(value.Value)
+
+        v.names[name.Value] = Name{
+            Name:  name.Value,
+            Value: number,
+            Type:  "Number",
+        }
+
+        v.advance()
+
+        return
     }
 
-    v.names[name.Value] = Name{
-        Name:  name.Value,
-        Value: value.Value,
-        Type:  "Number",
+    if value.Token == TOKEN_STRING {
+
+        str := new(String)
+        str.Init(value.Value)
+
+        v.names[name.Value] = Name{
+            Name:  name.Value,
+            Value: str,
+            Type:  "String",
+        }
+
+        v.advance()
+
+        return
     }
 
-    v.advance()
+    log.Panicf("Expected TOKEN_NUMBER or TOKEN_STRING, got %f", name)
 }
 
 func (v *VM) verifyName(str string) bool {
@@ -103,7 +124,7 @@ func (v *VM) getName(str string) Name {
 }
 
 func (v *VM) call(name Name, method string, argument GusToken) {
-    variable := v.names[name.Name]
+    /*variable := v.names[name.Name]
 
     name_value, _ := strconv.Atoi(name.Value)
     argument_value, _ := strconv.Atoi(argument.Value)
@@ -130,16 +151,28 @@ func (v *VM) call(name Name, method string, argument GusToken) {
         result := name_value - argument_value
         variable.Value = strconv.Itoa(result)
         v.names[name.Name] = variable
-    }
+    }*/
 }
 
 func (v *VM) set(name Name, value GusToken) {
 
+    // TOKEN_NUMBER
+    // TOKEN_NAME
+    // TOKEN_STRING
+
     // a = 123
-    if value.Token == TOKEN_VALUE {
+    if value.Token == TOKEN_NUMBER {
+
+        if name.Type != "Number" {
+            log.Fatalf("Can only set variables of type Number to a number")
+        }
+
+        number := new(Number)
+        number.Init(value.Value)
+
         v.names[name.Name] = Name{
             Name:  name.Name,
-            Value: value.Value,
+            Value: number,
             Type:  "Number",
         }
 
@@ -153,14 +186,35 @@ func (v *VM) set(name Name, value GusToken) {
         // Get reference
         ref := v.getName(value.Value)
 
-        v.names[name.Name] = Name{
-            Name:  name.Name,
-            Value: ref.Value,
-            Type:  "Number",
+        if ref.Type == "Number" {
+
+            number := new(Number)
+            number.Init(ref.Value.toString())
+
+            v.names[name.Name] = Name{
+                Name:  name.Name,
+                Value: number,
+                Type:  ref.Type,
+            }
+
+            v.advance()
+            return
         }
 
-        v.advance()
-        return
+        if ref.Type == "String" {
+
+            str := new(String)
+            str.Init(ref.Value.toString())
+
+            v.names[name.Name] = Name{
+                Name:  name.Name,
+                Value: str,
+                Type:  ref.Type,
+            }
+
+            v.advance()
+            return
+        }
     }
 
     log.Fatalf("Was unable to set %s to %s", name.Type, value.Token)
@@ -203,6 +257,4 @@ func (v *VM) run() {
             v.advance()
         }
     }
-
-    fmt.Println(v.names)
 }

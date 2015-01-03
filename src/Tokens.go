@@ -23,7 +23,8 @@ const (
 	TOKEN_PLUSEQ  // abc += 3
 	TOKEN_MINUSEQ // abc -= 3
 
-	TOKEN_VALUE // 123
+	TOKEN_NUMBER // 123
+	TOKEN_STRING // "Hello World!"
 	TOKEN_NAME  // abc
 
 	TOKEN_LEXER_ERROR // Used when the Lexer made a booboo
@@ -33,4 +34,9 @@ const (
 type GusToken struct {
 	Token Token
 	Value string
+}
+
+type Type interface {
+	Init(string) bool
+	toString() string
 }
