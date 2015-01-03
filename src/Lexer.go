@@ -114,9 +114,25 @@ func (l *Lexer) tokenize() {
 			}
 
 		case "+":
-			l.emitToken(TOKEN_PLUS)
+
+			peek, _ := l.peek()
+
+			if peek == "=" {
+				l.advance()
+				l.emitToken(TOKEN_PLUSEQ)
+			} else {
+				l.emitToken(TOKEN_PLUS)
+			}
+
 		case "-":
-			l.emitToken(TOKEN_MINUS)
+			peek, _ := l.peek()
+
+			if peek == "=" {
+				l.advance()
+				l.emitToken(TOKEN_MINUSEQ)
+			} else {
+				l.emitToken(TOKEN_MINUS)
+			}
 		}
 	}
 }
@@ -125,6 +141,8 @@ func (l *Lexer) isKeyword(c string) bool {
 
 	keywords := make(map[string]Token)
 	keywords["var"] = TOKEN_VAR
+	keywords["if"] = TOKEN_IF
+	keywords["else"] = TOKEN_ELSE
 
 	str := l.readUntilWhitespace()
 
@@ -143,6 +161,8 @@ func (l *Lexer) readKeyword(c string) Token {
 
 	keywords := make(map[string]Token)
 	keywords["var"] = TOKEN_VAR
+	keywords["if"] = TOKEN_IF
+	keywords["else"] = TOKEN_ELSE
 
 	str := l.readUntilWhitespace()
 
@@ -189,7 +209,7 @@ func (l *Lexer) readUntilWhitespace() string {
 	str := ""
 
 	for {
-		if l.pos+length >= len(l.source) {
+		if l.pos+length > len(l.source) {
 			return str
 		}
 

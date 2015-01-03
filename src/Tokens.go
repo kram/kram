@@ -14,8 +14,14 @@ const (
 	TOKEN_NEWLINE                       // \n
 	TOKEN_VAR                           // var
 
+	TOKEN_IF
+	TOKEN_ELSE
+
 	TOKEN_PLUS
 	TOKEN_MINUS
+
+	TOKEN_PLUSEQ  // abc += 3
+	TOKEN_MINUSEQ // abc -= 3
 
 	TOKEN_VALUE // 123
 	TOKEN_NAME  // abc

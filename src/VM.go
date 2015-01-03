@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "log"
+    "strconv"
 )
 
 type Name struct {
@@ -82,7 +83,7 @@ func (v *VM) allocateVar() {
     v.names[name.Value] = Name{
         Name:  name.Value,
         Value: value.Value,
-        Type:  "number",
+        Type:  "Number",
     }
 
     v.advance()
@@ -102,12 +103,67 @@ func (v *VM) getName(str string) Name {
 }
 
 func (v *VM) call(name Name, method string, argument GusToken) {
+    variable := v.names[name.Name]
+
+    name_value, _ := strconv.Atoi(name.Value)
+    argument_value, _ := strconv.Atoi(argument.Value)
+
     if method == "+" {
 
-        variable := v.names[name.Name]
-        variable.Value = name.Value + argument.Value
+        if variable.Type != "Number" {
+            log.Fatalf("You can only add to Numbers, %s given", variable.Type)
+            return
+        }
+
+        result := name_value + argument_value
+        variable.Value = strconv.Itoa(result)
         v.names[name.Name] = variable
     }
+
+    if method == "-" {
+
+        if variable.Type != "Number" {
+            log.Fatalf("You can only substract from Numbers, %s given", variable.Type)
+            return
+        }
+
+        result := name_value - argument_value
+        variable.Value = strconv.Itoa(result)
+        v.names[name.Name] = variable
+    }
+}
+
+func (v *VM) set(name Name, value GusToken) {
+
+    // a = 123
+    if value.Token == TOKEN_VALUE {
+        v.names[name.Name] = Name{
+            Name:  name.Name,
+            Value: value.Value,
+            Type:  "Number",
+        }
+
+        v.advance()
+        return
+    }
+
+    // a = b
+    if value.Token == TOKEN_NAME {
+
+        // Get reference
+        ref := v.getName(value.Value)
+
+        v.names[name.Name] = Name{
+            Name:  name.Name,
+            Value: ref.Value,
+            Type:  "Number",
+        }
+
+        v.advance()
+        return
+    }
+
+    log.Fatalf("Was unable to set %s to %s", name.Type, value.Token)
 }
 
 func (v *VM) run() {
@@ -130,7 +186,18 @@ func (v *VM) run() {
                 log.Panicf("Unexpected TOKEN_NAME %s", token.Value)
             }
 
-        case TOKEN_PLUS:
+        case TOKEN_EQ:
+            name := v.getName(v.previous_name)
+            v.set(name, v.peek())
+
+        // Increase variable
+        case TOKEN_PLUSEQ:
+            name := v.getName(v.previous_name)
+            v.call(name, "+", v.peek())
+            v.advance()
+
+        // Decrease variable
+        case TOKEN_MINUSEQ:
             name := v.getName(v.previous_name)
             v.call(name, "+", v.peek())
             v.advance()

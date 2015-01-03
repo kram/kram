@@ -1,3 +1,4 @@
-var MyVariable = 100
+var Magic = 10
+var Harry = 20
 
-MyVariable + 5
+Magic = Harry
