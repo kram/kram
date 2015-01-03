@@ -1,5 +1,2 @@
-var Name = "Gustav"
-var Age = 20
-
-Name = "Fniss"
-Age = 21
+var Age = 100
+var Old = true

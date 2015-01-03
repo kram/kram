@@ -76,7 +76,6 @@ func (v *VM) allocateVar() {
     value := v.peek()
 
     if value.Token == TOKEN_NUMBER {
-
         number := new(Number)
         number.Init(value.Value)
 
@@ -87,12 +86,10 @@ func (v *VM) allocateVar() {
         }
 
         v.advance()
-
         return
     }
 
     if value.Token == TOKEN_STRING {
-
         str := new(String)
         str.Init(value.Value)
 
@@ -103,11 +100,25 @@ func (v *VM) allocateVar() {
         }
 
         v.advance()
-
         return
     }
 
-    log.Panicf("Expected TOKEN_NUMBER or TOKEN_STRING, got %f", name)
+    if value.Token == TOKEN_BOOL {
+        bl := new(Bool)
+        bl.Init(value.Value)
+
+        v.names[name.Value] = Name{
+            Name:  name.Value,
+            Value: bl,
+            Type:  "Bool",
+        }
+
+        v.advance()
+        return
+    }
+
+
+    log.Panicf("Expected TOKEN_NUMBER or TOKEN_STRING or TOKEN_BOOL, got %f", value.Token)
 }
 
 func (v *VM) verifyName(str string) bool {
@@ -155,10 +166,6 @@ func (v *VM) call(name Name, method string, argument GusToken) {
 }
 
 func (v *VM) set(name Name, value GusToken) {
-
-    // TOKEN_NUMBER
-    // TOKEN_NAME
-    // TOKEN_STRING
 
     // a = 123
     if value.Token == TOKEN_NUMBER {

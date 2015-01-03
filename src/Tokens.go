@@ -26,6 +26,10 @@ const (
 	TOKEN_NUMBER // 123
 	TOKEN_STRING // "Hello World!"
 	TOKEN_NAME  // abc
+	TOKEN_BOOL
+
+	TOKEN_TRUE
+	TOKEN_FALSE
 
 	TOKEN_LEXER_ERROR // Used when the Lexer made a booboo
 	TOKEN_END_OF_PROGRAM

@@ -85,6 +85,12 @@ func (l *Lexer) tokenize() {
 			continue
 		}
 
+		if l.isBool(c) {
+			value := l.readNameOrValue(c)
+			l.emitTokenValue(TOKEN_BOOL, value)
+			continue
+		}
+
 		if l.isName(c) {
 			name := l.readNameOrValue(c)
 			l.emitTokenValue(TOKEN_NAME, name)
@@ -200,6 +206,18 @@ func (l *Lexer) isNumber(c string) bool {
 	match, _ := regexp.MatchString("^[0-9]+$", c+str)
 
 	return match
+}
+
+func (l *Lexer) isBool(c string) bool {
+	str := l.readUntilWhitespace()
+
+	full := c + str
+
+	if full == "true" || full == "false" {
+		return true
+	}
+
+	return false
 }
 
 func (l *Lexer) readNameOrValue(c string) string {
