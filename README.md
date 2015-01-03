@@ -1,66 +1,13 @@
-# Variables
-var a = 123 // new Number(123)
-var b = "fniss" // new String("fniss")
+# Gus 0.0.0
 
-# Defined variables
-null // new Null
-false // new Boolean(false)
-true // new Boolean(false)
+This is Gus, a scripting language that I'm building.
 
-IO.Print("Yayaya")
+It currently doesn't support much, but it is able to execute this
 
-# Custom classes
-class MyClass {
+```
+var MyVariable = 100
 
-    # Public method
-    Public {
-        return 123
-    }
+MyVariable + 5
+```
 
-    # Private method
-    private {
-        return 123
-    }
-}
-
-# Using a class
-var me = new MyClass
-me.Method()
-
-# Functions
-var func = new Fn {
-    IO.Print("I am a function")
-}
-
-## Functions are basically this
-class Fn {
-    new (function) {
-        this.Call = function
-    }
-}
-
-## You can mimmick a function like this
-class CustomFunction {
-    Call {
-        IO.Print("I am a function")
-    }
-}
-
-## These are the samme
-func()
-func.Call()
-
-# Looping
-
-var items = ["one", "two", "three", "four"]
-
-for item in items {
-    IO.Print(item)
-}
-
-IO.Print(items[0])
-
-items[] = "five"
-
-## Different types
-[123, "four", true]
+The only thing you can currently do is addidtion, but we'll change that in just a bit!
