@@ -4,6 +4,7 @@ import (
     "fmt"
     "io/ioutil"
     "os"
+    "encoding/json"
 )
 
 func main() {
@@ -17,6 +18,15 @@ func main() {
         lexer.Init(string(content))
 
         var parse = Parser{}
-        parse.Parse(lexer.Tokens)
+        tree := parse.Parse(lexer.Tokens)
+
+        b, _ := json.MarshalIndent(tree, "", "    ")
+        fmt.Println(string(b))
+
+        var vm = VM{}
+        vm.Run(tree)
+
+        b, _ = json.MarshalIndent(vm.Environment, "", "    ")
+        fmt.Println(string(b))
     }
 }

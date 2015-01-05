@@ -2,25 +2,40 @@ package main
 
 type Bool struct {
 	Bool bool
-	value bool
+	Value bool
 }
 
-func (b *Bool) Init(str string) bool {
-	
+func (self *Bool) Init(str string)  {
+
 	if str == "true" {
-		b.value = true
+		self.Value = true
 	} else {
-		b.value = false
+		self.Value = false
 	}
-
-	return true
 }
 
-func (b *Bool) toString() string {
+func (self *Bool) toString() string {
 
-	if b.value {
+	if self.Value {
 		return "true"
 	}
 
 	return "false"
+}
+
+func (self *Bool) Math(method string, right Type) Type {
+
+	if r, ok := right.(*Bool); ok {
+		if self.Value == r.Value {
+			bl := Bool{}
+			bl.Init("true")
+
+			return &bl
+		}
+	}
+
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
 }

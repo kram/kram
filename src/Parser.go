@@ -1,12 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"encoding/json"
 )
 
 type Node interface {}
+
+type Nil struct {}
 
 type Block struct {
 	Block bool
@@ -74,7 +74,7 @@ type Parser struct {
 	CurrentStat int
 }
 
-func (p *Parser) Parse(tokens []Token) {
+func (p *Parser) Parse(tokens []Token) Block {
 	p.Tokens = tokens
 	p.Current = 0
 	p.Symbols = make(map[string]Symbol)
@@ -82,7 +82,7 @@ func (p *Parser) Parse(tokens []Token) {
 
 	// var
 	p.Symbol("var", func() (Node) {
-		n := new(Assign)
+		n := Assign{}
 
 		name := p.Advance()
 
@@ -118,13 +118,7 @@ func (p *Parser) Parse(tokens []Token) {
 
 	top := p.Statements()
 
-	b, err := json.MarshalIndent(top, "", "    ")
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-
-    fmt.Println(string(b))
+    return top
 }
 
 // Add to the symbol table
@@ -174,7 +168,7 @@ func (p *Parser) Previous() Node {
 		return p.Stack[len(p.Stack) - 1]
 	}
 	
-	return Block{}
+	return Nil{}
 }
 
 func (p *Parser) Expression(advance bool) Node {
@@ -188,21 +182,22 @@ func (p *Parser) Expression(advance bool) Node {
 
 	// Number or string
 	if current.Type == "number" || current.Type == "string" {
-		literal := new(Literal)
-		literal.Type = current.Type
-		literal.Value = current.Value
+		literal := Literal{
+			Type: current.Type,
+			Value: current.Value,
+		}
 
-		p.Stack = append(p.Stack, *literal)
+		p.Stack = append(p.Stack, literal)
 
 		return literal
 	}
 
 	// Variables
 	if current.Type == "name" {
-		variable := new(Variable)
+		variable := Variable{}
 		variable.Name = current.Value
 
-		p.Stack = append(p.Stack, *variable)
+		p.Stack = append(p.Stack, variable)
 
 		return variable
 	}
@@ -210,7 +205,7 @@ func (p *Parser) Expression(advance bool) Node {
 	// We encountered an operator, check the type of the previous expression
 	if current.Type == "operator" {
 
-		math := new(Math)
+		math := Math{}
 		math.Method = current.Value // + - * /
 
 		prev, ok := previous.(Math)
@@ -243,12 +238,12 @@ func (p *Parser) Expression(advance bool) Node {
 		}
 
 		p.Stack = make([]Node, 0)
-		p.Stack = append(p.Stack, *math)
+		p.Stack = append(p.Stack, math)
 
 		return math
 	}
 
-	return new(Node)
+	return Nil{}
 }
 
 func (p *Parser) Statement() (Node, bool) {
@@ -294,8 +289,8 @@ func (p *Parser) Statement() (Node, bool) {
 	return p.Stat[current], hasContent
 }
 
-func (p *Parser) Statements() *Block {
-	n := new(Block)
+func (p *Parser) Statements() Block {
+	n := Block{}
 
 	for {
 		p.Stack = make([]Node, 0)

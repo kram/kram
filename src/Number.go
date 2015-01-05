@@ -7,52 +7,54 @@ import (
 
 type Number struct {
 	Number bool
-	value float64
+	Value float64
 }
 
-func (n *Number) Init(str string) bool {	
+func (n *Number) Init(str string) {	
 	value, err := strconv.ParseFloat(str, 64)
 
 	if err != nil {
 		log.Panicf("Can not initialize Number as %s", str)
-		return false
 	}
 
-	n.value = value
-
-	return true
+	n.Value = value
 }
 
 func (n *Number) toString() string {
-	return strconv.FormatFloat(n.value, 'f', 6, 64)
+	return strconv.FormatFloat(n.Value, 'f', 6, 64)
 }
 
-func (n *Number) Add(num float64) float64 {
-	n.value += num
+func (n *Number) Math(method string, right Type) Type {
+	
+	r, ok := right.(*Number)
 
-	return n.value
-}
+	if !ok {
+		log.Panicf("You can not %s a Number with %s", method, right)
+	}
 
-func (n *Number) Sub(num float64) float64 {
-	n.value -= num
+	val := float64(0)
 
-	return n.value
-}
+	switch method {
+	case "+":
+		val = n.Value + r.Value
+	case "-":
+		val = n.Value - r.Value
+	case "*":
+		val = n.Value * r.Value
+	case "/":
+		val = n.Value / r.Value
+	default:
+		log.Panicf("Number has no such method, %s", method)
+	}
 
-func (n *Number) Divide(num float64) float64 {
-	n.value /= num
+	res := Number{}
+	res.Value = val
 
-	return n.value
-}
-
-func (n *Number) Multiply(num float64) float64 {
-	n.value *= num
-
-	return n.value
+	return &res
 }
 
 func (n *Number) LessThan(num float64) bool {
-	if n.value < num {
+	if n.Value < num {
 		return true
 	}
 
@@ -60,7 +62,7 @@ func (n *Number) LessThan(num float64) bool {
 }
 
 func (n *Number) BiggerThan(num float64) bool {
-	if n.value > num {
+	if n.Value > num {
 		return true
 	}
 
@@ -68,7 +70,7 @@ func (n *Number) BiggerThan(num float64) bool {
 }
 
 func (n *Number) EqualTo(num float64) bool {
-	if n.value == num {
+	if n.Value == num {
 		return true
 	}
 
