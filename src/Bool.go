@@ -14,6 +14,10 @@ func (self *Bool) Init(str string) {
 	}
 }
 
+func (b Bool) Type() string {
+	return "Bool"
+}
+
 func (self *Bool) toString() string {
 
 	if self.Value {

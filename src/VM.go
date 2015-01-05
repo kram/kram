@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"reflect"
+	"log"
 )
 
 type Type interface {
 	Init(string)
 	Math(string, Type) Type
+	Type() string
 	toString() string
 }
 
@@ -20,14 +21,11 @@ func (vm *VM) Run(tree Block) {
 	vm.Environment = make(map[string]Type)
 
 	for _, body := range tree.Body {
-		b := body
-		vm.Operation(b)
+		vm.Operation(body)
 	}
 }
 
 func (vm *VM) Operation(node Node) Type {
-	fmt.Println("Operation()")
-	fmt.Println(reflect.TypeOf(node).String())
 
 	if assign, ok := node.(Assign); ok {
 		return vm.OperationAssign(assign)
@@ -45,6 +43,10 @@ func (vm *VM) Operation(node Node) Type {
 		return vm.OperationVariable(variable)
 	}
 
+	if set, ok := node.(Set); ok {
+		return vm.OperationSet(set)
+	}
+
 	// Default
 	bl := Bool{}
 	bl.Init("false")
@@ -53,7 +55,6 @@ func (vm *VM) Operation(node Node) Type {
 }
 
 func (vm *VM) OperationAssign(assign Assign) Type {
-	fmt.Println("OperationAssign()")
 
 	value := vm.Operation(assign.Right)
 
@@ -63,7 +64,6 @@ func (vm *VM) OperationAssign(assign Assign) Type {
 }
 
 func (vm *VM) OperationMath(math Math) Type {
-	fmt.Println("OperationMath()")
 
 	left := vm.Operation(math.Left)
 	right := vm.Operation(math.Right)
@@ -74,7 +74,6 @@ func (vm *VM) OperationMath(math Math) Type {
 }
 
 func (vm *VM) OperationLiteral(literal Literal) Type {
-	fmt.Println("OperationLiteral()")
 
 	if literal.Type == "number" {
 		number := Number{}
@@ -96,7 +95,6 @@ func (vm *VM) OperationLiteral(literal Literal) Type {
 }
 
 func (vm *VM) OperationVariable(variable Variable) Type {
-	fmt.Println("OperationVariable()")
 
 	if _, ok := vm.Environment[variable.Name]; ok {
 		return vm.Environment[variable.Name]
@@ -107,4 +105,21 @@ func (vm *VM) OperationVariable(variable Variable) Type {
 	bl.Init("false")
 
 	return &bl
+}
+
+func (vm *VM) OperationSet(set Set) Type {
+
+	if _, ok := vm.Environment[set.Name]; !ok {
+		log.Panicf("Can not set %s, %s is undefined", set.Name, set.Name)
+	}
+
+	value := vm.Operation(set.Right)
+
+	if vm.Environment[set.Name].Type() != value.Type() {
+		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, vm.Environment[set.Name].Type(), value.toString(), value.Type())
+	}
+
+	vm.Environment[set.Name] = value
+
+	return vm.Environment[set.Name]
 }

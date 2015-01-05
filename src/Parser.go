@@ -19,6 +19,12 @@ type Assign struct {
 	Right  Node
 }
 
+type Set struct {
+	Set   bool
+	Name  string
+	Right Node
+}
+
 type Literal struct {
 	Literal bool
 	Type    string
@@ -51,12 +57,14 @@ type Condition struct {
 }
 
 type Symbol struct {
-	Function    SymbolReturn
-	Importance  int
-	IsStatement bool
+	Function     SymbolReturn
+	CaseFunction SymbolCaseReturn
+	Importance   int
+	IsStatement  bool
 }
 
 type SymbolReturn func() Node
+type SymbolCaseReturn func() Symbol
 
 type Parser struct {
 	Tokens  []Token
@@ -109,9 +117,58 @@ func (p *Parser) Parse(tokens []Token) Block {
 		return n
 	}, 0, true)
 
+	p.SymbolCase("variable", func() Symbol {
+
+		sym := Symbol{}
+		sym.Importance = 0
+		sym.IsStatement = false
+
+		// The basic Infix function
+		sym.Function = func() Node {
+			return p.Expression(false)
+		}
+
+		// Var as assignment
+		if len(p.Stack) == 0 {
+			sym.IsStatement = true
+			sym.Function = func() Node {
+				n := Set{}
+
+				name := p.Token
+
+				if name.Type != "name" {
+					log.Panicf("var, expected name, got %s", name.Type)
+				}
+
+				n.Name = name.Value
+
+				eq := p.Advance()
+
+				if eq.Type != "operator" && eq.Value == "=" {
+					log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
+				}
+
+				// Put Nil on the stack
+				p.Stack = append(p.Stack, &Nil{})
+
+				stat, ok := p.Statement()
+
+				if ok {
+					n.Right = stat
+				} else {
+					log.Panic("Found no statement to Assign")
+				}
+
+				return n
+			}
+		}
+
+		return sym
+	})
+
 	p.Infix("number", 0)
 	p.Infix("string", 0)
-	p.Infix("variable", 0)
+
 	p.Infix("+", 50)
 	p.Infix("-", 50)
 	p.Infix("*", 60)
@@ -128,6 +185,12 @@ func (p *Parser) Symbol(str string, function SymbolReturn, importance int, isSta
 		Function:    function,
 		Importance:  importance,
 		IsStatement: isStatement,
+	}
+}
+
+func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
+	p.Symbols[str] = Symbol{
+		CaseFunction: function,
 	}
 }
 
@@ -285,7 +348,8 @@ func (p *Parser) Statement() (Node, bool) {
 		}
 
 		if tok.Type == "name" {
-			p.Stat[current] = p.Symbols["variable"].Function()
+			sym := p.Symbols["variable"].CaseFunction()
+			p.Stat[current] = sym.Function()
 			hasContent = true
 			continue
 		}

@@ -20,6 +20,10 @@ func (n *Number) Init(str string) {
 	n.Value = value
 }
 
+func (n Number) Type() string {
+	return "Number"
+}
+
 func (n *Number) toString() string {
 	return strconv.FormatFloat(n.Value, 'f', 6, 64)
 }

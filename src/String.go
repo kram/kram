@@ -13,6 +13,10 @@ func (s *String) Init(str string) {
 	s.Value = str
 }
 
+func (s String) Type() string {
+	return "String"
+}
+
 func (s *String) Math(method string, right Type) Type {
 
 	r, ok := right.(*String)
