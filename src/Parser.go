@@ -110,6 +110,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	}, 0, true)
 
 	p.Infix("number", 0)
+	p.Infix("string", 0)
 	p.Infix("variable", 0)
 	p.Infix("+", 50)
 	p.Infix("-", 50)
@@ -273,6 +274,12 @@ func (p *Parser) Statement() (Node, bool) {
 
 		if tok.Type == "number" {
 			p.Stat[current] = p.Symbols["number"].Function()
+			hasContent = true
+			continue
+		}
+
+		if tok.Type == "string" {
+			p.Stat[current] = p.Symbols["string"].Function()
 			hasContent = true
 			continue
 		}

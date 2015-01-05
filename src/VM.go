@@ -82,6 +82,12 @@ func (vm *VM) OperationLiteral(literal Literal) Type {
 		return &number
 	}
 
+	if literal.Type == "string" {
+		str := String{}
+		str.Init(literal.Value)
+		return &str
+	}
+
 	// Default
 	bl := Bool{}
 	bl.Init("false")
