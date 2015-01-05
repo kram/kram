@@ -105,6 +105,11 @@ func (l *Lexer) Parse() {
 				}
 			}
 
+			if str == "true" || str == "false" {
+				l.Push("bool", str)
+				continue
+			}
+
 			l.Push("name", str)
 			continue
 		}

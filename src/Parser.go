@@ -111,7 +111,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		if ok {
 			n.Right = stat
 		} else {
-			log.Panic("Found no statement to Assign")
+			log.Panicf("Found no statement to Assign to %s", n.Name)
 		}
 
 		return n
@@ -168,6 +168,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	p.Infix("number", 0)
 	p.Infix("string", 0)
+	p.Infix("bool", 0)
 
 	p.Infix("+", 50)
 	p.Infix("-", 50)
@@ -245,7 +246,7 @@ func (p *Parser) Expression(advance bool) Node {
 	current := p.Token
 
 	// Number or string
-	if current.Type == "number" || current.Type == "string" {
+	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
 		literal := Literal{
 			Type:  current.Type,
 			Value: current.Value,
@@ -335,14 +336,8 @@ func (p *Parser) Statement() (Node, bool) {
 			continue
 		}
 
-		if tok.Type == "number" {
-			p.Stat[current] = p.Symbols["number"].Function()
-			hasContent = true
-			continue
-		}
-
-		if tok.Type == "string" {
-			p.Stat[current] = p.Symbols["string"].Function()
+		if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" {
+			p.Stat[current] = p.Symbols[tok.Type].Function()
 			hasContent = true
 			continue
 		}
