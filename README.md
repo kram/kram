@@ -5,9 +5,12 @@ This is Gus, a scripting language that I'm building.
 It currently doesn't support much, but it is able to execute this
 
 ```
-var MyVariable = 100
+var age = 80
+var old = false
 
-MyVariable + 5
+if age > 60 {
+    old = true
+}
 ```
 
-The only thing you can currently do is addidtion, but we'll change that in just a bit!
+The syntax proposal for version 1 is available in `SYNTAX.md`

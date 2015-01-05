@@ -62,6 +62,7 @@ func (l *Lexer) Parse() {
 		if l.C == "\n" || l.C == "\r" || l.C == "" {
 			l.I++
 			l.Push("EOL", "")
+			continue
 		}
 
 		// Ignore Whitespace

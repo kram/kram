@@ -45,7 +45,7 @@ type Math struct {
 
 type If struct {
 	If        bool
-	Condition Condition
+	Condition Node
 	True      Block
 	False     Block
 }
@@ -166,9 +166,46 @@ func (p *Parser) Parse(tokens []Token) Block {
 		return sym
 	})
 
+	// var
+	p.Symbol("if", func() Node {
+		i := If{}
+
+		// Put Nil on the stack
+		p.Stack = append(p.Stack, &Nil{})
+
+		stat, ok := p.Statement()
+
+		if ok {
+			i.Condition = stat
+		} else {
+			log.Panic("Found no statement to If")
+		}
+
+		i.True = p.Statements()
+
+		p.Advance()
+
+		if p.Token.Type == "name" && p.Token.Value == "else" {
+			p.Advance()
+			i.False = p.Statements()
+		}
+
+		return i
+	}, 0, true)
+
 	p.Infix("number", 0)
 	p.Infix("string", 0)
 	p.Infix("bool", 0)
+
+	p.Infix("&&", 30);
+	p.Infix("||", 30);
+
+	p.Infix("==", 40);
+	p.Infix("!=", 40);
+	p.Infix("<", 40);
+	p.Infix("<=", 40);
+	p.Infix(">", 40);
+	p.Infix(">=", 40);
 
 	p.Infix("+", 50)
 	p.Infix("-", 50)
@@ -348,6 +385,13 @@ func (p *Parser) Statement() (Node, bool) {
 			hasContent = true
 			continue
 		}
+
+		if tok.Type == "operator" && tok.Value == "}" {
+			hasContent = true
+			break
+		}
+
+		// log.Panicf("How do I handle %s %s?\n", tok.Type, tok.Value)
 	}
 
 	p.CurrentStat--
@@ -361,14 +405,17 @@ func (p *Parser) Statements() Block {
 	for {
 		p.Stack = make([]Node, 0)
 
-		if (p.Token.Value == "}") || p.Token.Type == "EOF" {
-			break
-		}
-
 		statement, ok := p.Statement()
 
 		if ok {
 			n.Body = append(n.Body, statement)
+		}
+
+		if (p.Token.Type == "operator" && p.Token.Value == "}") || p.Token.Type == "EOF" {
+
+			// To force a new statement
+			p.Token.Type = "ForceStatement"
+			break
 		}
 	}
 

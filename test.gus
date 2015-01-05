@@ -1,2 +1,8 @@
-var a = 100
-a = a + 5 * 10
+var a = 123
+var big = false
+
+if a > 100 {
+	big = true
+}
+
+a = 10000

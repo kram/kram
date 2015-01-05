@@ -38,23 +38,52 @@ func (n *Number) Math(method string, right Type) Type {
 
 	val := float64(0)
 
-	switch method {
-	case "+":
-		val = n.Value + r.Value
-	case "-":
-		val = n.Value - r.Value
-	case "*":
-		val = n.Value * r.Value
-	case "/":
-		val = n.Value / r.Value
-	default:
-		log.Panicf("Number has no such method, %s", method)
+	if method == "+" || method == "-" || method == "*" || method == "/" {
+		switch method {
+		case "+":
+			val = n.Value + r.Value
+		case "-":
+			val = n.Value - r.Value
+		case "*":
+			val = n.Value * r.Value
+		case "/":
+			val = n.Value / r.Value
+		}
+
+		num := Number{}
+		num.Value = val
+		return &num
 	}
 
-	res := Number{}
-	res.Value = val
+	if method == ">" || method == "<" || method == ">=" || method == "<=" || method == "==" || method == "!=" {
+		b := false
 
-	return &res
+		switch method {
+		case ">":
+			b = n.Value > r.Value
+		case "<":
+			b = n.Value < r.Value
+		case ">=":
+			b = n.Value >= r.Value
+		case "<=":
+			b = n.Value <= r.Value
+		case "==":
+			b = n.Value == r.Value
+		case "!=":
+			b = n.Value != r.Value
+		}
+
+		bl := Bool{}
+		bl.Value = b
+		return &bl
+	} 
+
+	log.Panicf("Number has no such method, %s", method)
+
+	num := Number{}
+	num.Value = val
+
+	return &num
 }
 
 func (n *Number) LessThan(num float64) bool {

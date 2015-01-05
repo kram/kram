@@ -20,13 +20,10 @@ func main() {
 		var parse = Parser{}
 		tree := parse.Parse(lexer.Tokens)
 
-		b, _ := json.MarshalIndent(tree, "", "    ")
-		fmt.Println(string(b))
-
 		var vm = VM{}
 		vm.Run(tree)
 
-		b, _ = json.MarshalIndent(vm.Environment, "", "    ")
+		b, _ := json.MarshalIndent(vm.Environment, "", "    ")
 		fmt.Println(string(b))
 	}
 }

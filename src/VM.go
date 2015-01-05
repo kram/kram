@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -18,11 +17,10 @@ type VM struct {
 
 func (vm *VM) Run(tree Block) {
 
+	// Set empty environment
 	vm.Environment = make(map[string]Type)
 
-	for _, body := range tree.Body {
-		vm.Operation(body)
-	}
+	vm.Operation(tree)
 }
 
 func (vm *VM) Operation(node Node) Type {
@@ -47,11 +45,30 @@ func (vm *VM) Operation(node Node) Type {
 		return vm.OperationSet(set)
 	}
 
+	if i, ok := node.(If); ok {
+		return vm.OperationIf(i)
+	}
+
+	if block, ok := node.(Block); ok {
+		return vm.OperationBlock(block)
+	}
+
+	log.Panicf("Was not able to expecute %s", node)
+
 	// Default
 	bl := Bool{}
 	bl.Init("false")
 
 	return &bl
+}
+
+func (vm *VM) OperationBlock(block Block) (last Type) {
+
+	for _, body := range block.Body {
+		last = vm.Operation(body)
+	}
+
+	return last
 }
 
 func (vm *VM) OperationAssign(assign Assign) Type {
@@ -67,8 +84,6 @@ func (vm *VM) OperationMath(math Math) Type {
 
 	left := vm.Operation(math.Left)
 	right := vm.Operation(math.Right)
-
-	fmt.Println(left, math.Method, right)
 
 	return left.Math(math.Method, right)
 }
@@ -86,6 +101,14 @@ func (vm *VM) OperationLiteral(literal Literal) Type {
 		str.Init(literal.Value)
 		return &str
 	}
+
+	if literal.Type == "bool" {
+		bl := Bool{}
+		bl.Init(literal.Value)
+		return &bl
+	}
+
+	log.Panicf("Not able to handle Literal %s", literal)
 
 	// Default
 	bl := Bool{}
@@ -122,4 +145,19 @@ func (vm *VM) OperationSet(set Set) Type {
 	vm.Environment[set.Name] = value
 
 	return vm.Environment[set.Name]
+}
+
+func (vm *VM) OperationIf(i If) Type {
+
+	con := vm.Operation(i.Condition)
+
+	if con.Type() != "Bool" {
+		log.Panicf("Expecing bool in condition, %s (%s)", con.toString(), con.Type())
+	}
+
+	if con.toString() == "true" {
+		return vm.Operation(i.True)
+	}
+	
+	return vm.Operation(i.False)
 }
