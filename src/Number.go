@@ -1,16 +1,16 @@
 package main
 
 import (
-	"strconv"
 	"log"
+	"strconv"
 )
 
 type Number struct {
 	Number bool
-	Value float64
+	Value  float64
 }
 
-func (n *Number) Init(str string) {	
+func (n *Number) Init(str string) {
 	value, err := strconv.ParseFloat(str, 64)
 
 	if err != nil {
@@ -25,7 +25,7 @@ func (n *Number) toString() string {
 }
 
 func (n *Number) Math(method string, right Type) Type {
-	
+
 	r, ok := right.(*Number)
 
 	if !ok {

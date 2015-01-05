@@ -1,11 +1,11 @@
 package main
 
 type Bool struct {
-	Bool bool
+	Bool  bool
 	Value bool
 }
 
-func (self *Bool) Init(str string)  {
+func (self *Bool) Init(str string) {
 
 	if str == "true" {
 		self.Value = true

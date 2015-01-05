@@ -4,64 +4,64 @@ import (
 	"log"
 )
 
-type Node interface {}
+type Node interface{}
 
-type Nil struct {}
+type Nil struct{}
 
 type Block struct {
 	Block bool
-	Body []Node
+	Body  []Node
 }
 
 type Assign struct {
 	Assign bool
-	Name string
-	Right Node
+	Name   string
+	Right  Node
 }
 
 type Literal struct {
 	Literal bool
-	Type string
-	Value string
+	Type    string
+	Value   string
 }
 
 type Variable struct {
 	Variable bool
-	Name string
+	Name     string
 }
 
 type Math struct {
-	Math bool
+	Math   bool
 	Method string
-	Left Node
-	Right Node
+	Left   Node
+	Right  Node
 }
 
 type If struct {
-	If bool
+	If        bool
 	Condition Condition
-	True Block
-	False Block
+	True      Block
+	False     Block
 }
 
 type Condition struct {
 	Condition string // && || > < >= <=
-	Left Node
-	Right Node
+	Left      Node
+	Right     Node
 }
 
 type Symbol struct {
-	Function SymbolReturn
-	Importance int
+	Function    SymbolReturn
+	Importance  int
 	IsStatement bool
 }
 
-type SymbolReturn func() (Node)
+type SymbolReturn func() Node
 
 type Parser struct {
-	Tokens []Token
+	Tokens  []Token
 	Current int
-	Token Token
+	Token   Token
 
 	// Symbols, eg var + -...
 	Symbols map[string]Symbol
@@ -70,7 +70,7 @@ type Parser struct {
 	Stack []Node
 
 	// Current Statement()
-	Stat map[int]Node
+	Stat        map[int]Node
 	CurrentStat int
 }
 
@@ -81,7 +81,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Stat = make(map[int]Node)
 
 	// var
-	p.Symbol("var", func() (Node) {
+	p.Symbol("var", func() Node {
 		n := Assign{}
 
 		name := p.Advance()
@@ -118,21 +118,21 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	top := p.Statements()
 
-    return top
+	return top
 }
 
 // Add to the symbol table
 func (p *Parser) Symbol(str string, function SymbolReturn, importance int, isStatement bool) {
-	p.Symbols[str] = Symbol {
-		Function: function,
-		Importance: importance,
+	p.Symbols[str] = Symbol{
+		Function:    function,
+		Importance:  importance,
 		IsStatement: isStatement,
 	}
 }
 
 // Shortcut for adding Infix's to the symbol table
 func (p *Parser) Infix(str string, importance int) {
-	p.Symbol(str, func() (Node) {
+	p.Symbol(str, func() Node {
 		return p.Expression(false)
 	}, importance, false)
 }
@@ -165,9 +165,9 @@ func (p *Parser) GetOperatorImportance(str string) int {
 
 func (p *Parser) Previous() Node {
 	if len(p.Stack) > 0 {
-		return p.Stack[len(p.Stack) - 1]
+		return p.Stack[len(p.Stack)-1]
 	}
-	
+
 	return Nil{}
 }
 
@@ -183,7 +183,7 @@ func (p *Parser) Expression(advance bool) Node {
 	// Number or string
 	if current.Type == "number" || current.Type == "string" {
 		literal := Literal{
-			Type: current.Type,
+			Type:  current.Type,
 			Value: current.Value,
 		}
 
@@ -211,13 +211,13 @@ func (p *Parser) Expression(advance bool) Node {
 		prev, ok := previous.(Math)
 
 		if ok {
-	 	   if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
+			if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
 				math.Left = prev.Left
 				math.Method = prev.Method
 				math.Right = Math{
 					Method: current.Value,
-					Left: prev.Right,
-					Right: p.Expression(true),
+					Left:   prev.Right,
+					Right:  p.Expression(true),
 				}
 			} else {
 				math.Left = previous

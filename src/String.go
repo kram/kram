@@ -6,7 +6,7 @@ import (
 
 type String struct {
 	String bool
-	Value string
+	Value  string
 }
 
 func (s *String) Init(str string) {
