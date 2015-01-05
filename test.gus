@@ -1,2 +1,3 @@
-var Age = 100
-var Old = true
+var a = 1 + 2 * 3 - 4
+var b = a
+var c = 100

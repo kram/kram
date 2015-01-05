@@ -1,261 +1,199 @@
 package main
 
 import (
-	"errors"
-	"regexp"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
+type Token struct {
+	Type  string
+	Value string
+}
+
 type Lexer struct {
-	source string
-	pos    int
-	length int
-	Tokens []GusToken
+	C      string // The current character
+	I      int    // Index of the current character
+	Length int    // Length of the source
+	Source string
+
+	Operators map[string]bool
+
+	Tokens []Token // The result goes here
 }
 
-func (l *Lexer) init(source string) {
-	l.source = source
-	l.pos = 0
-	l.length = len(source)
+func (l *Lexer) Init(source string) {
 
-	l.tokenize()
+	l.Operators = make(map[string]bool)
+	l.Operators["="] = true
+	/*l.Operators["=="] = true
+	l.Operators[">"] = true
+	l.Operators[">="] = true
+	l.Operators["<"] = true
+	l.Operators["<="] = true
+	l.Operators["!"] = true
+	l.Operators["!!"] = true
+	l.Operators["&&"] = true
+	l.Operators["||"] = true*/
+	l.Operators["+"] = true
+	l.Operators["-"] = true
+	l.Operators["*"] = true
+	l.Operators["/"] = true
+
+	l.Length = len(source)
+	l.Source = source
+
+	l.Parse()
 }
 
-func (l *Lexer) peek() (string, error) {
-	return l.peekSteps(1)
-}
+func (l *Lexer) Parse() {
 
-func (l *Lexer) peekSteps(steps int) (string, error) {
-
-	if l.pos+steps >= l.length {
-		return "", errors.New("End of file")
-	}
-
-	return string(l.source[l.pos : l.pos+steps]), nil
-}
-
-func (l *Lexer) emitToken(token Token) {
-	tok := GusToken{Token: token}
-
-	l.Tokens = append(l.Tokens, tok)
-}
-
-func (l *Lexer) emitTokenValue(token Token, value string) {
-	tok := GusToken{
-		Token: token,
-		Value: value,
-	}
-
-	l.Tokens = append(l.Tokens, tok)
-}
-
-func (l *Lexer) next() (string, error) {
-
-	if l.pos >= l.length {
-		return "", errors.New("End of file")
-	}
-
-	// Get next char
-	var char = l.source[l.pos]
-
-	l.advance()
-
-	return string(char), nil
-}
-
-func (l *Lexer) advance() {
-	l.pos++
-}
-
-func (l *Lexer) advanceMulti(steps int) {
-	l.pos += steps
-}
-
-func (l *Lexer) tokenize() {
 	for {
-		c, err := l.next()
 
-		// End of file
-		if err != nil {
+		// End
+		if l.I >= l.Length {
+			l.Push("EOL", "")
+			l.Push("EOF", "")
 			break
 		}
 
-		if l.isKeyword(c) {
-			l.emitToken(l.readKeyword(c))
+		// Get current char
+		l.C = string(l.Source[l.I])
+
+		// Line endings
+		if l.C == "\n" || l.C == "\r" || l.C == "" {
+			l.I++
+			l.Push("EOL", "")
+		}
+
+		// Ignore Whitespace
+		if strings.TrimSpace(l.C) != l.C {
+			l.I++
 			continue
 		}
 
-		if l.isBool(c) {
-			value := l.readNameOrValue(c)
-			l.emitTokenValue(TOKEN_BOOL, value)
+		// Comments
+		if l.C == "/" && l.CharAtPos(l.I+1) == "/" {
+			l.I++
+
+			// Comments contine until the end of the file or a new row
+			for {
+				l.C = l.CharAtPos(l.I)
+
+				if l.C == "\n" || l.C == "\r" || l.C == "" {
+					break
+				}
+
+				l.I++
+			}
 			continue
 		}
 
-		if l.isName(c) {
-			name := l.readNameOrValue(c)
-			l.emitTokenValue(TOKEN_NAME, name)
-			continue
-		}
+		// Names
+		// Begins with a char a-Z
+		if (l.C >= "a" && l.C <= "z") || (l.C >= "A" && l.C <= "Z") {
+			str := l.C
+			l.I++
 
-		if l.isNumber(c) {
-			value := l.readNameOrValue(c)
-			l.emitTokenValue(TOKEN_NUMBER, value)
-			continue
-		}
+			for {
+				l.C = l.CharAtPos(l.I)
 
-		switch c {
-		case "(":
-			l.emitToken(TOKEN_LEFT_PAREN)
-		case ")":
-			l.emitToken(TOKEN_RIGHT_PAREN)
-
-		case "=":
-			peek, _ := l.peek()
-
-			if peek == "=" {
-				l.advance()
-				l.emitToken(TOKEN_EQEQ)
-			} else {
-				l.emitToken(TOKEN_EQ)
+				// After the beginning, a name can be a-Z0-9_
+				if (l.C >= "a" && l.C <= "z") || (l.C >= "A" && l.C <= "Z") || (l.C >= "0" && l.C <= "9") || l.C == "_" {
+					str += l.C
+					l.I++
+				} else {
+					break
+				}
 			}
 
-		case "+":
+			l.Push("name", str)
+			continue
+		}
 
-			peek, _ := l.peek()
+		// Numbers
+		if l.C >= "0" && l.C <= "9" {
+			str := l.C
+			l.I++
 
-			if peek == "=" {
-				l.advance()
-				l.emitToken(TOKEN_PLUSEQ)
-			} else {
-				l.emitToken(TOKEN_PLUS)
+			// Look for more digits.
+			for {
+				l.C = l.CharAtPos(l.I)
+
+				if l.C < "0" || l.C > "9" {
+					break
+				}
+
+				l.I++
+				str += l.C
 			}
 
-		case "-":
-			peek, _ := l.peek()
+			// TODO Decimal
+			// TODO Verify that it ends with a space?
 
-			if peek == "=" {
-				l.advance()
-				l.emitToken(TOKEN_MINUSEQ)
-			} else {
-				l.emitToken(TOKEN_MINUS)
+			l.Push("number", str)
+			continue
+		}
+
+		// Strings
+		if l.C == "\"" {
+			str := ""
+			l.I++
+
+			// TODO escaping
+
+			for {
+				if l.CharAtPos(l.I) == "\"" {
+					l.I++
+					break
+				}
+
+				l.C = l.CharAtPos(l.I)
+				str += l.C
+				l.I++
 			}
 
-		case "\"":
-			str := l.readUntil("\"")
-			l.emitTokenValue(TOKEN_STRING, str)
-
-			// Advance for each character, and the ending "
-			l.advanceMulti(len(str) + 1)
-		}
-	}
-}
-
-func (l *Lexer) isKeyword(c string) bool {
-
-	keywords := make(map[string]Token)
-	keywords["var"] = TOKEN_VAR
-	keywords["if"] = TOKEN_IF
-	keywords["else"] = TOKEN_ELSE
-
-	str := l.readUntilWhitespace()
-
-	// Append first char
-	str = c + str
-
-	// Test if str is a keyword
-	if _, ok := keywords[str]; ok {
-		return true
-	}
-
-	return false
-}
-
-func (l *Lexer) readKeyword(c string) Token {
-
-	keywords := make(map[string]Token)
-	keywords["var"] = TOKEN_VAR
-	keywords["if"] = TOKEN_IF
-	keywords["else"] = TOKEN_ELSE
-
-	str := l.readUntilWhitespace()
-
-	l.advanceMulti(len(str))
-
-	// Append first char
-	str = c + str
-
-	// Test if str is a keyword
-	if val, ok := keywords[str]; ok {
-		return val
-	}
-
-	return TOKEN_LEXER_ERROR
-}
-
-func (l *Lexer) isName(c string) bool {
-	str := l.readUntilWhitespace()
-
-	match, _ := regexp.MatchString("^[a-zA-Z]+$", c+str)
-
-	return match
-}
-
-func (l *Lexer) isNumber(c string) bool {
-	str := l.readUntilWhitespace()
-
-	match, _ := regexp.MatchString("^[0-9]+$", c+str)
-
-	return match
-}
-
-func (l *Lexer) isBool(c string) bool {
-	str := l.readUntilWhitespace()
-
-	full := c + str
-
-	if full == "true" || full == "false" {
-		return true
-	}
-
-	return false
-}
-
-func (l *Lexer) readNameOrValue(c string) string {
-	str := l.readUntilWhitespace()
-
-	l.advanceMulti(len(str))
-
-	return c + str
-}
-
-func (l *Lexer) readUntilWhitespace() string {
-
-	length := 0
-	str := ""
-
-	for {
-		if l.pos+length > len(l.source) {
-			return str
+			l.Push("string", str)
+			continue
 		}
 
-		str = string(l.source[l.pos : l.pos+length])
+		// Operators
+		if _, ok := l.Operators[l.C]; ok {
+			l.I++
+			str := l.C
 
-		if strings.TrimSpace(str) != str {
-			return strings.TrimSpace(str)
+			for {
+				if _, ok := l.Operators[str+l.CharAtPos(l.I)]; ok {
+					l.C = l.CharAtPos(l.I)
+					l.I++
+					str += l.C
+				} else {
+					break
+				}
+			}
+
+			l.Push("operator", str)
+			continue
 		}
 
-		length++
-	}
+		l.I++
 
-	return ""
+		l.Push("operator", l.C)
+	}
 }
 
-func (l *Lexer) readUntil(c string) string {
-	index := strings.Index(l.source[l.pos:], c)
-
-	if index < 0 {
+func (l *Lexer) CharAtPos(pos int) string {
+	if pos >= l.Length {
 		return ""
 	}
 
-	return string(l.source[l.pos:l.pos+index])
+	return string(l.Source[pos])
+}
+
+func (l *Lexer) Push(typ, value string) {
+	l.Tokens = append(l.Tokens, Token{
+		Type:  typ,
+		Value: value,
+	})
 }
