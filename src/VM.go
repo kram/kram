@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 )
 
 type Type interface {
@@ -51,6 +52,10 @@ func (vm *VM) Operation(node Node) Type {
 
 	if block, ok := node.(Block); ok {
 		return vm.OperationBlock(block)
+	}
+
+	if call, ok := node.(Call); ok {
+		return vm.OperationCall(call)
 	}
 
 	log.Panicf("Was not able to expecute %s", node)
@@ -160,4 +165,33 @@ func (vm *VM) OperationIf(i If) Type {
 	}
 	
 	return vm.Operation(i.False)
+}
+
+func (vm *VM) OperationCall(call Call) Type {
+
+	params := make([]Type, 0)
+
+	for _, param := range call.Parameters {
+		params = append(params, vm.Operation(param))
+	}
+
+
+	// Built in method
+	if call.Left == "Println" {
+		for _, p := range params {
+			fmt.Println(p.toString())
+		}
+
+		bl := Bool{}
+		bl.Init("true")
+		return &bl
+	}
+
+	fmt.Println("Call to undefined function %s", call.Left)
+
+	// Default
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
 }

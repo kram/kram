@@ -4,57 +4,7 @@ import (
 	"log"
 )
 
-type Node interface{}
-
-type Nil struct{}
-
-type Block struct {
-	Block bool
-	Body  []Node
-}
-
-type Assign struct {
-	Assign bool
-	Name   string
-	Right  Node
-}
-
-type Set struct {
-	Set   bool
-	Name  string
-	Right Node
-}
-
-type Literal struct {
-	Literal bool
-	Type    string
-	Value   string
-}
-
-type Variable struct {
-	Variable bool
-	Name     string
-}
-
-type Math struct {
-	Math   bool
-	Method string
-	Left   Node
-	Right  Node
-}
-
-type If struct {
-	If        bool
-	Condition Node
-	True      Block
-	False     Block
-}
-
-type Condition struct {
-	Condition string // && || > < >= <=
-	Left      Node
-	Right     Node
-}
+// --------------- Symbols
 
 type Symbol struct {
 	Function     SymbolReturn
@@ -66,6 +16,54 @@ type Symbol struct {
 type SymbolReturn func() Node
 type SymbolCaseReturn func() Symbol
 
+// --------------- Symbols
+
+// --------------- Stack
+
+type Stack struct {
+	Items  *[]Node
+	Parents []*[]Node
+}
+
+func (stack *Stack) Pop() {
+	if len(stack.Parents) == 0 {
+		items := make([]Node, 0)
+		stack.Items = &items
+		return
+	}
+	
+	stack.Items = stack.Parents[len(stack.Parents) - 1]
+	stack.Parents = stack.Parents[:len(stack.Parents) - 1]
+}
+
+func (stack *Stack) Push() {
+	stack.Parents = append(stack.Parents, stack.Items)
+	
+	items := make([]Node, 0)
+	stack.Items = &items	
+}
+
+func (stack *Stack) Add(node Node) {
+	items := *stack.Items
+	items = append(items, node)
+	
+	stack.Items = &items
+}
+
+func (stack *Stack) Reset() {
+	stack.Empty()
+	stack.Parents = make([]*[]Node, 0)
+}
+
+func (stack *Stack) Empty() {
+	items := make([]Node, 0)
+	stack.Items = &items
+}
+
+// --------------- Stack
+
+// --------------- Parser
+
 type Parser struct {
 	Tokens  []Token
 	Current int
@@ -75,18 +73,16 @@ type Parser struct {
 	Symbols map[string]Symbol
 
 	// The current stack (used by Expression)
-	Stack []Node
-
-	// Current Statement()
-	Stat        map[int]Node
-	CurrentStat int
+	Stack Stack
 }
 
 func (p *Parser) Parse(tokens []Token) Block {
 	p.Tokens = tokens
 	p.Current = 0
 	p.Symbols = make(map[string]Symbol)
-	p.Stat = make(map[int]Node)
+
+	// Initialize Stack
+	p.Stack.Reset()
 
 	// var
 	p.Symbol("var", func() Node {
@@ -129,37 +125,76 @@ func (p *Parser) Parse(tokens []Token) Block {
 		}
 
 		// Var as assignment
-		if len(p.Stack) == 0 {
+		if len(*p.Stack.Items) == 0 {
 			sym.IsStatement = true
 			sym.Function = func() Node {
-				n := Set{}
-
+				
 				name := p.Token
 
 				if name.Type != "name" {
 					log.Panicf("var, expected name, got %s", name.Type)
 				}
+	
+				tok := p.Advance()
 
-				n.Name = name.Value
+				// Set
+				// abc = 123
+				if tok.Type == "operator" && tok.Value == "=" {
+					set := Set{}
+					set.Name = name.Value
 
-				eq := p.Advance()
+					// Put Nil on the stack
+					p.Stack.Add(&Nil{})
 
-				if eq.Type != "operator" && eq.Value == "=" {
-					log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
+					stat, ok := p.Statement()
+
+					if ok {
+						set.Right = stat
+					} else {
+						log.Panic("Found no statement to Assign")
+					}
+
+					return set
 				}
 
-				// Put Nil on the stack
-				p.Stack = append(p.Stack, &Nil{})
+				// Calls
+				// IO.Println("123")
+				// ^^
+				if tok.Type == "operator" && tok.Value == "." {
+					class := CallClass{}
 
-				stat, ok := p.Statement()
+					class.Left = name.Value
+					method, _ := p.Statement()
+					class.Method = method
 
-				if ok {
-					n.Right = stat
-				} else {
-					log.Panic("Found no statement to Assign")
+					return class
 				}
 
-				return n
+				// Calls
+				// IO.Println("123")
+				//    ^^^^^^^
+				if tok.Type == "operator" && tok.Value == "(" {
+					method := Call{}
+
+					method.Left = name.Value
+					method.Parameters = make([]Node, 0)
+
+					for {
+						stat, _ := p.Statement()
+						method.Parameters = append(method.Parameters, stat)
+
+						if p.Token.Type == "operator" && p.Token.Value == "," {
+							continue
+						}
+
+						break
+					}
+
+					return method
+				}
+
+				p.Reverse()
+				return p.Expression(false)
 			}
 		}
 
@@ -171,7 +206,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		i := If{}
 
 		// Put Nil on the stack
-		p.Stack = append(p.Stack, &Nil{})
+		p.Stack.Add(&Nil{})
 
 		stat, ok := p.Statement()
 
@@ -256,6 +291,11 @@ func (p *Parser) Advance() Token {
 	return token
 }
 
+func (p *Parser) Reverse() {
+	p.Current--
+	p.Current--
+}
+
 func (p *Parser) GetOperatorImportance(str string) int {
 
 	if _, ok := p.Symbols[str]; ok {
@@ -266,8 +306,10 @@ func (p *Parser) GetOperatorImportance(str string) int {
 }
 
 func (p *Parser) Previous() Node {
-	if len(p.Stack) > 0 {
-		return p.Stack[len(p.Stack)-1]
+
+	if len(*p.Stack.Items) > 0 {
+		items := *p.Stack.Items
+		return items[len(items)-1]
 	}
 
 	return Nil{}
@@ -289,7 +331,7 @@ func (p *Parser) Expression(advance bool) Node {
 			Value: current.Value,
 		}
 
-		p.Stack = append(p.Stack, literal)
+		p.Stack.Add(literal)
 
 		return literal
 	}
@@ -299,7 +341,7 @@ func (p *Parser) Expression(advance bool) Node {
 		variable := Variable{}
 		variable.Name = current.Value
 
-		p.Stack = append(p.Stack, variable)
+		p.Stack.Add(variable)
 
 		return variable
 	}
@@ -339,8 +381,8 @@ func (p *Parser) Expression(advance bool) Node {
 			math.Right = p.Expression(true)
 		}
 
-		p.Stack = make([]Node, 0)
-		p.Stack = append(p.Stack, math)
+		p.Stack.Empty()
+		p.Stack.Add(math)
 
 		return math
 	}
@@ -350,8 +392,9 @@ func (p *Parser) Expression(advance bool) Node {
 
 func (p *Parser) Statement() (Node, bool) {
 
-	p.CurrentStat++
-	current := p.CurrentStat
+	p.Stack.Push()
+
+	var statement Node
 
 	hasContent := false
 
@@ -362,8 +405,17 @@ func (p *Parser) Statement() (Node, bool) {
 			break
 		}
 
+		// IO.Println("first", "second")
+		if tok.Type == "operator" && tok.Value == "," {
+			break
+		}
+
+		if tok.Type == "operator" && tok.Value == ")" {
+			break
+		}
+
 		if _, ok := p.Symbols[tok.Value]; ok {
-			p.Stat[current] = p.Symbols[tok.Value].Function()
+			statement = p.Symbols[tok.Value].Function()
 			hasContent = true
 
 			if p.Symbols[tok.Value].IsStatement {
@@ -374,14 +426,14 @@ func (p *Parser) Statement() (Node, bool) {
 		}
 
 		if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" {
-			p.Stat[current] = p.Symbols[tok.Type].Function()
+			statement = p.Symbols[tok.Type].Function()
 			hasContent = true
 			continue
 		}
 
 		if tok.Type == "name" {
 			sym := p.Symbols["variable"].CaseFunction()
-			p.Stat[current] = sym.Function()
+			statement = sym.Function()
 			hasContent = true
 			continue
 		}
@@ -394,22 +446,25 @@ func (p *Parser) Statement() (Node, bool) {
 		// log.Panicf("How do I handle %s %s?\n", tok.Type, tok.Value)
 	}
 
-	p.CurrentStat--
+	p.Stack.Pop()
 
-	return p.Stat[current], hasContent
+	return statement, hasContent
 }
 
 func (p *Parser) Statements() Block {
 	n := Block{}
 
 	for {
-		p.Stack = make([]Node, 0)
+
+		p.Stack.Push()
 
 		statement, ok := p.Statement()
 
-		if ok {
+		if ok && statement != nil {
 			n.Body = append(n.Body, statement)
 		}
+
+		p.Stack.Pop()
 
 		if (p.Token.Type == "operator" && p.Token.Value == "}") || p.Token.Type == "EOF" {
 

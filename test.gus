@@ -1,8 +1,7 @@
-var a = 123
-var big = false
+var age = 1
 
-if a > 100 {
-	big = true
+if age > 100 {
+	Println("Old!")
+} else {
+	Println("Young")
 }
-
-a = 10000

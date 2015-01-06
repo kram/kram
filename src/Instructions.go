@@ -1,0 +1,65 @@
+package main
+
+type Node interface{}
+
+type Nil struct{}
+
+type Block struct {
+	Block bool
+	Body  []Node
+}
+
+type Assign struct {
+	Assign bool
+	Name   string
+	Right  Node
+}
+
+type Set struct {
+	Set   bool
+	Name  string
+	Right Node
+}
+
+type Literal struct {
+	Literal bool
+	Type    string
+	Value   string
+}
+
+type Variable struct {
+	Variable bool
+	Name     string
+}
+
+type Math struct {
+	Math   bool
+	Method string
+	Left   Node
+	Right  Node
+}
+
+type If struct {
+	If        bool
+	Condition Node
+	True      Block
+	False     Block
+}
+
+type Condition struct {
+	Condition string // && || > < >= <=
+	Left      Node
+	Right     Node
+}
+
+type CallClass struct {
+	CallClass bool
+	Left      Node
+	Method    Node
+}
+
+type Call struct {
+	Call       bool
+	Left       Node
+	Parameters []Node
+}
