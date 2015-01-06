@@ -54,13 +54,13 @@ type Condition struct {
 
 type CallClass struct {
 	CallClass bool
-	Left      Node
+	Left      string
 	Method    Node
 }
 
 type Call struct {
 	Call       bool
-	Left       Node
+	Left       string
 	Parameters []Node
 }
 

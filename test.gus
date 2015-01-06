@@ -1,5 +1,7 @@
-class CustomClass {
+class IO {
 	static Print() {
 		Println("123")
 	}
 }
+
+IO.Print()

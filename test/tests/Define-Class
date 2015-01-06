@@ -1,0 +1,8 @@
+// 123
+class MyClass {
+	static A() {
+		Println("123")
+	}
+}
+
+MyClass.A()

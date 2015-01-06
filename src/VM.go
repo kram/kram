@@ -18,6 +18,8 @@ type VM struct {
 
 	// The current stack of methods, used to know where to define a method
 	Classes []*Class
+
+	Debug bool
 }
 
 func (vm *VM) Run(tree Block) {
@@ -63,6 +65,10 @@ func (vm *VM) Operation(node Node) Type {
 		return vm.OperationCall(call)
 	}
 
+	if callClass, ok := node.(CallClass); ok {
+		return vm.OperationCallClass(callClass)
+	}
+
 	if defineClass, ok := node.(DefineClass); ok {
 		return vm.OperationDefineClass(defineClass)
 	}
@@ -71,7 +77,9 @@ func (vm *VM) Operation(node Node) Type {
 		return vm.OperationDefineMethod(defineMethod)
 	}
 
-	log.Panicf("Was not able to expecute %s", node)
+	if vm.Debug {
+		fmt.Printf("Was not able to expecute %s\n", node)
+	}
 
 	// Default
 	bl := Bool{}
@@ -188,7 +196,6 @@ func (vm *VM) OperationCall(call Call) Type {
 		params = append(params, vm.Operation(param))
 	}
 
-
 	// Built in method
 	if call.Left == "Println" {
 		for _, p := range params {
@@ -198,6 +205,11 @@ func (vm *VM) OperationCall(call Call) Type {
 		bl := Bool{}
 		bl.Init("true")
 		return &bl
+	}
+
+	// Calling a method
+	if len(vm.Classes) >= 0 {
+		return vm.OperationBlock(vm.Classes[len(vm.Classes) - 1].Methods[call.Left].Body)
 	}
 
 	fmt.Println("Call to undefined function %s", call.Left)
@@ -248,4 +260,37 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 	bl.Init("false")
 
 	return &bl
+}
+
+func (vm *VM) OperationCallClass(callClass CallClass) Type {
+
+	if _, ok := vm.Environment[callClass.Left]; !ok {
+		log.Panicf("No such class, %s", callClass.Left)
+	}
+
+	c := vm.Environment[callClass.Left]
+
+	if class, ok := c.(*Class); !ok {
+		log.Panicf("%s is not a class", callClass.Left)
+	} else {
+
+		// Push
+		vm.Classes = append(vm.Classes, class)
+
+		return vm.Operation(callClass.Method)
+
+		// Pop
+		vm.Classes = vm.Classes[:len(vm.Classes) - 1]
+
+	}
+
+	// Default
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
+}
+
+func (vm *VM) Echo(t Type) Type {
+	return t
 }

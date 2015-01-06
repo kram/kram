@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"fmt"
 )
 
 // --------------- Symbols
@@ -431,8 +430,6 @@ func (p *Parser) Method() DefineMethod {
 
 	method.Name = p.Token.Value
 	method.Body = p.Statements()
-
-	fmt.Println(method)
 
 	return method
 }

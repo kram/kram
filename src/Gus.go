@@ -51,6 +51,11 @@ func main() {
 		}
 
 		var vm = VM{}
+
+		if *debug {
+			vm.Debug = true
+		}
+
 		vm.Run(tree)
 
 		if *debug {
