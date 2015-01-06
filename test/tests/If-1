@@ -1,0 +1,8 @@
+// Young
+var age = 1
+
+if age > 100 {
+	Println("Old!")
+} else {
+	Println("Young")
+}
