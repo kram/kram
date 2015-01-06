@@ -67,13 +67,13 @@ type Call struct {
 type DefineClass struct {
 	DefineClass bool
 	Name        string
-	Body		Block
+	Body        Block
 }
 
 type DefineMethod struct {
 	DefineMethod bool
 	Name         string
-	Body		 Block
+	Body         Block
 	IsStatic     bool
 	Parameters   []Parameter
 }

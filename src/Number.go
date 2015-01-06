@@ -76,7 +76,7 @@ func (n *Number) Math(method string, right Type) Type {
 		bl := Bool{}
 		bl.Value = b
 		return &bl
-	} 
+	}
 
 	log.Panicf("Number has no such method, %s", method)
 

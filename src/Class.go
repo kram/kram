@@ -11,7 +11,7 @@ type Method struct {
 }
 
 type Class struct {
-	Class string
+	Class   string
 	Methods map[string]Method
 }
 
@@ -43,4 +43,3 @@ func (class *Class) Math(method string, right Type) Type {
 func (class *Class) toString() string {
 	return "Class"
 }
-

@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"flag"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 		var parse = Parser{}
 		tree := parse.Parse(lexer.Tokens)
 
-		if *debug {		
+		if *debug {
 			b, _ := json.MarshalIndent(tree, "", "  ")
 			fmt.Println(string(b))
 

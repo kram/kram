@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"fmt"
+	"log"
 )
 
 type Type interface {
@@ -184,7 +184,7 @@ func (vm *VM) OperationIf(i If) Type {
 	if con.toString() == "true" {
 		return vm.Operation(i.True)
 	}
-	
+
 	return vm.Operation(i.False)
 }
 
@@ -209,7 +209,7 @@ func (vm *VM) OperationCall(call Call) Type {
 
 	// Calling a method
 	if len(vm.Classes) >= 0 {
-		return vm.OperationBlock(vm.Classes[len(vm.Classes) - 1].Methods[call.Left].Body)
+		return vm.OperationBlock(vm.Classes[len(vm.Classes)-1].Methods[call.Left].Body)
 	}
 
 	fmt.Println("Call to undefined function %s", call.Left)
@@ -232,7 +232,7 @@ func (vm *VM) OperationDefineClass(def DefineClass) Type {
 	vm.OperationBlock(def.Body)
 
 	// Pop
-	vm.Classes = vm.Classes[:len(vm.Classes) - 1]
+	vm.Classes = vm.Classes[:len(vm.Classes)-1]
 
 	vm.Environment[def.Name] = &class
 
@@ -253,7 +253,7 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 	method.Parameters = make([]string, 0)
 	method.Body = def.Body
 
-	vm.Classes[len(vm.Classes) - 1].AddMethod(def.Name, method)
+	vm.Classes[len(vm.Classes)-1].AddMethod(def.Name, method)
 
 	// Default
 	bl := Bool{}
@@ -280,7 +280,7 @@ func (vm *VM) OperationCallClass(callClass CallClass) Type {
 		return vm.Operation(callClass.Method)
 
 		// Pop
-		vm.Classes = vm.Classes[:len(vm.Classes) - 1]
+		vm.Classes = vm.Classes[:len(vm.Classes)-1]
 
 	}
 

@@ -21,7 +21,7 @@ type SymbolCaseReturn func() Symbol
 // --------------- Stack
 
 type Stack struct {
-	Items  *[]Node
+	Items   *[]Node
 	Parents []*[]Node
 }
 
@@ -31,22 +31,22 @@ func (stack *Stack) Pop() {
 		stack.Items = &items
 		return
 	}
-	
-	stack.Items = stack.Parents[len(stack.Parents) - 1]
-	stack.Parents = stack.Parents[:len(stack.Parents) - 1]
+
+	stack.Items = stack.Parents[len(stack.Parents)-1]
+	stack.Parents = stack.Parents[:len(stack.Parents)-1]
 }
 
 func (stack *Stack) Push() {
 	stack.Parents = append(stack.Parents, stack.Items)
-	
+
 	items := make([]Node, 0)
-	stack.Items = &items	
+	stack.Items = &items
 }
 
 func (stack *Stack) Add(node Node) {
 	items := *stack.Items
 	items = append(items, node)
-	
+
 	stack.Items = &items
 }
 
@@ -128,13 +128,13 @@ func (p *Parser) Parse(tokens []Token) Block {
 		if len(*p.Stack.Items) == 0 {
 			sym.IsStatement = true
 			sym.Function = func() Node {
-				
+
 				name := p.Token
 
 				if name.Type != "name" {
 					log.Panicf("var, expected name, got %s", name.Type)
 				}
-	
+
 				tok := p.Advance()
 
 				// Set
@@ -261,15 +261,15 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix("string", 0)
 	p.Infix("bool", 0)
 
-	p.Infix("&&", 30);
-	p.Infix("||", 30);
+	p.Infix("&&", 30)
+	p.Infix("||", 30)
 
-	p.Infix("==", 40);
-	p.Infix("!=", 40);
-	p.Infix("<", 40);
-	p.Infix("<=", 40);
-	p.Infix(">", 40);
-	p.Infix(">=", 40);
+	p.Infix("==", 40)
+	p.Infix("!=", 40)
+	p.Infix("<", 40)
+	p.Infix("<=", 40)
+	p.Infix(">", 40)
+	p.Infix(">=", 40)
 
 	p.Infix("+", 50)
 	p.Infix("-", 50)
