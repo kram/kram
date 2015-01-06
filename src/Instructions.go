@@ -63,3 +63,21 @@ type Call struct {
 	Left       Node
 	Parameters []Node
 }
+
+type DefineClass struct {
+	DefineClass bool
+	Name        string
+	Body		Block
+}
+
+type DefineMethod struct {
+	DefineMethod bool
+	Name         string
+	Body		 Block
+	IsStatic     bool
+	Parameters   []Parameter
+}
+
+type Parameter struct {
+	Name string
+}

@@ -13,13 +13,18 @@ type Type interface {
 }
 
 type VM struct {
+	// Contains variables
 	Environment map[string]Type
+
+	// The current stack of methods, used to know where to define a method
+	Classes []*Class
 }
 
 func (vm *VM) Run(tree Block) {
 
 	// Set empty environment
 	vm.Environment = make(map[string]Type)
+	vm.Classes = make([]*Class, 0)
 
 	vm.Operation(tree)
 }
@@ -56,6 +61,14 @@ func (vm *VM) Operation(node Node) Type {
 
 	if call, ok := node.(Call); ok {
 		return vm.OperationCall(call)
+	}
+
+	if defineClass, ok := node.(DefineClass); ok {
+		return vm.OperationDefineClass(defineClass)
+	}
+
+	if defineMethod, ok := node.(DefineMethod); ok {
+		return vm.OperationDefineMethod(defineMethod)
 	}
 
 	log.Panicf("Was not able to expecute %s", node)
@@ -188,6 +201,47 @@ func (vm *VM) OperationCall(call Call) Type {
 	}
 
 	fmt.Println("Call to undefined function %s", call.Left)
+
+	// Default
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
+}
+
+func (vm *VM) OperationDefineClass(def DefineClass) Type {
+
+	class := Class{}
+	class.Init(def.Name)
+
+	// Push
+	vm.Classes = append(vm.Classes, &class)
+
+	vm.OperationBlock(def.Body)
+
+	// Pop
+	vm.Classes = vm.Classes[:len(vm.Classes) - 1]
+
+	vm.Environment[def.Name] = &class
+
+	// Default
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
+}
+
+func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
+
+	if len(vm.Classes) == 0 {
+		log.Panic("Unable to define method, not in class")
+	}
+
+	method := Method{}
+	method.Parameters = make([]string, 0)
+	method.Body = def.Body
+
+	vm.Classes[len(vm.Classes) - 1].AddMethod(def.Name, method)
 
 	// Default
 	bl := Bool{}

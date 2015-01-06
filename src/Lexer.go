@@ -16,6 +16,7 @@ type Lexer struct {
 	Source string
 
 	Operators map[string]bool
+	Keywords  map[string]bool
 
 	Tokens []Token // The result goes here
 }
@@ -24,19 +25,25 @@ func (l *Lexer) Init(source string) {
 
 	l.Operators = make(map[string]bool)
 	l.Operators["="] = true
-	/*l.Operators["=="] = true
+	l.Operators["=="] = true
 	l.Operators[">"] = true
 	l.Operators[">="] = true
 	l.Operators["<"] = true
 	l.Operators["<="] = true
 	l.Operators["!"] = true
-	l.Operators["!!"] = true
 	l.Operators["&&"] = true
-	l.Operators["||"] = true*/
+	l.Operators["||"] = true
 	l.Operators["+"] = true
 	l.Operators["-"] = true
 	l.Operators["*"] = true
 	l.Operators["/"] = true
+
+	l.Keywords = make(map[string]bool)
+	l.Keywords["if"] = true
+	l.Keywords["else"] = true
+	l.Keywords["var"] = true
+	l.Keywords["class"] = true
+	l.Keywords["static"] = true
 
 	l.Length = len(source)
 	l.Source = source
@@ -108,6 +115,11 @@ func (l *Lexer) Parse() {
 
 			if str == "true" || str == "false" {
 				l.Push("bool", str)
+				continue
+			}
+
+			if _, ok := l.Keywords[str]; ok {
+				l.Push("keyword", str)
 				continue
 			}
 

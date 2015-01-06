@@ -4,17 +4,28 @@ import (
 	"log"
 )
 
+type Method struct {
+	Method     bool
+	Parameters []string
+	Body       Block
+}
+
 type Class struct {
-	String bool
-	Value  string
+	Class string
+	Methods map[string]Method
 }
 
 func (class *Class) Init(str string) {
-	class.Value = str
+	class.Class = str
+	class.Methods = make(map[string]Method)
 }
 
-func (class Class) Type() string {
-	return "Class"
+func (class *Class) AddMethod(name string, method Method) {
+	class.Methods[name] = method
+}
+
+func (class *Class) Type() string {
+	return class.Class
 }
 
 func (class *Class) Math(method string, right Type) Type {
@@ -32,3 +43,4 @@ func (class *Class) Math(method string, right Type) Type {
 func (class *Class) toString() string {
 	return "Class"
 }
+

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 )
 
 // --------------- Symbols
@@ -220,12 +221,41 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 		p.Advance()
 
-		if p.Token.Type == "name" && p.Token.Value == "else" {
+		if p.Token.Type == "keyword" && p.Token.Value == "else" {
 			p.Advance()
 			i.False = p.Statements()
 		}
 
 		return i
+	}, 0, true)
+
+	// Define a class
+	p.Symbol("class", func() Node {
+
+		class := DefineClass{}
+
+		name := p.Advance()
+
+		if name.Type != "name" {
+			log.Panicf("Expected name after class, got %s (%s)", name.Type, name.Value)
+		}
+
+		class.Name = name.Value
+		class.Body = p.Statements()
+
+		return class
+
+	}, 0, true)
+
+	// Define a static method
+	p.Symbol("static", func() Node {
+
+		p.Advance()
+
+		method := p.Method()
+		method.IsStatic = true
+
+		return method
 	}, 0, true)
 
 	p.Infix("number", 0)
@@ -388,6 +418,23 @@ func (p *Parser) Expression(advance bool) Node {
 	}
 
 	return Nil{}
+}
+
+func (p *Parser) Method() DefineMethod {
+
+	method := DefineMethod{}
+	method.Parameters = make([]Parameter, 0)
+
+	if p.Token.Type != "name" {
+		log.Panicf("Expecting method name, got %s (%s)", p.Token.Type, p.Token.Value)
+	}
+
+	method.Name = p.Token.Value
+	method.Body = p.Statements()
+
+	fmt.Println(method)
+
+	return method
 }
 
 func (p *Parser) Statement() (Node, bool) {
