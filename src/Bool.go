@@ -1,5 +1,9 @@
 package main
 
+import (
+	"log"
+)
+
 type Bool struct {
 	Bool  bool
 	Value bool
@@ -29,14 +33,34 @@ func (self *Bool) toString() string {
 
 func (self *Bool) Math(method string, right Type) Type {
 
-	if r, ok := right.(*Bool); ok {
-		if self.Value == r.Value {
-			bl := Bool{}
-			bl.Init("true")
+	log.Panicf("You can not apply %s to a %s() with a %s()", method, self.Type(), right.Type())
 
-			return &bl
-		}
+	// Will never be reached
+
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
+}
+
+func (self *Bool) Compare(method string, right Type) Type {
+
+	r, ok := right.(*Bool)
+
+	if !ok {
+		log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
 	}
+
+	if self.Value == r.Value {
+		bl := Bool{}
+		bl.Init("true")
+
+		return &bl
+	}
+
+	log.Panicf("%s() is not implementing %s", self.Type(), method)
+
+	// Will never be reached
 
 	bl := Bool{}
 	bl.Init("false")

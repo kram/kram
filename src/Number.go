@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"strconv"
 )
 
@@ -10,44 +11,48 @@ type Number struct {
 	Value  float64
 }
 
-func (n *Number) Init(str string) {
+func (self *Number) Init(str string) {
 	value, err := strconv.ParseFloat(str, 64)
 
 	if err != nil {
 		log.Panicf("Can not initialize Number as %s", str)
 	}
 
-	n.Value = value
+	self.Value = value
 }
 
-func (n Number) Type() string {
+func (self Number) Type() string {
 	return "Number"
 }
 
-func (n *Number) toString() string {
-	return strconv.FormatFloat(n.Value, 'f', 6, 64)
+func (self *Number) toString() string {
+	return strconv.FormatFloat(self.Value, 'f', 6, 64)
 }
 
-func (n *Number) Math(method string, right Type) Type {
+func (self *Number) Math(method string, right Type) Type {
 
 	r, ok := right.(*Number)
 
 	if !ok {
-		log.Panicf("You can not %s a Number with %s", method, right)
+		log.Panicf("You can not apply %s to a %s() with a %s()", method, self.Type(), right.Type())
 	}
 
 	val := float64(0)
 
-	if method == "+" || method == "-" || method == "*" || method == "/" {
+	if method == "+" || method == "-" || method == "*" || method == "/" || method == "%" || method == "**" {
 		switch method {
 		case "+":
-			val = n.Value + r.Value
+			val = self.Value + r.Value
 		case "-":
-			val = n.Value - r.Value
+			val = self.Value - r.Value
 		case "*":
-			val = n.Value * r.Value
+			val = self.Value * r.Value
 		case "/":
-			val = n.Value / r.Value
+			val = self.Value / r.Value
+		case "%":
+			val = math.Mod(self.Value, r.Value)
+		case "**":
+			val = math.Pow(self.Value, r.Value)
 		}
 
 		num := Number{}
@@ -55,30 +60,7 @@ func (n *Number) Math(method string, right Type) Type {
 		return &num
 	}
 
-	if method == ">" || method == "<" || method == ">=" || method == "<=" || method == "==" || method == "!=" {
-		b := false
-
-		switch method {
-		case ">":
-			b = n.Value > r.Value
-		case "<":
-			b = n.Value < r.Value
-		case ">=":
-			b = n.Value >= r.Value
-		case "<=":
-			b = n.Value <= r.Value
-		case "==":
-			b = n.Value == r.Value
-		case "!=":
-			b = n.Value != r.Value
-		}
-
-		bl := Bool{}
-		bl.Value = b
-		return &bl
-	}
-
-	log.Panicf("Number has no such method, %s", method)
+	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
 	num := Number{}
 	num.Value = val
@@ -86,26 +68,35 @@ func (n *Number) Math(method string, right Type) Type {
 	return &num
 }
 
-func (n *Number) LessThan(num float64) bool {
-	if n.Value < num {
-		return true
+func (self *Number) Compare(method string, right Type) Type {
+
+	r, ok := right.(*Number)
+
+	if !ok {
+		log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
 	}
 
-	return false
-}
+	b := false
 
-func (n *Number) BiggerThan(num float64) bool {
-	if n.Value > num {
-		return true
+	switch method {
+	case ">":
+		b = self.Value > r.Value
+	case "<":
+		b = self.Value < r.Value
+	case ">=":
+		b = self.Value >= r.Value
+	case "<=":
+		b = self.Value <= r.Value
+	case "==":
+		b = self.Value == r.Value
+	case "!=":
+		b = self.Value != r.Value
+	default:
+		log.Panicf("%s() is not implementing %s", self.Type(), method)
 	}
 
-	return false
-}
+	bl := Bool{}
+	bl.Value = b
 
-func (n *Number) EqualTo(num float64) bool {
-	if n.Value == num {
-		return true
-	}
-
-	return false
+	return &bl
 }

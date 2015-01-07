@@ -33,10 +33,11 @@ type Variable struct {
 }
 
 type Math struct {
-	Math   bool
-	Method string
-	Left   Node
-	Right  Node
+	Math          bool
+	Method        string
+	IsComparision bool
+	Left          Node
+	Right         Node
 }
 
 type If struct {

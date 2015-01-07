@@ -8,6 +8,7 @@ import (
 type Type interface {
 	Init(string)
 	Math(string, Type) Type
+	Compare(string, Type) Type
 	Type() string
 	toString() string
 }
@@ -110,6 +111,10 @@ func (vm *VM) OperationMath(math Math) Type {
 
 	left := vm.Operation(math.Left)
 	right := vm.Operation(math.Right)
+
+	if math.IsComparision {
+		return left.Compare(math.Method, right)
+	}
 
 	return left.Math(math.Method, right)
 }

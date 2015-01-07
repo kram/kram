@@ -16,22 +16,26 @@ type Class struct {
 	Methods map[string]Method
 }
 
-func (class *Class) Init(str string) {
-	class.Class = str
-	class.Methods = make(map[string]Method)
+func (self *Class) Init(str string) {
+	self.Class = str
+	self.Methods = make(map[string]Method)
 }
 
-func (class *Class) AddMethod(name string, method Method) {
-	class.Methods[name] = method
+func (self *Class) AddMethod(name string, method Method) {
+	self.Methods[name] = method
 }
 
-func (class *Class) Type() string {
-	return class.Class
+func (self *Class) Type() string {
+	return self.Class
 }
 
-func (class *Class) Math(method string, right Type) Type {
+func (self *Class) toString() string {
+	return "Class"
+}
 
-	log.Panicf("Class() is not implementing %s", method)
+func (self *Class) Math(method string, right Type) Type {
+
+	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
 	// This code will never be reached
 
@@ -41,6 +45,18 @@ func (class *Class) Math(method string, right Type) Type {
 	return &res
 }
 
-func (class *Class) toString() string {
-	return "Class"
+func (self *Class) Compare(method string, right Type) Type {
+
+	log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
+
+	// Will never be reached
+
+	log.Panicf("%s() is not implementing %s", self.Type(), method)
+
+	// Will never be reached
+
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
 }

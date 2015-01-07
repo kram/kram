@@ -9,31 +9,31 @@ type String struct {
 	Value  string
 }
 
-func (s *String) Init(str string) {
-	s.Value = str
+func (self *String) Init(str string) {
+	self.Value = str
 }
 
-func (s String) Type() string {
+func (self String) Type() string {
 	return "String"
 }
 
-func (s *String) Math(method string, right Type) Type {
+func (self *String) Math(method string, right Type) Type {
 
 	r, ok := right.(*String)
 
 	if !ok {
-		log.Panicf("You can not %s a String with %s", method, right)
+		log.Panicf("You can not apply %s to a %s() with a %s()", method, self.Type(), right.Type())
 	}
 
 	// String concatenation
 	if method == "+" {
 		str := String{}
-		str.Init(s.Value + r.Value)
+		str.Init(self.Value + r.Value)
 
 		return &str
 	}
 
-	log.Panicf("String() is not implementing %s", method)
+	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
 	// This code will never be reached
 
@@ -43,6 +43,39 @@ func (s *String) Math(method string, right Type) Type {
 	return &res
 }
 
-func (s *String) toString() string {
-	return s.Value
+func (self *String) Compare(method string, right Type) Type {
+
+	r, ok := right.(*String)
+
+	if !ok {
+		log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
+	}
+
+	b := false
+
+	switch method {
+	case ">":
+		b = self.Value > r.Value
+	case "<":
+		b = self.Value < r.Value
+	case ">=":
+		b = self.Value >= r.Value
+	case "<=":
+		b = self.Value <= r.Value
+	case "==":
+		b = self.Value == r.Value
+	case "!=":
+		b = self.Value != r.Value
+	default:
+		log.Panicf("%s() is not implementing %s", self.Type(), method)
+	}
+
+	bl := Bool{}
+	bl.Value = b
+
+	return &bl
+}
+
+func (self *String) toString() string {
+	return self.Value
 }

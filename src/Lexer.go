@@ -24,19 +24,20 @@ type Lexer struct {
 func (l *Lexer) Init(source string) {
 
 	l.Operators = make(map[string]bool)
+	l.Operators["+"] = true
+	l.Operators["-"] = true
+	l.Operators["*"] = true
+	l.Operators["/"] = true
+	l.Operators["%"] = true
+	l.Operators["**"] = true
 	l.Operators["="] = true
 	l.Operators["=="] = true
 	l.Operators[">"] = true
 	l.Operators[">="] = true
 	l.Operators["<"] = true
 	l.Operators["<="] = true
-	l.Operators["!"] = true
 	l.Operators["&&"] = true
 	l.Operators["||"] = true
-	l.Operators["+"] = true
-	l.Operators["-"] = true
-	l.Operators["*"] = true
-	l.Operators["/"] = true
 
 	l.Keywords = make(map[string]bool)
 	l.Keywords["if"] = true
@@ -63,7 +64,7 @@ func (l *Lexer) Parse() {
 		}
 
 		// Get current char
-		l.C = string(l.Source[l.I])
+		l.C = l.CharAtPos(l.I)
 
 		// Line endings
 		if l.C == "\n" || l.C == "\r" || l.C == "" {

@@ -1,0 +1,10 @@
+// true
+// true
+class IO {
+	static Print(v) {
+		Println(v)
+	}
+}
+
+IO.Print("b" > "a")
+IO.Print("Hello" == "Hello") 

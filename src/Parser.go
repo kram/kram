@@ -72,6 +72,8 @@ type Parser struct {
 	// Symbols, eg var + -...
 	Symbols map[string]Symbol
 
+	Comparisions map[string]bool
+
 	// The current stack (used by Expression)
 	Stack Stack
 }
@@ -261,9 +263,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix("string", 0)
 	p.Infix("bool", 0)
 
+	// Comparisions
 	p.Infix("&&", 30)
 	p.Infix("||", 30)
-
 	p.Infix("==", 40)
 	p.Infix("!=", 40)
 	p.Infix("<", 40)
@@ -271,6 +273,17 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix(">", 40)
 	p.Infix(">=", 40)
 
+	// Hashmap of comparisions
+	p.Comparisions = make(map[string]bool)
+	p.Comparisions["=="] = true
+	p.Comparisions[">"] = true
+	p.Comparisions[">="] = true
+	p.Comparisions["<"] = true
+	p.Comparisions["<="] = true
+	p.Comparisions["&&"] = true
+	p.Comparisions["||"] = true
+
+	// Math
 	p.Infix("+", 50)
 	p.Infix("-", 50)
 	p.Infix("*", 60)
@@ -397,6 +410,13 @@ func (p *Parser) Expression(advance bool) Node {
 
 		math := Math{}
 		math.Method = current.Value // + - * /
+
+		// Differentiate between comparisions and arithmetic operators
+		if _, ok := p.Comparisions[math.Method]; ok {
+			math.IsComparision = true
+		} else {
+			math.IsComparision = false
+		}
 
 		prev, ok := previous.(Math)
 
