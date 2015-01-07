@@ -325,15 +325,6 @@ func (p *Parser) Reverse() {
 	p.Current--
 }
 
-func (p *Parser) GetOperatorImportance(str string) int {
-
-	if _, ok := p.Symbols[str]; ok {
-		return p.Symbols[str].Importance
-	}
-
-	return 0
-}
-
 func (p *Parser) Previous() Node {
 
 	if len(*p.Stack.Items) > 0 {
@@ -342,6 +333,32 @@ func (p *Parser) Previous() Node {
 	}
 
 	return Nil{}
+}
+
+func (p *Parser) NextToken(i int) Token {
+
+	if p.Current+i >= len(p.Tokens) {
+		p.Token = Token{
+			Type: "EOF",
+		}
+
+		return p.Token
+	}
+
+	token := p.Tokens[p.Current+i]
+
+	p.Token = token
+
+	return token
+}
+
+func (p *Parser) GetOperatorImportance(str string) int {
+
+	if _, ok := p.Symbols[str]; ok {
+		return p.Symbols[str].Importance
+	}
+
+	return 0
 }
 
 func (p *Parser) Expression(advance bool) Node {
@@ -429,7 +446,31 @@ func (p *Parser) Method() DefineMethod {
 	}
 
 	method.Name = p.Token.Value
-	method.Body = p.Statements()
+
+	method.Parameters = make([]Parameter, 0)
+
+	next := p.NextToken(0)
+
+	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
+		method.Body = p.Statements()
+	} else {
+		for {
+
+			tok := p.Advance()
+
+			if tok.Type == "operator" && tok.Value == ")" {
+				break
+			}
+
+			if tok.Type == "name" {
+				param := Parameter{}
+				param.Name = tok.Value
+				method.Parameters = append(method.Parameters, param)
+			}
+		}
+
+		method.Body = p.Statements()
+	}
 
 	return method
 }

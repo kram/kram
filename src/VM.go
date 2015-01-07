@@ -190,33 +190,45 @@ func (vm *VM) OperationIf(i If) Type {
 
 func (vm *VM) OperationCall(call Call) Type {
 
-	params := make([]Type, 0)
-
-	for _, param := range call.Parameters {
-		params = append(params, vm.Operation(param))
-	}
+	// Default
+	bl := Bool{}
+	bl.Init("false")
 
 	// Built in method
 	if call.Left == "Println" {
-		for _, p := range params {
-			fmt.Println(p.toString())
+
+		for _, param := range call.Parameters {
+			fmt.Println(vm.Operation(param).toString())
 		}
 
-		bl := Bool{}
 		bl.Init("true")
 		return &bl
 	}
 
 	// Calling a method
 	if len(vm.Classes) >= 0 {
-		return vm.OperationBlock(vm.Classes[len(vm.Classes)-1].Methods[call.Left].Body)
+
+		method := vm.Classes[len(vm.Classes)-1].Methods[call.Left]
+
+		if len(method.Parameters) != len(call.Parameters) {
+			fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", vm.Classes[len(vm.Classes)-1].toString(), call.Left, len(method.Parameters), len(call.Parameters))
+
+			return &bl
+		}
+
+		// Define variables
+		for i, param := range method.Parameters {
+			ass := Assign{}
+			ass.Name = param.Name
+			ass.Right = call.Parameters[i]
+
+			vm.OperationAssign(ass)
+		}
+
+		return vm.OperationBlock(method.Body)
 	}
 
-	fmt.Println("Call to undefined function %s", call.Left)
-
-	// Default
-	bl := Bool{}
-	bl.Init("false")
+	fmt.Printf("Call to undefined function %s\n", call.Left)
 
 	return &bl
 }
@@ -250,8 +262,9 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 	}
 
 	method := Method{}
-	method.Parameters = make([]string, 0)
+	method.Parameters = def.Parameters
 	method.Body = def.Body
+	method.IsStatic = def.IsStatic
 
 	vm.Classes[len(vm.Classes)-1].AddMethod(def.Name, method)
 

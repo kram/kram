@@ -6,8 +6,9 @@ import (
 
 type Method struct {
 	Method     bool
-	Parameters []string
+	Parameters []Parameter
 	Body       Block
+	IsStatic   bool
 }
 
 type Class struct {
