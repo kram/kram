@@ -183,7 +183,10 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 					for {
 						stat, _ := p.Statement()
-						method.Parameters = append(method.Parameters, stat)
+
+						if stat != nil {
+							method.Parameters = append(method.Parameters, stat)
+						}
 
 						if p.Token.Type == "operator" && p.Token.Value == "," {
 							continue
