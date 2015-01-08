@@ -1,8 +1,1 @@
-class IO {
-	static Print(v) {
-		Println(v)
-	}
-}
-
-IO.Print("b" > "a") // True
-IO.Print("Hello" == "Hello") // True
+var a = b

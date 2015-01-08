@@ -104,6 +104,8 @@ func (p *Parser) Parse(tokens []Token) Block {
 			log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
 		}
 
+		p.Stack.Add(&Nil{})
+
 		stat, ok := p.Statement()
 
 		if ok {
@@ -198,7 +200,11 @@ func (p *Parser) Parse(tokens []Token) Block {
 					return method
 				}
 
-				p.Reverse()
+				if tok.Type == "EOL" || tok.Type == "EOF" {
+					return &Nil{}
+				}
+
+				p.Reverse(2)
 				return p.Expression(false)
 			}
 		}
@@ -243,6 +249,10 @@ func (p *Parser) Parse(tokens []Token) Block {
 		if name.Type != "name" {
 			log.Panicf("Expected name after class, got %s (%s)", name.Type, name.Value)
 		}
+
+		p.Advance()
+
+		p.Stack.Add(&class)
 
 		class.Name = name.Value
 		class.Body = p.Statements()
@@ -336,9 +346,22 @@ func (p *Parser) Advance() Token {
 	return token
 }
 
-func (p *Parser) Reverse() {
-	p.Current--
-	p.Current--
+func (p *Parser) Reverse(times int) {
+	p.Current -= times
+}
+
+func (p *Parser) NextToken(i int) Token {
+
+	// End or beginning of p.Tokens (i can be negative)
+	if p.Current+i >= len(p.Tokens) || p.Current+i < 0 {
+		p.Token = Token{
+			Type: "EOF",
+		}
+
+		return p.Token
+	}
+
+	return p.Tokens[p.Current+i]
 }
 
 func (p *Parser) Previous() Node {
@@ -349,23 +372,6 @@ func (p *Parser) Previous() Node {
 	}
 
 	return Nil{}
-}
-
-func (p *Parser) NextToken(i int) Token {
-
-	if p.Current+i >= len(p.Tokens) {
-		p.Token = Token{
-			Type: "EOF",
-		}
-
-		return p.Token
-	}
-
-	token := p.Tokens[p.Current+i]
-
-	p.Token = token
-
-	return token
 }
 
 func (p *Parser) GetOperatorImportance(str string) int {
@@ -500,8 +506,6 @@ func (p *Parser) Method() DefineMethod {
 
 func (p *Parser) Statement() (Node, bool) {
 
-	p.Stack.Push()
-
 	var statement Node
 
 	hasContent := false
@@ -568,11 +572,11 @@ func (p *Parser) Statements() Block {
 
 		statement, ok := p.Statement()
 
+		p.Stack.Pop()
+
 		if ok && statement != nil {
 			n.Body = append(n.Body, statement)
 		}
-
-		p.Stack.Pop()
 
 		if (p.Token.Type == "operator" && p.Token.Value == "}") || p.Token.Type == "EOF" {
 
