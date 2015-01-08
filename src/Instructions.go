@@ -76,6 +76,7 @@ type DefineMethod struct {
 	Name         string
 	Body         Block
 	IsStatic     bool
+	IsPublic     bool
 	Parameters   []Parameter
 }
 

@@ -9,6 +9,7 @@ type Method struct {
 	Parameters []Parameter
 	Body       Block
 	IsStatic   bool
+	IsPublic   bool
 }
 
 type Class struct {

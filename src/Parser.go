@@ -14,9 +14,23 @@ type Symbol struct {
 }
 
 type SymbolReturn func() Node
-type SymbolCaseReturn func() Symbol
+type SymbolCaseReturn func(Expecting) Symbol
 
 // --------------- Symbols
+
+// --------------- Constants
+
+type Expecting int
+
+const (
+	EXPECTING_NOTHING     Expecting = 1 << iota // 1
+	EXPECTING_CLASS_BODY                        // 2
+	EXPECTING_IF_BODY                           // 4
+	EXPECTING_METHOD_BODY                       // 8
+	EXPECTING_EXPRESSION                        // 16
+)
+
+// --------------- Constants
 
 // --------------- Stack
 
@@ -106,7 +120,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 		p.Stack.Add(&Nil{})
 
-		stat, ok := p.Statement()
+		stat, ok := p.Statement(EXPECTING_EXPRESSION)
 
 		if ok {
 			n.Right = stat
@@ -117,7 +131,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		return n
 	}, 0, true)
 
-	p.SymbolCase("variable", func() Symbol {
+	p.SymbolCase("variable", func(expecting Expecting) Symbol {
 
 		sym := Symbol{}
 		sym.Importance = 0
@@ -126,6 +140,14 @@ func (p *Parser) Parse(tokens []Token) Block {
 		// The basic Infix function
 		sym.Function = func() Node {
 			return p.Expression(false)
+		}
+
+		if expecting == EXPECTING_CLASS_BODY {
+			sym.Function = func() Node {
+				return p.Method()
+			}
+
+			return sym
 		}
 
 		// Var as assignment
@@ -150,7 +172,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 					// Put Nil on the stack
 					p.Stack.Add(&Nil{})
 
-					stat, ok := p.Statement()
+					stat, ok := p.Statement(EXPECTING_EXPRESSION)
 
 					if ok {
 						set.Right = stat
@@ -168,7 +190,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 					class := CallClass{}
 
 					class.Left = name.Value
-					method, _ := p.Statement()
+					method, _ := p.Statement(EXPECTING_NOTHING)
 					class.Method = method
 
 					return class
@@ -178,13 +200,14 @@ func (p *Parser) Parse(tokens []Token) Block {
 				// IO.Println("123")
 				//    ^^^^^^^
 				if tok.Type == "operator" && tok.Value == "(" {
+
 					method := Call{}
 
 					method.Left = name.Value
 					method.Parameters = make([]Node, 0)
 
 					for {
-						stat, _ := p.Statement()
+						stat, _ := p.Statement(EXPECTING_EXPRESSION)
 
 						if stat != nil {
 							method.Parameters = append(method.Parameters, stat)
@@ -219,7 +242,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		// Put Nil on the stack
 		p.Stack.Add(&Nil{})
 
-		stat, ok := p.Statement()
+		stat, ok := p.Statement(EXPECTING_EXPRESSION)
 
 		if ok {
 			i.Condition = stat
@@ -227,13 +250,13 @@ func (p *Parser) Parse(tokens []Token) Block {
 			log.Panic("Found no statement to If")
 		}
 
-		i.True = p.Statements()
+		i.True = p.Statements(EXPECTING_IF_BODY)
 
 		p.Advance()
 
 		if p.Token.Type == "keyword" && p.Token.Value == "else" {
 			p.Advance()
-			i.False = p.Statements()
+			i.False = p.Statements(EXPECTING_IF_BODY)
 		}
 
 		return i
@@ -255,7 +278,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		p.Stack.Add(&class)
 
 		class.Name = name.Value
-		class.Body = p.Statements()
+		class.Body = p.Statements(EXPECTING_CLASS_BODY)
 
 		return class
 
@@ -302,7 +325,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix("*", 60)
 	p.Infix("/", 60)
 
-	top := p.Statements()
+	top := p.Statements(EXPECTING_NOTHING)
 
 	return top
 }
@@ -476,12 +499,17 @@ func (p *Parser) Method() DefineMethod {
 
 	method.Name = p.Token.Value
 
+	// IsPublic
+	if string(method.Name[0]) >= "A" && string(method.Name[0]) <= "Z" {
+		method.IsPublic = true
+	}
+
 	method.Parameters = make([]Parameter, 0)
 
 	next := p.NextToken(0)
 
 	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
-		method.Body = p.Statements()
+		method.Body = p.Statements(EXPECTING_METHOD_BODY)
 	} else {
 		for {
 
@@ -498,13 +526,13 @@ func (p *Parser) Method() DefineMethod {
 			}
 		}
 
-		method.Body = p.Statements()
+		method.Body = p.Statements(EXPECTING_METHOD_BODY)
 	}
 
 	return method
 }
 
-func (p *Parser) Statement() (Node, bool) {
+func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 
 	var statement Node
 
@@ -544,7 +572,7 @@ func (p *Parser) Statement() (Node, bool) {
 		}
 
 		if tok.Type == "name" {
-			sym := p.Symbols["variable"].CaseFunction()
+			sym := p.Symbols["variable"].CaseFunction(expecting)
 			statement = sym.Function()
 			hasContent = true
 			continue
@@ -558,19 +586,17 @@ func (p *Parser) Statement() (Node, bool) {
 		// log.Panicf("How do I handle %s %s?\n", tok.Type, tok.Value)
 	}
 
-	p.Stack.Pop()
-
 	return statement, hasContent
 }
 
-func (p *Parser) Statements() Block {
+func (p *Parser) Statements(expecting Expecting) Block {
 	n := Block{}
 
 	for {
 
 		p.Stack.Push()
 
-		statement, ok := p.Statement()
+		statement, ok := p.Statement(expecting)
 
 		p.Stack.Pop()
 

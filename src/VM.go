@@ -270,6 +270,7 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 	method.Parameters = def.Parameters
 	method.Body = def.Body
 	method.IsStatic = def.IsStatic
+	method.IsPublic = def.IsPublic
 
 	vm.Classes[len(vm.Classes)-1].AddMethod(def.Name, method)
 
