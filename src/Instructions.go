@@ -83,3 +83,8 @@ type DefineMethod struct {
 type Parameter struct {
 	Name string
 }
+
+type Instance struct {
+	Instance bool
+	Left     string
+}

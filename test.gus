@@ -2,8 +2,8 @@ class Animal {
 	Say() {
 		Println("Woff!")
 	}
-
-	fniss() {
-
-	}
 }
+
+var a = new Animal()
+
+a.Say()

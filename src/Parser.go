@@ -295,6 +295,33 @@ func (p *Parser) Parse(tokens []Token) Block {
 		return method
 	}, 0, true)
 
+	// Create class instance
+	p.Symbol("new", func() Node {
+		inst := Instance{}
+
+		name := p.Advance()
+
+		if name.Type != "name" {
+			log.Panicf("Expected name after new, got %s (%s)", name.Type, name.Value)
+		}
+
+		inst.Left = name.Value
+
+		next := p.Advance()
+
+		if next.Type != "operator" && next.Value != "(" {
+			log.Panicf("Expected ( after new, got %s (%s)", name.Type, name.Value)
+		}
+
+		next = p.Advance()
+
+		if next.Type != "operator" && next.Value != ")" {
+			log.Panicf("Expected ) after new, got %s (%s)", name.Type, name.Value)
+		}
+
+		return inst
+	}, 0, true)
+
 	p.Infix("number", 0)
 	p.Infix("string", 0)
 	p.Infix("bool", 0)

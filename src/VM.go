@@ -78,8 +78,12 @@ func (vm *VM) Operation(node Node) Type {
 		return vm.OperationDefineMethod(defineMethod)
 	}
 
+	if instance, ok := node.(Instance); ok {
+		return vm.OperationInstance(instance)
+	}
+
 	if vm.Debug {
-		fmt.Printf("Was not able to expecute %s\n", node)
+		fmt.Printf("Was not able to execute %s\n", node)
 	}
 
 	// Default
@@ -310,6 +314,13 @@ func (vm *VM) OperationCallClass(callClass CallClass) Type {
 	return &bl
 }
 
-func (vm *VM) Echo(t Type) Type {
-	return t
+func (vm *VM) OperationInstance(instance Instance) Type {
+
+	if _, ok := vm.Environment[instance.Left]; !ok {
+		log.Panicf("No such class, %s", instance.Left)
+	}
+
+	in := vm.Environment[instance.Left]
+
+	return in
 }
