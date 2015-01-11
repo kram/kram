@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"encoding/json"
 )
 
 type Type interface {
@@ -13,9 +14,16 @@ type Type interface {
 	toString() string
 }
 
+type ON int
+
+const (
+	ON_NOTHING ON = 1 << iota // 1
+	ON_CLASS                  // 2
+)
+
 type VM struct {
 	// Contains variables
-	Environment map[string]Type
+	Environment *Environment
 
 	// The current stack of methods, used to know where to define a method
 	Classes []*Class
@@ -26,13 +34,15 @@ type VM struct {
 func (vm *VM) Run(tree Block) {
 
 	// Set empty environment
-	vm.Environment = make(map[string]Type)
+	vm.Environment = &Environment{}
+	vm.Environment.Env = make(map[string]Type)
+
 	vm.Classes = make([]*Class, 0)
 
-	vm.Operation(tree)
+	vm.Operation(tree, ON_NOTHING)
 }
 
-func (vm *VM) Operation(node Node) Type {
+func (vm *VM) Operation(node Node, on ON) Type {
 
 	if assign, ok := node.(Assign); ok {
 		return vm.OperationAssign(assign)
@@ -47,10 +57,20 @@ func (vm *VM) Operation(node Node) Type {
 	}
 
 	if variable, ok := node.(Variable); ok {
+
+		if on == ON_CLASS {
+			return vm.ClassOperationVariable(variable)
+		}
+
 		return vm.OperationVariable(variable)
 	}
 
 	if set, ok := node.(Set); ok {
+
+		if on == ON_CLASS {
+			return vm.ClassOperationSet(set)
+		}
+
 		return vm.OperationSet(set)
 	}
 
@@ -95,26 +115,30 @@ func (vm *VM) Operation(node Node) Type {
 
 func (vm *VM) OperationBlock(block Block) (last Type) {
 
+	vm.Environment = vm.Environment.Push()
+
 	for _, body := range block.Body {
-		last = vm.Operation(body)
+		last = vm.Operation(body, ON_NOTHING)
 	}
+
+	vm.Environment = vm.Environment.Pop()
 
 	return last
 }
 
 func (vm *VM) OperationAssign(assign Assign) Type {
 
-	value := vm.Operation(assign.Right)
+	value := vm.Operation(assign.Right, ON_NOTHING)
 
-	vm.Environment[assign.Name] = value
+	vm.Environment.Set(assign.Name, value)
 
 	return value
 }
 
 func (vm *VM) OperationMath(math Math) Type {
 
-	left := vm.Operation(math.Left)
-	right := vm.Operation(math.Right)
+	left := vm.Operation(math.Left, ON_NOTHING)
+	right := vm.Operation(math.Right, ON_NOTHING)
 
 	if math.IsComparision {
 		return left.Compare(math.Method, right)
@@ -143,6 +167,11 @@ func (vm *VM) OperationLiteral(literal Literal) Type {
 		return &bl
 	}
 
+	if literal.Type == "null" {
+		null := Null{}
+		return &null
+	}
+
 	log.Panicf("Not able to handle Literal %s", literal)
 
 	// Default
@@ -154,9 +183,28 @@ func (vm *VM) OperationLiteral(literal Literal) Type {
 
 func (vm *VM) OperationVariable(variable Variable) Type {
 
-	if _, ok := vm.Environment[variable.Name]; ok {
-		return vm.Environment[variable.Name]
+	if res, ok := vm.Environment.Get(variable.Name); ok {
+		return res
 	}
+
+	log.Print("Undefined variable, " + variable.Name)
+
+	// Default
+	bl := Bool{}
+	bl.Init("false")
+
+	return &bl
+}
+
+func (vm *VM) ClassOperationVariable(variable Variable) Type {
+
+	class := vm.Classes[len(vm.Classes) - 1]
+
+	if res, ok := class.Variables[variable.Name]; ok {
+		return res
+	}
+
+	log.Print("Undefined variable, " + class.Type() + "." + variable.Name)
 
 	// Default
 	bl := Bool{}
@@ -167,34 +215,57 @@ func (vm *VM) OperationVariable(variable Variable) Type {
 
 func (vm *VM) OperationSet(set Set) Type {
 
-	if _, ok := vm.Environment[set.Name]; !ok {
+	l, ok := vm.Environment.Get(set.Name)
+
+	if !ok {
 		log.Panicf("Can not set %s, %s is undefined", set.Name, set.Name)
 	}
 
-	value := vm.Operation(set.Right)
+	value := vm.Operation(set.Right, ON_NOTHING)
 
-	if vm.Environment[set.Name].Type() != value.Type() {
-		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, vm.Environment[set.Name].Type(), value.toString(), value.Type())
+	if l.Type() != value.Type() {
+		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.toString(), value.Type())
 	}
 
-	vm.Environment[set.Name] = value
+	vm.Environment.Set(set.Name, value)
 
-	return vm.Environment[set.Name]
+	return value
+}
+
+func (vm *VM) ClassOperationSet(set Set) Type {
+
+	class := vm.Classes[len(vm.Classes) - 1]
+
+	l, ok := class.Variables[set.Name]
+
+	if !ok {
+		log.Panicf("Can not set %s, %s is undefined", set.Name, set.Name)
+	}
+
+	value := vm.Operation(set.Right, ON_NOTHING)
+
+	if l.Type() != "Null" && l.Type() != value.Type() {
+		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.toString(), value.Type())
+	}
+
+	class.SetVariable(set.Name, value)
+
+	return value
 }
 
 func (vm *VM) OperationIf(i If) Type {
 
-	con := vm.Operation(i.Condition)
+	con := vm.Operation(i.Condition, ON_NOTHING)
 
 	if con.Type() != "Bool" {
 		log.Panicf("Expecing bool in condition, %s (%s)", con.toString(), con.Type())
 	}
 
 	if con.toString() == "true" {
-		return vm.Operation(i.True)
+		return vm.Operation(i.True, ON_NOTHING)
 	}
 
-	return vm.Operation(i.False)
+	return vm.Operation(i.False, ON_NOTHING)
 }
 
 func (vm *VM) OperationCall(call Call) Type {
@@ -207,8 +278,17 @@ func (vm *VM) OperationCall(call Call) Type {
 	if call.Left == "Println" {
 
 		for _, param := range call.Parameters {
-			fmt.Println(vm.Operation(param).toString())
+			fmt.Println(vm.Operation(param, ON_NOTHING).toString())
 		}
+
+		bl.Init("true")
+		return &bl
+	}
+
+	if call.Left == "Dump" {
+
+		b, _ := json.MarshalIndent(vm.Environment, "", "  ")
+		fmt.Println(string(b))
 
 		bl.Init("true")
 		return &bl
@@ -225,6 +305,8 @@ func (vm *VM) OperationCall(call Call) Type {
 			return &bl
 		}
 
+		vm.Environment = vm.Environment.Push()
+
 		// Define variables
 		for i, param := range method.Parameters {
 			ass := Assign{}
@@ -234,7 +316,11 @@ func (vm *VM) OperationCall(call Call) Type {
 			vm.OperationAssign(ass)
 		}
 
-		return vm.OperationBlock(method.Body)
+		body := vm.OperationBlock(method.Body)
+
+		vm.Environment = vm.Environment.Push()
+
+		return body
 	}
 
 	fmt.Printf("Call to undefined function %s\n", call.Left)
@@ -249,13 +335,24 @@ func (vm *VM) OperationDefineClass(def DefineClass) Type {
 
 	// Push
 	vm.Classes = append(vm.Classes, &class)
+	vm.Environment = vm.Environment.Push()
 
-	vm.OperationBlock(def.Body)
+	for _, body := range def.Body.Body {
+
+		if assign, ok := body.(Assign); ok {
+			class.SetVariable(assign.Name, vm.Operation(assign.Right, ON_NOTHING))
+			continue
+		}
+
+		// Fallback
+		vm.Operation(body, ON_NOTHING)
+	}
 
 	// Pop
 	vm.Classes = vm.Classes[:len(vm.Classes)-1]
+	vm.Environment = vm.Environment.Pop()
 
-	vm.Environment[def.Name] = &class
+	vm.Environment.Set(def.Name, &class)
 
 	// Default
 	bl := Bool{}
@@ -287,11 +384,16 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 
 func (vm *VM) OperationCallClass(callClass CallClass) Type {
 
-	if _, ok := vm.Environment[callClass.Left]; !ok {
-		log.Panicf("No such class, %s", callClass.Left)
+	c, ok := vm.Environment.Get(callClass.Left)
+
+	if callClass.Left == "self" {
+		c = vm.Classes[len(vm.Classes) - 1]
+		ok = true
 	}
 
-	c := vm.Environment[callClass.Left]
+	if !ok {
+		log.Panicf("No such class, %s", callClass.Left)
+	}
 
 	if class, ok := c.(*Class); !ok {
 		log.Panicf("%s is not a class", callClass.Left)
@@ -300,7 +402,7 @@ func (vm *VM) OperationCallClass(callClass CallClass) Type {
 		// Push
 		vm.Classes = append(vm.Classes, class)
 
-		return vm.Operation(callClass.Method)
+		return vm.Operation(callClass.Method, ON_CLASS)
 
 		// Pop
 		vm.Classes = vm.Classes[:len(vm.Classes)-1]
@@ -316,11 +418,52 @@ func (vm *VM) OperationCallClass(callClass CallClass) Type {
 
 func (vm *VM) OperationInstance(instance Instance) Type {
 
-	if _, ok := vm.Environment[instance.Left]; !ok {
+	in, ok := vm.Environment.Get(instance.Left)
+
+	if !ok {
 		log.Panicf("No such class, %s", instance.Left)
 	}
 
-	in := vm.Environment[instance.Left]
+	class, ok := in.(*Class)
 
-	return in
+	if !ok {
+		log.Panicf("%s is not a class", instance.Left)
+	}
+
+	return vm.Clone(class)
+}
+
+func (vm *VM) Clone(in Type) (out Type) {
+
+	if class, ok := in.(*Class); ok {
+		res := Class{}
+		res.Methods = class.Methods
+		res.Variables = make(map[string]Type)
+
+		for name, def := range class.Variables {
+			res.Variables[name] = vm.Clone(def)
+		}
+
+		return &res
+	}
+
+	if _, ok := in.(*Number); ok {
+		out = &Number{}
+	}
+
+	if _, ok := in.(*Null); ok {
+		out = &Null{}
+	}
+
+	if _, ok := in.(*Bool); ok {
+		out = &Bool{}
+	}
+
+	if _, ok := in.(*String); ok {
+		out = &String{}
+	}
+
+
+	out.Init(in.toString())
+	return out
 }

@@ -125,7 +125,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 		if ok {
 			n.Right = stat
 		} else {
-			log.Panicf("Found no statement to Assign to %s", n.Name)
+			n.Right = Literal {
+				Type: "null",
+			}
 		}
 
 		return n

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 )
 
 type Method struct {
@@ -13,17 +14,23 @@ type Method struct {
 }
 
 type Class struct {
-	Class   string
-	Methods map[string]Method
+	Class     string
+	Methods   map[string]Method
+	Variables map[string]Type
 }
 
 func (self *Class) Init(str string) {
 	self.Class = str
 	self.Methods = make(map[string]Method)
+	self.Variables = make(map[string]Type)
 }
 
 func (self *Class) AddMethod(name string, method Method) {
 	self.Methods[name] = method
+}
+
+func (self *Class) SetVariable(name string, value Type) {
+	self.Variables[name] = value
 }
 
 func (self *Class) Type() string {
@@ -31,7 +38,7 @@ func (self *Class) Type() string {
 }
 
 func (self *Class) toString() string {
-	return "Class"
+	return self.Type() + "\n" + fmt.Sprint(self.Variables)
 }
 
 func (self *Class) Math(method string, right Type) Type {
