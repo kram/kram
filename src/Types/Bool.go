@@ -1,4 +1,4 @@
-package main
+package types
 
 import (
 	"log"
@@ -22,7 +22,7 @@ func (b Bool) Type() string {
 	return "Bool"
 }
 
-func (self *Bool) toString() string {
+func (self *Bool) ToString() string {
 
 	if self.Value {
 		return "true"

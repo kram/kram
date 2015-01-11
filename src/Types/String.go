@@ -1,4 +1,4 @@
-package main
+package types
 
 import (
 	"log"
@@ -76,6 +76,6 @@ func (self *String) Compare(method string, right Type) Type {
 	return &bl
 }
 
-func (self *String) toString() string {
+func (self *String) ToString() string {
 	return self.Value
 }

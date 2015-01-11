@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./Instructions"
 	"log"
 )
 
@@ -13,7 +14,7 @@ type Symbol struct {
 	IsStatement  bool
 }
 
-type SymbolReturn func() Node
+type SymbolReturn func() instructions.Node
 type SymbolCaseReturn func(Expecting) Symbol
 
 // --------------- Symbols
@@ -35,13 +36,13 @@ const (
 // --------------- Stack
 
 type Stack struct {
-	Items   *[]Node
-	Parents []*[]Node
+	Items   *[]instructions.Node
+	Parents []*[]instructions.Node
 }
 
 func (stack *Stack) Pop() {
 	if len(stack.Parents) == 0 {
-		items := make([]Node, 0)
+		items := make([]instructions.Node, 0)
 		stack.Items = &items
 		return
 	}
@@ -53,11 +54,11 @@ func (stack *Stack) Pop() {
 func (stack *Stack) Push() {
 	stack.Parents = append(stack.Parents, stack.Items)
 
-	items := make([]Node, 0)
+	items := make([]instructions.Node, 0)
 	stack.Items = &items
 }
 
-func (stack *Stack) Add(node Node) {
+func (stack *Stack) Add(node instructions.Node) {
 	items := *stack.Items
 	items = append(items, node)
 
@@ -66,11 +67,11 @@ func (stack *Stack) Add(node Node) {
 
 func (stack *Stack) Reset() {
 	stack.Empty()
-	stack.Parents = make([]*[]Node, 0)
+	stack.Parents = make([]*[]instructions.Node, 0)
 }
 
 func (stack *Stack) Empty() {
-	items := make([]Node, 0)
+	items := make([]instructions.Node, 0)
 	stack.Items = &items
 }
 
@@ -92,7 +93,7 @@ type Parser struct {
 	Stack Stack
 }
 
-func (p *Parser) Parse(tokens []Token) Block {
+func (p *Parser) Parse(tokens []Token) instructions.Block {
 	p.Tokens = tokens
 	p.Current = 0
 	p.Symbols = make(map[string]Symbol)
@@ -101,8 +102,8 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Stack.Reset()
 
 	// var
-	p.Symbol("var", func() Node {
-		n := Assign{}
+	p.Symbol("var", func() instructions.Node {
+		n := instructions.Assign{}
 
 		name := p.Advance()
 
@@ -118,14 +119,14 @@ func (p *Parser) Parse(tokens []Token) Block {
 			log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
 		}
 
-		p.Stack.Add(&Nil{})
+		p.Stack.Add(&instructions.Nil{})
 
 		stat, ok := p.Statement(EXPECTING_EXPRESSION)
 
 		if ok {
 			n.Right = stat
 		} else {
-			n.Right = Literal {
+			n.Right = instructions.Literal{
 				Type: "null",
 			}
 		}
@@ -140,12 +141,12 @@ func (p *Parser) Parse(tokens []Token) Block {
 		sym.IsStatement = false
 
 		// The basic Infix function
-		sym.Function = func() Node {
+		sym.Function = func() instructions.Node {
 			return p.Expression(false)
 		}
 
 		if expecting == EXPECTING_CLASS_BODY {
-			sym.Function = func() Node {
+			sym.Function = func() instructions.Node {
 				return p.Method()
 			}
 
@@ -155,7 +156,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		// Var as assignment
 		if len(*p.Stack.Items) == 0 {
 			sym.IsStatement = true
-			sym.Function = func() Node {
+			sym.Function = func() instructions.Node {
 
 				name := p.Token
 
@@ -168,11 +169,11 @@ func (p *Parser) Parse(tokens []Token) Block {
 				// Set
 				// abc = 123
 				if tok.Type == "operator" && tok.Value == "=" {
-					set := Set{}
+					set := instructions.Set{}
 					set.Name = name.Value
 
 					// Put Nil on the stack
-					p.Stack.Add(&Nil{})
+					p.Stack.Add(&instructions.Nil{})
 
 					stat, ok := p.Statement(EXPECTING_EXPRESSION)
 
@@ -189,7 +190,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 				// IO.Println("123")
 				// ^^
 				if tok.Type == "operator" && tok.Value == "." {
-					class := CallClass{}
+					class := instructions.CallClass{}
 
 					class.Left = name.Value
 					method, _ := p.Statement(EXPECTING_NOTHING)
@@ -203,10 +204,10 @@ func (p *Parser) Parse(tokens []Token) Block {
 				//    ^^^^^^^
 				if tok.Type == "operator" && tok.Value == "(" {
 
-					method := Call{}
+					method := instructions.Call{}
 
 					method.Left = name.Value
-					method.Parameters = make([]Node, 0)
+					method.Parameters = make([]instructions.Node, 0)
 
 					for {
 						stat, _ := p.Statement(EXPECTING_EXPRESSION)
@@ -226,7 +227,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 				}
 
 				if tok.Type == "EOL" || tok.Type == "EOF" {
-					return &Nil{}
+					return &instructions.Nil{}
 				}
 
 				p.Reverse(2)
@@ -238,11 +239,11 @@ func (p *Parser) Parse(tokens []Token) Block {
 	})
 
 	// var
-	p.Symbol("if", func() Node {
-		i := If{}
+	p.Symbol("if", func() instructions.Node {
+		i := instructions.If{}
 
 		// Put Nil on the stack
-		p.Stack.Add(&Nil{})
+		p.Stack.Add(&instructions.Nil{})
 
 		stat, ok := p.Statement(EXPECTING_EXPRESSION)
 
@@ -265,9 +266,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 	}, 0, true)
 
 	// Define a class
-	p.Symbol("class", func() Node {
+	p.Symbol("class", func() instructions.Node {
 
-		class := DefineClass{}
+		class := instructions.DefineClass{}
 
 		name := p.Advance()
 
@@ -287,7 +288,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	}, 0, true)
 
 	// Define a static method
-	p.Symbol("static", func() Node {
+	p.Symbol("static", func() instructions.Node {
 
 		p.Advance()
 
@@ -298,8 +299,8 @@ func (p *Parser) Parse(tokens []Token) Block {
 	}, 0, true)
 
 	// Create class instance
-	p.Symbol("new", func() Node {
-		inst := Instance{}
+	p.Symbol("new", func() instructions.Node {
+		inst := instructions.Instance{}
 
 		name := p.Advance()
 
@@ -376,7 +377,7 @@ func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
 
 // Shortcut for adding Infix's to the symbol table
 func (p *Parser) Infix(str string, importance int) {
-	p.Symbol(str, func() Node {
+	p.Symbol(str, func() instructions.Node {
 		return p.Expression(false)
 	}, importance, false)
 }
@@ -416,14 +417,14 @@ func (p *Parser) NextToken(i int) Token {
 	return p.Tokens[p.Current+i]
 }
 
-func (p *Parser) Previous() Node {
+func (p *Parser) Previous() instructions.Node {
 
 	if len(*p.Stack.Items) > 0 {
 		items := *p.Stack.Items
 		return items[len(items)-1]
 	}
 
-	return Nil{}
+	return instructions.Nil{}
 }
 
 func (p *Parser) GetOperatorImportance(str string) int {
@@ -435,7 +436,7 @@ func (p *Parser) GetOperatorImportance(str string) int {
 	return 0
 }
 
-func (p *Parser) Expression(advance bool) Node {
+func (p *Parser) Expression(advance bool) instructions.Node {
 
 	if advance {
 		p.Advance()
@@ -446,7 +447,7 @@ func (p *Parser) Expression(advance bool) Node {
 
 	// Number or string
 	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
-		literal := Literal{
+		literal := instructions.Literal{
 			Type:  current.Type,
 			Value: current.Value,
 		}
@@ -458,7 +459,7 @@ func (p *Parser) Expression(advance bool) Node {
 
 	// Variables
 	if current.Type == "name" {
-		variable := Variable{}
+		variable := instructions.Variable{}
 		variable.Name = current.Value
 
 		p.Stack.Add(variable)
@@ -469,7 +470,7 @@ func (p *Parser) Expression(advance bool) Node {
 	// We encountered an operator, check the type of the previous expression
 	if current.Type == "operator" {
 
-		math := Math{}
+		math := instructions.Math{}
 		math.Method = current.Value // + - * /
 
 		// Differentiate between comparisions and arithmetic operators
@@ -479,13 +480,13 @@ func (p *Parser) Expression(advance bool) Node {
 			math.IsComparision = false
 		}
 
-		prev, ok := previous.(Math)
+		prev, ok := previous.(instructions.Math)
 
 		if ok {
 			if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
 				math.Left = prev.Left
 				math.Method = prev.Method
-				math.Right = Math{
+				math.Right = instructions.Math{
 					Method: current.Value,
 					Left:   prev.Right,
 					Right:  p.Expression(true),
@@ -496,13 +497,13 @@ func (p *Parser) Expression(advance bool) Node {
 			}
 		}
 
-		_, ok = previous.(Literal)
+		_, ok = previous.(instructions.Literal)
 		if ok {
 			math.Left = previous
 			math.Right = p.Expression(true)
 		}
 
-		_, ok = previous.(Variable)
+		_, ok = previous.(instructions.Variable)
 		if ok {
 			math.Left = previous
 			math.Right = p.Expression(true)
@@ -514,13 +515,13 @@ func (p *Parser) Expression(advance bool) Node {
 		return math
 	}
 
-	return Nil{}
+	return instructions.Nil{}
 }
 
-func (p *Parser) Method() DefineMethod {
+func (p *Parser) Method() instructions.DefineMethod {
 
-	method := DefineMethod{}
-	method.Parameters = make([]Parameter, 0)
+	method := instructions.DefineMethod{}
+	method.Parameters = make([]instructions.Parameter, 0)
 
 	if p.Token.Type != "name" {
 		log.Panicf("Expecting method name, got %s (%s)", p.Token.Type, p.Token.Value)
@@ -533,7 +534,7 @@ func (p *Parser) Method() DefineMethod {
 		method.IsPublic = true
 	}
 
-	method.Parameters = make([]Parameter, 0)
+	method.Parameters = make([]instructions.Parameter, 0)
 
 	next := p.NextToken(0)
 
@@ -549,7 +550,7 @@ func (p *Parser) Method() DefineMethod {
 			}
 
 			if tok.Type == "name" {
-				param := Parameter{}
+				param := instructions.Parameter{}
 				param.Name = tok.Value
 				method.Parameters = append(method.Parameters, param)
 			}
@@ -561,9 +562,9 @@ func (p *Parser) Method() DefineMethod {
 	return method
 }
 
-func (p *Parser) Statement(expecting Expecting) (Node, bool) {
+func (p *Parser) Statement(expecting Expecting) (instructions.Node, bool) {
 
-	var statement Node
+	var statement instructions.Node
 
 	hasContent := false
 
@@ -618,8 +619,8 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 	return statement, hasContent
 }
 
-func (p *Parser) Statements(expecting Expecting) Block {
-	n := Block{}
+func (p *Parser) Statements(expecting Expecting) instructions.Block {
+	n := instructions.Block{}
 
 	for {
 

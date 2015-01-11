@@ -1,18 +1,12 @@
 package main
 
 import (
+	"./Instructions"
+	"./Types"
+	"encoding/json"
 	"fmt"
 	"log"
-	"encoding/json"
 )
-
-type Type interface {
-	Init(string)
-	Math(string, Type) Type
-	Compare(string, Type) Type
-	Type() string
-	toString() string
-}
 
 type ON int
 
@@ -26,37 +20,37 @@ type VM struct {
 	Environment *Environment
 
 	// The current stack of methods, used to know where to define a method
-	Classes []*Class
+	Classes []*types.Class
 
 	Debug bool
 }
 
-func (vm *VM) Run(tree Block) {
+func (vm *VM) Run(tree instructions.Block) {
 
 	// Set empty environment
 	vm.Environment = &Environment{}
-	vm.Environment.Env = make(map[string]Type)
+	vm.Environment.Env = make(map[string]types.Type)
 
-	vm.Classes = make([]*Class, 0)
+	vm.Classes = make([]*types.Class, 0)
 
 	vm.Operation(tree, ON_NOTHING)
 }
 
-func (vm *VM) Operation(node Node, on ON) Type {
+func (vm *VM) Operation(node instructions.Node, on ON) types.Type {
 
-	if assign, ok := node.(Assign); ok {
+	if assign, ok := node.(instructions.Assign); ok {
 		return vm.OperationAssign(assign)
 	}
 
-	if math, ok := node.(Math); ok {
+	if math, ok := node.(instructions.Math); ok {
 		return vm.OperationMath(math)
 	}
 
-	if literal, ok := node.(Literal); ok {
+	if literal, ok := node.(instructions.Literal); ok {
 		return vm.OperationLiteral(literal)
 	}
 
-	if variable, ok := node.(Variable); ok {
+	if variable, ok := node.(instructions.Variable); ok {
 
 		if on == ON_CLASS {
 			return vm.ClassOperationVariable(variable)
@@ -65,7 +59,7 @@ func (vm *VM) Operation(node Node, on ON) Type {
 		return vm.OperationVariable(variable)
 	}
 
-	if set, ok := node.(Set); ok {
+	if set, ok := node.(instructions.Set); ok {
 
 		if on == ON_CLASS {
 			return vm.ClassOperationSet(set)
@@ -74,31 +68,31 @@ func (vm *VM) Operation(node Node, on ON) Type {
 		return vm.OperationSet(set)
 	}
 
-	if i, ok := node.(If); ok {
+	if i, ok := node.(instructions.If); ok {
 		return vm.OperationIf(i)
 	}
 
-	if block, ok := node.(Block); ok {
+	if block, ok := node.(instructions.Block); ok {
 		return vm.OperationBlock(block)
 	}
 
-	if call, ok := node.(Call); ok {
+	if call, ok := node.(instructions.Call); ok {
 		return vm.OperationCall(call)
 	}
 
-	if callClass, ok := node.(CallClass); ok {
+	if callClass, ok := node.(instructions.CallClass); ok {
 		return vm.OperationCallClass(callClass)
 	}
 
-	if defineClass, ok := node.(DefineClass); ok {
+	if defineClass, ok := node.(instructions.DefineClass); ok {
 		return vm.OperationDefineClass(defineClass)
 	}
 
-	if defineMethod, ok := node.(DefineMethod); ok {
+	if defineMethod, ok := node.(instructions.DefineMethod); ok {
 		return vm.OperationDefineMethod(defineMethod)
 	}
 
-	if instance, ok := node.(Instance); ok {
+	if instance, ok := node.(instructions.Instance); ok {
 		return vm.OperationInstance(instance)
 	}
 
@@ -107,13 +101,13 @@ func (vm *VM) Operation(node Node, on ON) Type {
 	}
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	return &bl
 }
 
-func (vm *VM) OperationBlock(block Block) (last Type) {
+func (vm *VM) OperationBlock(block instructions.Block) (last types.Type) {
 
 	vm.Environment = vm.Environment.Push()
 
@@ -126,7 +120,7 @@ func (vm *VM) OperationBlock(block Block) (last Type) {
 	return last
 }
 
-func (vm *VM) OperationAssign(assign Assign) Type {
+func (vm *VM) OperationAssign(assign instructions.Assign) types.Type {
 
 	value := vm.Operation(assign.Right, ON_NOTHING)
 
@@ -135,7 +129,7 @@ func (vm *VM) OperationAssign(assign Assign) Type {
 	return value
 }
 
-func (vm *VM) OperationMath(math Math) Type {
+func (vm *VM) OperationMath(math instructions.Math) types.Type {
 
 	left := vm.Operation(math.Left, ON_NOTHING)
 	right := vm.Operation(math.Right, ON_NOTHING)
@@ -147,41 +141,41 @@ func (vm *VM) OperationMath(math Math) Type {
 	return left.Math(math.Method, right)
 }
 
-func (vm *VM) OperationLiteral(literal Literal) Type {
+func (vm *VM) OperationLiteral(literal instructions.Literal) types.Type {
 
 	if literal.Type == "number" {
-		number := Number{}
+		number := types.Number{}
 		number.Init(literal.Value)
 		return &number
 	}
 
 	if literal.Type == "string" {
-		str := String{}
+		str := types.String{}
 		str.Init(literal.Value)
 		return &str
 	}
 
 	if literal.Type == "bool" {
-		bl := Bool{}
+		bl := types.Bool{}
 		bl.Init(literal.Value)
 		return &bl
 	}
 
 	if literal.Type == "null" {
-		null := Null{}
+		null := types.Null{}
 		return &null
 	}
 
 	log.Panicf("Not able to handle Literal %s", literal)
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	return &bl
 }
 
-func (vm *VM) OperationVariable(variable Variable) Type {
+func (vm *VM) OperationVariable(variable instructions.Variable) types.Type {
 
 	if res, ok := vm.Environment.Get(variable.Name); ok {
 		return res
@@ -190,15 +184,15 @@ func (vm *VM) OperationVariable(variable Variable) Type {
 	log.Print("Undefined variable, " + variable.Name)
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	return &bl
 }
 
-func (vm *VM) ClassOperationVariable(variable Variable) Type {
+func (vm *VM) ClassOperationVariable(variable instructions.Variable) types.Type {
 
-	class := vm.Classes[len(vm.Classes) - 1]
+	class := vm.Classes[len(vm.Classes)-1]
 
 	if res, ok := class.Variables[variable.Name]; ok {
 		return res
@@ -207,13 +201,13 @@ func (vm *VM) ClassOperationVariable(variable Variable) Type {
 	log.Print("Undefined variable, " + class.Type() + "." + variable.Name)
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	return &bl
 }
 
-func (vm *VM) OperationSet(set Set) Type {
+func (vm *VM) OperationSet(set instructions.Set) types.Type {
 
 	l, ok := vm.Environment.Get(set.Name)
 
@@ -224,7 +218,7 @@ func (vm *VM) OperationSet(set Set) Type {
 	value := vm.Operation(set.Right, ON_NOTHING)
 
 	if l.Type() != value.Type() {
-		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.toString(), value.Type())
+		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.ToString(), value.Type())
 	}
 
 	vm.Environment.Set(set.Name, value)
@@ -232,9 +226,9 @@ func (vm *VM) OperationSet(set Set) Type {
 	return value
 }
 
-func (vm *VM) ClassOperationSet(set Set) Type {
+func (vm *VM) ClassOperationSet(set instructions.Set) types.Type {
 
-	class := vm.Classes[len(vm.Classes) - 1]
+	class := vm.Classes[len(vm.Classes)-1]
 
 	l, ok := class.Variables[set.Name]
 
@@ -245,7 +239,7 @@ func (vm *VM) ClassOperationSet(set Set) Type {
 	value := vm.Operation(set.Right, ON_NOTHING)
 
 	if l.Type() != "Null" && l.Type() != value.Type() {
-		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.toString(), value.Type())
+		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.ToString(), value.Type())
 	}
 
 	class.SetVariable(set.Name, value)
@@ -253,32 +247,32 @@ func (vm *VM) ClassOperationSet(set Set) Type {
 	return value
 }
 
-func (vm *VM) OperationIf(i If) Type {
+func (vm *VM) OperationIf(i instructions.If) types.Type {
 
 	con := vm.Operation(i.Condition, ON_NOTHING)
 
 	if con.Type() != "Bool" {
-		log.Panicf("Expecing bool in condition, %s (%s)", con.toString(), con.Type())
+		log.Panicf("Expecing bool in condition, %s (%s)", con.ToString(), con.Type())
 	}
 
-	if con.toString() == "true" {
+	if con.ToString() == "true" {
 		return vm.Operation(i.True, ON_NOTHING)
 	}
 
 	return vm.Operation(i.False, ON_NOTHING)
 }
 
-func (vm *VM) OperationCall(call Call) Type {
+func (vm *VM) OperationCall(call instructions.Call) types.Type {
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	// Built in method
 	if call.Left == "Println" {
 
 		for _, param := range call.Parameters {
-			fmt.Println(vm.Operation(param, ON_NOTHING).toString())
+			fmt.Println(vm.Operation(param, ON_NOTHING).ToString())
 		}
 
 		bl.Init("true")
@@ -300,7 +294,7 @@ func (vm *VM) OperationCall(call Call) Type {
 		method := vm.Classes[len(vm.Classes)-1].Methods[call.Left]
 
 		if len(method.Parameters) != len(call.Parameters) {
-			fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", vm.Classes[len(vm.Classes)-1].toString(), call.Left, len(method.Parameters), len(call.Parameters))
+			fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", vm.Classes[len(vm.Classes)-1].ToString(), call.Left, len(method.Parameters), len(call.Parameters))
 
 			return &bl
 		}
@@ -309,7 +303,7 @@ func (vm *VM) OperationCall(call Call) Type {
 
 		// Define variables
 		for i, param := range method.Parameters {
-			ass := Assign{}
+			ass := instructions.Assign{}
 			ass.Name = param.Name
 			ass.Right = call.Parameters[i]
 
@@ -328,9 +322,9 @@ func (vm *VM) OperationCall(call Call) Type {
 	return &bl
 }
 
-func (vm *VM) OperationDefineClass(def DefineClass) Type {
+func (vm *VM) OperationDefineClass(def instructions.DefineClass) types.Type {
 
-	class := Class{}
+	class := types.Class{}
 	class.Init(def.Name)
 
 	// Push
@@ -339,7 +333,7 @@ func (vm *VM) OperationDefineClass(def DefineClass) Type {
 
 	for _, body := range def.Body.Body {
 
-		if assign, ok := body.(Assign); ok {
+		if assign, ok := body.(instructions.Assign); ok {
 			class.SetVariable(assign.Name, vm.Operation(assign.Right, ON_NOTHING))
 			continue
 		}
@@ -355,19 +349,19 @@ func (vm *VM) OperationDefineClass(def DefineClass) Type {
 	vm.Environment.Set(def.Name, &class)
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	return &bl
 }
 
-func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
+func (vm *VM) OperationDefineMethod(def instructions.DefineMethod) types.Type {
 
 	if len(vm.Classes) == 0 {
 		log.Panic("Unable to define method, not in class")
 	}
 
-	method := Method{}
+	method := types.Method{}
 	method.Parameters = def.Parameters
 	method.Body = def.Body
 	method.IsStatic = def.IsStatic
@@ -376,18 +370,18 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 	vm.Classes[len(vm.Classes)-1].AddMethod(def.Name, method)
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	return &bl
 }
 
-func (vm *VM) OperationCallClass(callClass CallClass) Type {
+func (vm *VM) OperationCallClass(callClass instructions.CallClass) types.Type {
 
 	c, ok := vm.Environment.Get(callClass.Left)
 
 	if callClass.Left == "self" {
-		c = vm.Classes[len(vm.Classes) - 1]
+		c = vm.Classes[len(vm.Classes)-1]
 		ok = true
 	}
 
@@ -395,7 +389,7 @@ func (vm *VM) OperationCallClass(callClass CallClass) Type {
 		log.Panicf("No such class, %s", callClass.Left)
 	}
 
-	if class, ok := c.(*Class); !ok {
+	if class, ok := c.(*types.Class); !ok {
 		log.Panicf("%s is not a class", callClass.Left)
 	} else {
 
@@ -410,13 +404,13 @@ func (vm *VM) OperationCallClass(callClass CallClass) Type {
 	}
 
 	// Default
-	bl := Bool{}
+	bl := types.Bool{}
 	bl.Init("false")
 
 	return &bl
 }
 
-func (vm *VM) OperationInstance(instance Instance) Type {
+func (vm *VM) OperationInstance(instance instructions.Instance) types.Type {
 
 	in, ok := vm.Environment.Get(instance.Left)
 
@@ -424,7 +418,7 @@ func (vm *VM) OperationInstance(instance Instance) Type {
 		log.Panicf("No such class, %s", instance.Left)
 	}
 
-	class, ok := in.(*Class)
+	class, ok := in.(*types.Class)
 
 	if !ok {
 		log.Panicf("%s is not a class", instance.Left)
@@ -433,12 +427,12 @@ func (vm *VM) OperationInstance(instance Instance) Type {
 	return vm.Clone(class)
 }
 
-func (vm *VM) Clone(in Type) (out Type) {
+func (vm *VM) Clone(in types.Type) (out types.Type) {
 
-	if class, ok := in.(*Class); ok {
-		res := Class{}
+	if class, ok := in.(*types.Class); ok {
+		res := types.Class{}
 		res.Methods = class.Methods
-		res.Variables = make(map[string]Type)
+		res.Variables = make(map[string]types.Type)
 
 		for name, def := range class.Variables {
 			res.Variables[name] = vm.Clone(def)
@@ -447,23 +441,22 @@ func (vm *VM) Clone(in Type) (out Type) {
 		return &res
 	}
 
-	if _, ok := in.(*Number); ok {
-		out = &Number{}
+	if _, ok := in.(*types.Number); ok {
+		out = &types.Number{}
 	}
 
-	if _, ok := in.(*Null); ok {
-		out = &Null{}
+	if _, ok := in.(*types.Null); ok {
+		out = &types.Null{}
 	}
 
-	if _, ok := in.(*Bool); ok {
-		out = &Bool{}
+	if _, ok := in.(*types.Bool); ok {
+		out = &types.Bool{}
 	}
 
-	if _, ok := in.(*String); ok {
-		out = &String{}
+	if _, ok := in.(*types.String); ok {
+		out = &types.String{}
 	}
 
-
-	out.Init(in.toString())
+	out.Init(in.ToString())
 	return out
 }

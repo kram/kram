@@ -1,4 +1,4 @@
-package main
+package types
 
 import (
 	"log"
@@ -25,7 +25,7 @@ func (self Number) Type() string {
 	return "Number"
 }
 
-func (self *Number) toString() string {
+func (self *Number) ToString() string {
 	return strconv.FormatFloat(self.Value, 'f', 6, 64)
 }
 

@@ -1,11 +1,11 @@
-package main
+package types
 
 import (
 	"log"
 )
 
 type Null struct {
-	Null  bool
+	Null bool
 }
 
 func (self *Null) Init(str string) {}
@@ -14,7 +14,7 @@ func (self Null) Type() string {
 	return "Null"
 }
 
-func (self *Null) toString() string {
+func (self *Null) ToString() string {
 	return "null"
 }
 

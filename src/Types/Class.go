@@ -1,14 +1,15 @@
-package main
+package types
 
 import (
-	"log"
+	"../Instructions"
 	"fmt"
+	"log"
 )
 
 type Method struct {
 	Method     bool
-	Parameters []Parameter
-	Body       Block
+	Parameters []instructions.Parameter
+	Body       instructions.Block
 	IsStatic   bool
 	IsPublic   bool
 }
@@ -37,7 +38,7 @@ func (self *Class) Type() string {
 	return self.Class
 }
 
-func (self *Class) toString() string {
+func (self *Class) ToString() string {
 	return self.Type() + "\n" + fmt.Sprint(self.Variables)
 }
 
