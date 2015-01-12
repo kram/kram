@@ -4,7 +4,16 @@ import (
 	"../Instructions"
 	"fmt"
 	"log"
+	"reflect"
 )
+
+type Library interface{}
+
+type ON int
+
+type VirtualMachine struct {
+	Operation func(instructions.Node, ON) Type
+}
 
 type Method struct {
 	Method     bool
@@ -18,6 +27,7 @@ type Class struct {
 	Class     string
 	Methods   map[string]Method
 	Variables map[string]Type
+	Native    Library
 }
 
 func (self *Class) Init(str string) {
@@ -32,6 +42,19 @@ func (self *Class) AddMethod(name string, method Method) {
 
 func (self *Class) SetVariable(name string, value Type) {
 	self.Variables[name] = value
+}
+
+func (self *Class) Invoke(name string, params []instructions.Node) Type {
+
+	inputs := make([]reflect.Value, 0)
+
+	for _, v := range params {
+		inputs = append(inputs, reflect.ValueOf(v))
+	}
+
+	reflect.ValueOf(self.Native).MethodByName(name).Call(inputs)
+
+	return &Bool{}
 }
 
 func (self *Class) Type() string {

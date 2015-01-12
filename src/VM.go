@@ -2,10 +2,12 @@ package main
 
 import (
 	"./Instructions"
+	"./Libraries"
 	"./Types"
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 )
 
 type ON int
@@ -33,7 +35,31 @@ func (vm *VM) Run(tree instructions.Block) {
 
 	vm.Classes = make([]*types.Class, 0)
 
+	vm.Libraries()
+
 	vm.Operation(tree, ON_NOTHING)
+}
+
+func (vm *VM) Libraries() {
+
+	libs := make([]interface{}, 0)
+
+	libs = append(libs, libraries.IO{})
+
+	for _, lib := range libs {
+
+		l := reflect.TypeOf(lib)
+
+		fmt.Println("Name:", l.Name())
+
+		class := types.Class{}
+		class.Init(l.Name())
+		class.Native = lib
+
+		vm.Environment.Set(l.Name(), &class)
+	}
+
+	fmt.Println(vm.Environment.Env)
 }
 
 func (vm *VM) Operation(node instructions.Node, on ON) types.Type {
@@ -291,30 +317,34 @@ func (vm *VM) OperationCall(call instructions.Call) types.Type {
 	// Calling a method
 	if len(vm.Classes) >= 0 {
 
-		method := vm.Classes[len(vm.Classes)-1].Methods[call.Left]
+		method, ok := vm.Classes[len(vm.Classes)-1].Methods[call.Left]
 
-		if len(method.Parameters) != len(call.Parameters) {
-			fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", vm.Classes[len(vm.Classes)-1].ToString(), call.Left, len(method.Parameters), len(call.Parameters))
+		if ok {
+			if len(method.Parameters) != len(call.Parameters) {
+				fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", vm.Classes[len(vm.Classes)-1].ToString(), call.Left, len(method.Parameters), len(call.Parameters))
 
-			return &bl
+				return &bl
+			}
+
+			vm.Environment = vm.Environment.Push()
+
+			// Define variables
+			for i, param := range method.Parameters {
+				ass := instructions.Assign{}
+				ass.Name = param.Name
+				ass.Right = call.Parameters[i]
+
+				vm.OperationAssign(ass)
+			}
+
+			body := vm.OperationBlock(method.Body)
+
+			vm.Environment = vm.Environment.Push()
+
+			return body
 		}
 
-		vm.Environment = vm.Environment.Push()
-
-		// Define variables
-		for i, param := range method.Parameters {
-			ass := instructions.Assign{}
-			ass.Name = param.Name
-			ass.Right = call.Parameters[i]
-
-			vm.OperationAssign(ass)
-		}
-
-		body := vm.OperationBlock(method.Body)
-
-		vm.Environment = vm.Environment.Push()
-
-		return body
+		return vm.Classes[len(vm.Classes)-1].Invoke(call.Left, call.Parameters)
 	}
 
 	fmt.Printf("Call to undefined function %s\n", call.Left)
