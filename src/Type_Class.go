@@ -1,7 +1,6 @@
-package types
+package gus
 
 import (
-	"../Instructions"
 	"fmt"
 	"log"
 	"reflect"
@@ -9,16 +8,10 @@ import (
 
 type Library interface{}
 
-type ON int
-
-type VirtualMachine struct {
-	Operation func(instructions.Node, ON) Type
-}
-
 type Method struct {
 	Method     bool
-	Parameters []instructions.Parameter
-	Body       instructions.Block
+	Parameters []Parameter
+	Body       Block
 	IsStatic   bool
 	IsPublic   bool
 }
@@ -44,7 +37,7 @@ func (self *Class) SetVariable(name string, value Type) {
 	self.Variables[name] = value
 }
 
-func (self *Class) Invoke(name string, params []instructions.Node) Type {
+func (self *Class) Invoke(name string, params []Node) Type {
 
 	inputs := make([]reflect.Value, 0)
 

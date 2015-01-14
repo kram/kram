@@ -1,11 +1,7 @@
-package main
-
-import (
-	"./Types"
-)
+package gus
 
 type Environment struct {
-	Env       map[string]types.Type
+	Env       map[string]Type
 	HasParent bool
 	Parent    *Environment
 }
@@ -24,19 +20,19 @@ func (env *Environment) Push() *Environment {
 	return &Environment{
 		Parent:    env,
 		HasParent: true,
-		Env:       make(map[string]types.Type),
+		Env:       make(map[string]Type),
 	}
 }
 
-func (env *Environment) Set(key string, value types.Type) {
+func (env *Environment) Set(key string, value Type) {
 	env.Env[key] = value
 }
 
-func (env *Environment) Get(str string) (types.Type, bool) {
+func (env *Environment) Get(str string) (Type, bool) {
 	return env.get(str, 0)
 }
 
-func (env *Environment) get(str string, r int) (t types.Type, ok bool) {
+func (env *Environment) get(str string, r int) (t Type, ok bool) {
 
 	if _, ok := env.Env[str]; ok {
 		return env.Env[str], true

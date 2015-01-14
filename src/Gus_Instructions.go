@@ -1,4 +1,4 @@
-package instructions
+package gus
 
 type Node interface{}
 

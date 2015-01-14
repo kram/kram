@@ -1,4 +1,4 @@
-package main
+package gus
 
 import (
 	"encoding/json"

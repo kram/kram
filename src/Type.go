@@ -1,4 +1,4 @@
-package types
+package gus
 
 type Type interface {
 	Init(string)
