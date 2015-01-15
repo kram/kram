@@ -1,4 +1,4 @@
-package gus
+package main
 
 type Node interface{}
 
@@ -87,4 +87,9 @@ type Parameter struct {
 type Instance struct {
 	Instance bool
 	Left     string
+}
+
+type CreateList struct {
+	CreateList bool
+	Items      []Node
 }

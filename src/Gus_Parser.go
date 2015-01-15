@@ -1,4 +1,4 @@
-package gus
+package main
 
 import (
 	"log"
@@ -322,6 +322,22 @@ func (p *Parser) Parse(tokens []Token) Block {
 		}
 
 		return inst
+	}, 0, true)
+
+	p.Symbol("[", func() Node {
+
+		list := CreateList{}
+		list.Items = make([]Node, 0)
+
+		for {
+			if i, ok := p.Statement(EXPECTING_NOTHING); ok {
+				list.Items = append(list.Items, i)
+			} else {
+				break
+			}
+		}
+
+		return list
 	}, 0, true)
 
 	p.Infix("number", 0)

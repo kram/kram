@@ -1,27 +1,27 @@
-package gus
+package main
 
 import (
 	"fmt"
 )
 
-type IO struct{}
-
-func (self IO) Print(params ...Node) Type {
-
-	for _, param := range params {
-		// fmt.Print(vm.Operation(param, ON_NOTHING).ToString())
-		fmt.Print(param)
-	}
-
-	return DefaultReturn()
+type IO struct {
+	*Library
 }
 
-func (self IO) Println(params ...Node) Type {
+func (io *IO) Instance() (Lib, string) {
+	return &IO{}, "IO"
+}
+
+func (io IO) Print(vm *VM, params []Type) {
 
 	for _, param := range params {
-		// fmt.Println(vm.Operation(param, ON_NOTHING).ToString())
-		fmt.Print(param)
+		fmt.Print(param.ToString())
 	}
+}
 
-	return DefaultReturn()
+func (io IO) Println(vm *VM, params []Type) {
+
+	for _, param := range params {
+		fmt.Print(param.ToString())
+	}
 }

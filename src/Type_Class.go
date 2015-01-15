@@ -1,12 +1,10 @@
-package gus
+package main
 
 import (
 	"fmt"
 	"log"
 	"reflect"
 )
-
-type Library interface{}
 
 type Method struct {
 	Method     bool
@@ -20,7 +18,7 @@ type Class struct {
 	Class     string
 	Methods   map[string]Method
 	Variables map[string]Type
-	Native    Library
+	Extension Lib
 }
 
 func (self *Class) Init(str string) {
@@ -37,17 +35,70 @@ func (self *Class) SetVariable(name string, value Type) {
 	self.Variables[name] = value
 }
 
-func (self *Class) Invoke(name string, params []Node) Type {
+func (self *Class) Invoke(vm *VM, name string, params []Node) Type {
 
-	inputs := make([]reflect.Value, 0)
+	res, ok := self.InvokeNative(vm, name, params)
 
-	for _, v := range params {
-		inputs = append(inputs, reflect.ValueOf(v))
+	if ok {
+		return res
 	}
 
-	reflect.ValueOf(self.Native).MethodByName(name).Call(inputs)
+	return self.InvokeExtension(vm, name, params)
+}
 
-	return &Bool{}
+func (self *Class) InvokeExtension(vm *VM, method string, params []Node) Type {
+
+	inputs := make([]reflect.Value, 2)
+
+	inputs[0] = reflect.ValueOf(vm)
+
+	param_type := make([]Type, len(params))
+
+	for i, param := range params {
+		param_type[i] = vm.Operation(param, ON_NOTHING)
+	}
+
+	inputs[1] = reflect.ValueOf(param_type)
+
+	res := reflect.ValueOf(self.Extension).MethodByName(method).Call(inputs)
+
+	if len(res) > 0 {
+		return res[0].Interface().(Type)
+	}
+
+	return &Null{}
+}
+
+func (self *Class) InvokeNative(vm *VM, name string, params []Node) (Type, bool) {
+
+	method, ok := self.Methods[name]
+
+	if !ok {
+		return &Bool{}, false
+	}
+
+	if len(method.Parameters) != len(params) {
+		fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", self.ToString(), name, len(method.Parameters), len(params))
+
+		return &Bool{}, true
+	}
+
+	vm.Environment = vm.Environment.Push()
+
+	// Define variables
+	for i, param := range method.Parameters {
+		ass := Assign{}
+		ass.Name = param.Name
+		ass.Right = params[i]
+
+		vm.OperationAssign(ass)
+	}
+
+	body := vm.OperationBlock(method.Body)
+
+	vm.Environment = vm.Environment.Push()
+
+	return body, true
 }
 
 func (self *Class) Type() string {
@@ -55,7 +106,7 @@ func (self *Class) Type() string {
 }
 
 func (self *Class) ToString() string {
-	return self.Type() + "\n" + fmt.Sprint(self.Variables)
+	return self.Extension.ToString()
 }
 
 func (self *Class) Math(method string, right Type) Type {

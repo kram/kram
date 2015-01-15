@@ -1,4 +1,4 @@
-package gus
+package main
 
 type Environment struct {
 	Env       map[string]Type
@@ -38,7 +38,7 @@ func (env *Environment) get(str string, r int) (t Type, ok bool) {
 		return env.Env[str], true
 	}
 
-	if !env.HasParent || r > 10 {
+	if !env.HasParent {
 		return t, false
 	}
 

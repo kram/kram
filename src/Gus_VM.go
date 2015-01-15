@@ -1,10 +1,9 @@
-package gus
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
 )
 
 type ON int
@@ -39,24 +38,21 @@ func (vm *VM) Run(tree Block) {
 
 func (vm *VM) Libraries() {
 
-	libs := make([]interface{}, 0)
+	libs := make([]Lib, 0)
 
-	libs = append(libs, IO{})
+	libs = append(libs, &IO{})
+	libs = append(libs, &List{})
 
 	for _, lib := range libs {
 
-		l := reflect.TypeOf(lib)
-
-		fmt.Println("Name:", l.Name())
+		instance, name := lib.Instance()
 
 		class := Class{}
-		class.Init(l.Name())
-		class.Native = lib
+		class.Init(name)
+		class.Extension = instance
 
-		vm.Environment.Set(l.Name(), &class)
+		vm.Environment.Set(name, &class)
 	}
-
-	fmt.Println(vm.Environment.Env)
 }
 
 func (vm *VM) Operation(node Node, on ON) Type {
@@ -117,6 +113,10 @@ func (vm *VM) Operation(node Node, on ON) Type {
 
 	if instance, ok := node.(Instance); ok {
 		return vm.OperationInstance(instance)
+	}
+
+	if list, ok := node.(CreateList); ok {
+		return vm.OperationCreateList(list)
 	}
 
 	if vm.Debug {
@@ -313,35 +313,7 @@ func (vm *VM) OperationCall(call Call) Type {
 
 	// Calling a method
 	if len(vm.Classes) >= 0 {
-
-		method, ok := vm.Classes[len(vm.Classes)-1].Methods[call.Left]
-
-		if ok {
-			if len(method.Parameters) != len(call.Parameters) {
-				fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", vm.Classes[len(vm.Classes)-1].ToString(), call.Left, len(method.Parameters), len(call.Parameters))
-
-				return &bl
-			}
-
-			vm.Environment = vm.Environment.Push()
-
-			// Define variables
-			for i, param := range method.Parameters {
-				ass := Assign{}
-				ass.Name = param.Name
-				ass.Right = call.Parameters[i]
-
-				vm.OperationAssign(ass)
-			}
-
-			body := vm.OperationBlock(method.Body)
-
-			vm.Environment = vm.Environment.Push()
-
-			return body
-		}
-
-		return vm.Classes[len(vm.Classes)-1].Invoke(call.Left, call.Parameters)
+		return vm.Classes[len(vm.Classes)-1].Invoke(vm, call.Left, call.Parameters)
 	}
 
 	fmt.Printf("Call to undefined function %s\n", call.Left)
@@ -437,6 +409,22 @@ func (vm *VM) OperationCallClass(callClass CallClass) Type {
 	return &bl
 }
 
+func (vm *VM) OperationCreateList(list CreateList) Type {
+	l := vm.OperationInstance(Instance{
+		Left: "List",
+	})
+
+	class, ok := l.(*Class)
+
+	if !ok {
+		log.Panicf("Expected List, got something else.")
+	}
+
+	class.Invoke(vm, "Init", list.Items)
+
+	return l
+}
+
 func (vm *VM) OperationInstance(instance Instance) Type {
 
 	in, ok := vm.Environment.Get(instance.Left)
@@ -458,7 +446,9 @@ func (vm *VM) Clone(in Type) (out Type) {
 
 	if class, ok := in.(*Class); ok {
 		res := Class{}
+		res.Class = class.Class
 		res.Methods = class.Methods
+		res.Extension, _ = class.Extension.Instance()
 		res.Variables = make(map[string]Type)
 
 		for name, def := range class.Variables {
