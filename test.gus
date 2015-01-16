@@ -1,14 +1,1 @@
-class MyList {
-	static Add(l, i) {
-
-		IO.Println(l)
-
-		if i < 20 {
-			l.Push(i)
-			MyList.Add(l, i + 1)
-		}
-	}
-}
-
-var a = []
-MyList.Add(a, 0)
+var a = CustomClass.Yolo(100)

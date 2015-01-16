@@ -21,6 +21,8 @@ type VM struct {
 	Classes []*Class
 
 	Debug bool
+
+	LastOperationShouldBreak bool
 }
 
 func (vm *VM) Run(tree Block) {
@@ -56,6 +58,8 @@ func (vm *VM) Libraries() {
 }
 
 func (vm *VM) Operation(node Node, on ON) Type {
+
+	vm.LastOperationShouldBreak = false
 
 	if assign, ok := node.(Assign); ok {
 		return vm.OperationAssign(assign)
@@ -119,6 +123,10 @@ func (vm *VM) Operation(node Node, on ON) Type {
 		return vm.OperationCreateList(list)
 	}
 
+	if ret, ok := node.(Return); ok {
+		return vm.OperationReturn(ret)
+	}
+
 	if vm.Debug {
 		fmt.Printf("Was not able to execute %s\n", node)
 	}
@@ -136,6 +144,10 @@ func (vm *VM) OperationBlock(block Block) (last Type) {
 
 	for _, body := range block.Body {
 		last = vm.Operation(body, ON_NOTHING)
+
+		if vm.LastOperationShouldBreak {
+			break
+		}
 	}
 
 	vm.Environment = vm.Environment.Pop()
@@ -423,6 +435,10 @@ func (vm *VM) OperationCreateList(list CreateList) Type {
 	class.Invoke(vm, "Init", list.Items)
 
 	return l
+}
+
+func (vm *VM) OperationReturn(ret Return) Type {
+	return vm.Operation(ret.Statement, ON_NOTHING)
 }
 
 func (vm *VM) OperationInstance(instance Instance) Type {

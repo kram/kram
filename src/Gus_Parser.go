@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 )
 
 // --------------- Symbols
@@ -120,7 +121,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 		p.Stack.Add(&Nil{})
 
-		stat, ok := p.Statement(EXPECTING_EXPRESSION)
+		/*stat, ok := p.Statement(EXPECTING_EXPRESSION)
 
 		if ok {
 			n.Right = stat
@@ -128,7 +129,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 			n.Right = Literal{
 				Type: "null",
 			}
-		}
+		}*/
+
+		n.Right = p.Expression(true)
 
 		return n
 	}, 0, true)
@@ -340,6 +343,20 @@ func (p *Parser) Parse(tokens []Token) Block {
 		return list
 	}, 0, true)
 
+	p.Symbol("return", func() Node {
+
+		res := Return{}
+
+		if i, ok := p.Statement(EXPECTING_NOTHING); ok {
+			res.Statement = i
+		} else {
+			res.Statement = Literal{Type: "null"}
+		}
+
+		return res
+
+	}, 0, true)
+
 	p.Infix("number", 0)
 	p.Infix("string", 0)
 	p.Infix("bool", 0)
@@ -460,6 +477,8 @@ func (p *Parser) Expression(advance bool) Node {
 	previous := p.Previous()
 	current := p.Token
 
+	fmt.Println("Current", current)
+
 	// Number or string
 	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
 		literal := Literal{
@@ -480,6 +499,15 @@ func (p *Parser) Expression(advance bool) Node {
 		p.Stack.Add(variable)
 
 		return variable
+	}
+
+
+	if current.Type == "operator" && current.Value == "." {
+		push := PushClass{}
+		push.Left = previous
+		push.Right = p.Expression(true)
+
+		return push
 	}
 
 	// We encountered an operator, check the type of the previous expression

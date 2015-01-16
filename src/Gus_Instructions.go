@@ -93,3 +93,14 @@ type CreateList struct {
 	CreateList bool
 	Items      []Node
 }
+
+type Return struct {
+	Return    bool
+	Statement Node
+}
+
+type PushClass struct {
+	PushCalss bool
+	Left      Node
+	Right     Node
+}
