@@ -60,7 +60,7 @@ func main() {
 
 		if *debug {
 			b, _ := json.MarshalIndent(vm.Environment.Env, "", "  ")
-			fmt.Println("-------------------")
+			fmt.Println("\n-------------------")
 			fmt.Println("-   ENVIRONMENT   -")
 			fmt.Println("-------------------")
 			fmt.Println(string(b))

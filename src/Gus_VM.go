@@ -11,6 +11,7 @@ type ON int
 const (
 	ON_NOTHING ON = 1 << iota // 1
 	ON_CLASS                  // 2
+	ON_CLASS_BODY             // 4
 )
 
 type VM struct {
@@ -22,7 +23,7 @@ type VM struct {
 
 	Debug bool
 
-	LastOperationShouldBreak bool
+	ShouldReturn []bool
 }
 
 func (vm *VM) Run(tree Block) {
@@ -30,6 +31,7 @@ func (vm *VM) Run(tree Block) {
 	// Set empty environment
 	vm.Environment = &Environment{}
 	vm.Environment.Env = make(map[string]Type)
+	vm.ShouldReturn = make([]bool, 0)
 
 	vm.Classes = make([]*Class, 0)
 
@@ -58,8 +60,6 @@ func (vm *VM) Libraries() {
 }
 
 func (vm *VM) Operation(node Node, on ON) Type {
-
-	vm.LastOperationShouldBreak = false
 
 	if assign, ok := node.(Assign); ok {
 		return vm.OperationAssign(assign)
@@ -96,15 +96,15 @@ func (vm *VM) Operation(node Node, on ON) Type {
 	}
 
 	if block, ok := node.(Block); ok {
-		return vm.OperationBlock(block)
+		return vm.OperationBlock(block, on)
 	}
 
 	if call, ok := node.(Call); ok {
 		return vm.OperationCall(call)
 	}
 
-	if callClass, ok := node.(CallClass); ok {
-		return vm.OperationCallClass(callClass)
+	if pushClass, ok := node.(PushClass); ok {
+		return vm.OperationPushClass(pushClass)
 	}
 
 	if defineClass, ok := node.(DefineClass); ok {
@@ -138,16 +138,27 @@ func (vm *VM) Operation(node Node, on ON) Type {
 	return &bl
 }
 
-func (vm *VM) OperationBlock(block Block) (last Type) {
+func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 
+	// Push
 	vm.Environment = vm.Environment.Push()
+
+	if on == ON_CLASS_BODY {
+		vm.ShouldReturn = append(vm.ShouldReturn, false)
+	}
 
 	for _, body := range block.Body {
 		last = vm.Operation(body, ON_NOTHING)
 
-		if vm.LastOperationShouldBreak {
+		// Return statement
+		if len(vm.ShouldReturn) > 0 && vm.ShouldReturn[len(vm.ShouldReturn)-1] {
 			break
 		}
+	}
+
+	// Pop
+	if on == ON_CLASS_BODY {
+		vm.ShouldReturn = vm.ShouldReturn[:len(vm.ShouldReturn)-1]
 	}
 
 	vm.Environment = vm.Environment.Pop()
@@ -325,7 +336,7 @@ func (vm *VM) OperationCall(call Call) Type {
 
 	// Calling a method
 	if len(vm.Classes) >= 0 {
-		return vm.Classes[len(vm.Classes)-1].Invoke(vm, call.Left, call.Parameters)
+		return vm.Classes[len(vm.Classes)-1].Invoke(vm, vm.Operation(call.Left, ON_NOTHING).ToString(), call.Parameters)
 	}
 
 	fmt.Printf("Call to undefined function %s\n", call.Left)
@@ -387,31 +398,34 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 	return &bl
 }
 
-func (vm *VM) OperationCallClass(callClass CallClass) Type {
+func (vm *VM) OperationPushClass(pushClass PushClass) Type {
 
-	c, ok := vm.Environment.Get(callClass.Left)
+	name := vm.Operation(pushClass.Left, ON_NOTHING).ToString()
 
-	if callClass.Left == "self" {
+	c, ok := vm.Environment.Get(name)
+
+	if name == "self" {
 		c = vm.Classes[len(vm.Classes)-1]
 		ok = true
 	}
 
 	if !ok {
-		log.Panicf("No such class, %s", callClass.Left)
+		log.Panicf("No such class, %s", name)
 	}
 
 	if class, ok := c.(*Class); !ok {
-		log.Panicf("%s is not a class", callClass.Left)
+		log.Panicf("%s is not a class", name)
 	} else {
 
 		// Push
 		vm.Classes = append(vm.Classes, class)
 
-		return vm.Operation(callClass.Method, ON_CLASS)
+		res := vm.Operation(pushClass.Right, ON_CLASS)		
 
 		// Pop
 		vm.Classes = vm.Classes[:len(vm.Classes)-1]
 
+		return res		
 	}
 
 	// Default
@@ -438,6 +452,8 @@ func (vm *VM) OperationCreateList(list CreateList) Type {
 }
 
 func (vm *VM) OperationReturn(ret Return) Type {
+	vm.ShouldReturn[len(vm.ShouldReturn)-1] = true
+
 	return vm.Operation(ret.Statement, ON_NOTHING)
 }
 

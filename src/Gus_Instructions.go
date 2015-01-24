@@ -53,15 +53,9 @@ type Condition struct {
 	Right     Node
 }
 
-type CallClass struct {
-	CallClass bool
-	Left      string
-	Method    Node
-}
-
 type Call struct {
 	Call       bool
-	Left       string
+	Left       Node
 	Parameters []Node
 }
 
@@ -100,7 +94,7 @@ type Return struct {
 }
 
 type PushClass struct {
-	PushCalss bool
+	PushClass bool
 	Left      Node
 	Right     Node
 }

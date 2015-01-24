@@ -22,6 +22,6 @@ func (io IO) Print(vm *VM, params []Type) {
 func (io IO) Println(vm *VM, params []Type) {
 
 	for _, param := range params {
-		fmt.Print(param.ToString())
+		fmt.Println(param.ToString())
 	}
 }
