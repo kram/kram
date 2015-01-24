@@ -44,8 +44,9 @@ func (vm *VM) Libraries() {
 
 	libs := make([]Lib, 0)
 
-	libs = append(libs, &IO{})
-	libs = append(libs, &List{})
+	libs = append(libs, &Library_IO{})
+	libs = append(libs, &Library_List{})
+	libs = append(libs, &Library_String{})
 
 	for _, lib := range libs {
 

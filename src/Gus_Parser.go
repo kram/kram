@@ -537,6 +537,7 @@ func (p *Parser) Expressions() Node {
 		expression := p.Expression(true)
 
 		if _, ok := expression.(Nil); ok {
+			p.Reverse(1)
 			return p.Previous()
 		}
 
@@ -635,7 +636,7 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 			sym := p.Symbols["variable"].CaseFunction(expecting)
 			statement = sym.Function()
 			hasContent = true
-			continue
+			break
 		}
 
 		if tok.Type == "operator" && tok.Value == "}" {

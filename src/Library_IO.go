@@ -4,22 +4,22 @@ import (
 	"fmt"
 )
 
-type IO struct {
+type Library_IO struct {
 	*Library
 }
 
-func (io *IO) Instance() (Lib, string) {
-	return &IO{}, "IO"
+func (io *Library_IO) Instance() (Lib, string) {
+	return &Library_IO{}, "IO"
 }
 
-func (io IO) Print(vm *VM, params []Type) {
+func (io Library_IO) Print(vm *VM, params []Type) {
 
 	for _, param := range params {
 		fmt.Print(param.ToString())
 	}
 }
 
-func (io IO) Println(vm *VM, params []Type) {
+func (io Library_IO) Println(vm *VM, params []Type) {
 
 	for _, param := range params {
 		fmt.Println(param.ToString())
