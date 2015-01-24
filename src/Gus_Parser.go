@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
-	"fmt"
 )
 
 // --------------- Symbols
@@ -408,9 +406,7 @@ func (p *Parser) Expression(advance bool) Node {
 	previous := p.Previous()
 	current := p.Token
 
-	fmt.Println("Current", current)
-
-	if current.Type == "operator" && (current.Value == "}" || current.Value == "{") {
+	if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == ",") {
 		return Nil{}
 	}
 
@@ -436,16 +432,13 @@ func (p *Parser) Expression(advance bool) Node {
 	// IO.Println("123")
 	//   ^
 	if current.Type == "operator" && current.Value == "." {
-
-		fmt.Println("PushClass")
-
 		push := PushClass{}
 		push.Left = previous
 
 		// Convert Variable to literal
 		if v, ok := push.Left.(Variable); ok {
-			push.Left = Literal {
-				Type: "string",
+			push.Left = Literal{
+				Type:  "string",
 				Value: v.Name,
 			}
 		}
@@ -465,8 +458,8 @@ func (p *Parser) Expression(advance bool) Node {
 
 		// Convert Variable to literal
 		if v, ok := method.Left.(Variable); ok {
-			method.Left = Literal {
-				Type: "string",
+			method.Left = Literal{
+				Type:  "string",
 				Value: v.Name,
 			}
 		}
@@ -474,17 +467,13 @@ func (p *Parser) Expression(advance bool) Node {
 		method.Parameters = make([]Node, 0)
 
 		for {
-			stat, _ := p.Statement(EXPECTING_EXPRESSION)
+			param := p.Expressions()
 
-			if stat != nil {
-				method.Parameters = append(method.Parameters, stat)
+			if _, ok := param.(Nil); ok {
+				break
 			}
 
-			if p.Token.Type == "operator" && p.Token.Value == "," {
-				continue
-			}
-
-			break
+			method.Parameters = append(method.Parameters, param)
 		}
 
 		return method
@@ -543,23 +532,20 @@ func (p *Parser) Expression(advance bool) Node {
 func (p *Parser) Expressions() Node {
 
 	p.Stack.Push()
-	
+
 	for {
 		expression := p.Expression(true)
-
-		b, _ := json.MarshalIndent(expression, "", "  ")
-		fmt.Println(string(b))
 
 		if _, ok := expression.(Nil); ok {
 			return p.Previous()
 		}
 
 		p.Stack.Add(expression)
-    }
+	}
 
-    p.Stack.Pop()
+	p.Stack.Pop()
 
-    return Nil{}
+	return Nil{}
 }
 
 func (p *Parser) Method() DefineMethod {

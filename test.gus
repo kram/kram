@@ -1,13 +1,1 @@
-class CustomClass {
-	static Yolo (input) {
-		if input > 50 {
-			return "Big"
-		}
-
-		return "Small"
-	}
-}
-
-var size = CustomClass.Yolo(100)
-
-IO.Println(size)
+IO.Println("A", "B" + "C")
