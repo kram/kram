@@ -9,9 +9,9 @@ import (
 type ON int
 
 const (
-	ON_NOTHING ON = 1 << iota // 1
-	ON_CLASS                  // 2
-	ON_CLASS_BODY             // 4
+	ON_NOTHING    ON = 1 << iota // 1
+	ON_CLASS                     // 2
+	ON_CLASS_BODY                // 4
 )
 
 type VM struct {
@@ -420,12 +420,12 @@ func (vm *VM) OperationPushClass(pushClass PushClass) Type {
 		// Push
 		vm.Classes = append(vm.Classes, class)
 
-		res := vm.Operation(pushClass.Right, ON_CLASS)		
+		res := vm.Operation(pushClass.Right, ON_CLASS)
 
 		// Pop
 		vm.Classes = vm.Classes[:len(vm.Classes)-1]
 
-		return res		
+		return res
 	}
 
 	// Default

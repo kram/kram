@@ -7,10 +7,10 @@ type Lib interface {
 	ToString() string
 }
 
-type Library struct {}
+type Library struct{}
 
 func (lib *Library) Init(vm *VM, params []Type) {}
-func (lib *Library) Setup() {}
+func (lib *Library) Setup()                     {}
 
 func (lib *Library) ToString() string {
 	return "DEFAULT_LIBRARY"
