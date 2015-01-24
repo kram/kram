@@ -53,15 +53,9 @@ type Condition struct {
 	Right     Node
 }
 
-type CallClass struct {
-	CallClass bool
-	Left      string
-	Method    Node
-}
-
 type Call struct {
 	Call       bool
-	Left       string
+	Left       Node
 	Parameters []Node
 }
 
@@ -92,4 +86,15 @@ type Instance struct {
 type CreateList struct {
 	CreateList bool
 	Items      []Node
+}
+
+type Return struct {
+	Return    bool
+	Statement Node
+}
+
+type PushClass struct {
+	PushClass bool
+	Left      Node
+	Right     Node
 }

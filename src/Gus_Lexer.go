@@ -45,6 +45,7 @@ func (l *Lexer) Init(source string) {
 	l.Keywords["var"] = true
 	l.Keywords["class"] = true
 	l.Keywords["static"] = true
+	l.Keywords["return"] = true
 
 	l.Length = len(source)
 	l.Source = source

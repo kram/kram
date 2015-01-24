@@ -94,7 +94,7 @@ func (self *Class) InvokeNative(vm *VM, name string, params []Node) (Type, bool)
 		vm.OperationAssign(ass)
 	}
 
-	body := vm.OperationBlock(method.Body)
+	body := vm.OperationBlock(method.Body, ON_CLASS_BODY)
 
 	vm.Environment = vm.Environment.Push()
 

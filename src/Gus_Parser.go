@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
+	"fmt"
 )
 
 // --------------- Symbols
@@ -120,15 +122,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 		p.Stack.Add(&Nil{})
 
-		stat, ok := p.Statement(EXPECTING_EXPRESSION)
-
-		if ok {
-			n.Right = stat
-		} else {
-			n.Right = Literal{
-				Type: "null",
-			}
-		}
+		n.Right = p.Expressions()
 
 		return n
 	}, 0, true)
@@ -170,59 +164,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 				if tok.Type == "operator" && tok.Value == "=" {
 					set := Set{}
 					set.Name = name.Value
-
-					// Put Nil on the stack
-					p.Stack.Add(&Nil{})
-
-					stat, ok := p.Statement(EXPECTING_EXPRESSION)
-
-					if ok {
-						set.Right = stat
-					} else {
-						log.Panic("Found no statement to Assign")
-					}
+					set.Right = p.Expressions()
 
 					return set
-				}
-
-				// Calls
-				// IO.Println("123")
-				// ^^
-				if tok.Type == "operator" && tok.Value == "." {
-					class := CallClass{}
-
-					class.Left = name.Value
-					method, _ := p.Statement(EXPECTING_NOTHING)
-					class.Method = method
-
-					return class
-				}
-
-				// Calls
-				// IO.Println("123")
-				//    ^^^^^^^
-				if tok.Type == "operator" && tok.Value == "(" {
-
-					method := Call{}
-
-					method.Left = name.Value
-					method.Parameters = make([]Node, 0)
-
-					for {
-						stat, _ := p.Statement(EXPECTING_EXPRESSION)
-
-						if stat != nil {
-							method.Parameters = append(method.Parameters, stat)
-						}
-
-						if p.Token.Type == "operator" && p.Token.Value == "," {
-							continue
-						}
-
-						break
-					}
-
-					return method
 				}
 
 				if tok.Type == "EOL" || tok.Type == "EOF" {
@@ -230,7 +174,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 				}
 
 				p.Reverse(2)
-				return p.Expression(false)
+				return p.Expressions()
 			}
 		}
 
@@ -241,17 +185,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Symbol("if", func() Node {
 		i := If{}
 
-		// Put Nil on the stack
-		p.Stack.Add(&Nil{})
-
-		stat, ok := p.Statement(EXPECTING_EXPRESSION)
-
-		if ok {
-			i.Condition = stat
-		} else {
-			log.Panic("Found no statement to If")
-		}
-
+		i.Condition = p.Expressions()
 		i.True = p.Statements(EXPECTING_IF_BODY)
 
 		p.Advance()
@@ -338,6 +272,20 @@ func (p *Parser) Parse(tokens []Token) Block {
 		}
 
 		return list
+	}, 0, true)
+
+	p.Symbol("return", func() Node {
+
+		res := Return{}
+
+		if i, ok := p.Statement(EXPECTING_NOTHING); ok {
+			res.Statement = i
+		} else {
+			res.Statement = Literal{Type: "null"}
+		}
+
+		return res
+
 	}, 0, true)
 
 	p.Infix("number", 0)
@@ -460,14 +408,18 @@ func (p *Parser) Expression(advance bool) Node {
 	previous := p.Previous()
 	current := p.Token
 
+	fmt.Println("Current", current)
+
+	if current.Type == "operator" && (current.Value == "}" || current.Value == "{") {
+		return Nil{}
+	}
+
 	// Number or string
 	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
 		literal := Literal{
 			Type:  current.Type,
 			Value: current.Value,
 		}
-
-		p.Stack.Add(literal)
 
 		return literal
 	}
@@ -477,9 +429,65 @@ func (p *Parser) Expression(advance bool) Node {
 		variable := Variable{}
 		variable.Name = current.Value
 
-		p.Stack.Add(variable)
-
 		return variable
+	}
+
+	// PushClass
+	// IO.Println("123")
+	//   ^
+	if current.Type == "operator" && current.Value == "." {
+
+		fmt.Println("PushClass")
+
+		push := PushClass{}
+		push.Left = previous
+
+		// Convert Variable to literal
+		if v, ok := push.Left.(Variable); ok {
+			push.Left = Literal {
+				Type: "string",
+				Value: v.Name,
+			}
+		}
+
+		push.Right = p.Expressions()
+
+		return push
+	}
+
+	// Call
+	// IO.Println("123")
+	//    ^^^^^^^
+	if current.Type == "operator" && current.Value == "(" {
+
+		method := Call{}
+		method.Left = previous
+
+		// Convert Variable to literal
+		if v, ok := method.Left.(Variable); ok {
+			method.Left = Literal {
+				Type: "string",
+				Value: v.Name,
+			}
+		}
+
+		method.Parameters = make([]Node, 0)
+
+		for {
+			stat, _ := p.Statement(EXPECTING_EXPRESSION)
+
+			if stat != nil {
+				method.Parameters = append(method.Parameters, stat)
+			}
+
+			if p.Token.Type == "operator" && p.Token.Value == "," {
+				continue
+			}
+
+			break
+		}
+
+		return method
 	}
 
 	// We encountered an operator, check the type of the previous expression
@@ -524,13 +532,34 @@ func (p *Parser) Expression(advance bool) Node {
 			math.Right = p.Expression(true)
 		}
 
-		p.Stack.Empty()
 		p.Stack.Add(math)
 
 		return math
 	}
 
 	return Nil{}
+}
+
+func (p *Parser) Expressions() Node {
+
+	p.Stack.Push()
+	
+	for {
+		expression := p.Expression(true)
+
+		b, _ := json.MarshalIndent(expression, "", "  ")
+		fmt.Println(string(b))
+
+		if _, ok := expression.(Nil); ok {
+			return p.Previous()
+		}
+
+		p.Stack.Add(expression)
+    }
+
+    p.Stack.Pop()
+
+    return Nil{}
 }
 
 func (p *Parser) Method() DefineMethod {

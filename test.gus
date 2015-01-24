@@ -1,14 +1,13 @@
-class MyList {
-	static Add(l, i) {
-
-		IO.Println(l)
-
-		if i < 20 {
-			l.Push(i)
-			MyList.Add(l, i + 1)
+class CustomClass {
+	static Yolo (input) {
+		if input > 50 {
+			return "Big"
 		}
+
+		return "Small"
 	}
 }
 
-var a = []
-MyList.Add(a, 0)
+var size = CustomClass.Yolo(100)
+
+IO.Println(size)
