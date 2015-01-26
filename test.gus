@@ -1,2 +1,2 @@
-IO.Println(String.ToLower("ABCdef"))
-IO.Println(String.ToUpper("ABCdef"))
+IO.Println(0..3)
+IO.Println(0...3)

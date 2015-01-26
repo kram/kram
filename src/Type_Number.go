@@ -39,7 +39,7 @@ func (self *Number) Math(method string, right Type) Type {
 
 	val := float64(0)
 
-	if method == "+" || method == "-" || method == "*" || method == "/" || method == "%" || method == "**" {
+	if method == "+" || method == "-" || method == "*" || method == "/" || method == "%" || method == "**" || method ==  ".." || method == "..." {
 		switch method {
 		case "+":
 			val = self.Value + r.Value
@@ -53,6 +53,32 @@ func (self *Number) Math(method string, right Type) Type {
 			val = math.Mod(self.Value, r.Value)
 		case "**":
 			val = math.Pow(self.Value, r.Value)
+		case "..", "...":
+
+			list := Library_List{}
+			class := Class{}
+			class.Init("List")
+			class.Extension = &list
+
+			i := self.Value
+
+			for {
+				if (method == ".." && i >= r.Value) || (method == "..." && i > r.Value) {
+					break
+				}
+
+				// Create number object
+				num := Number{}
+				num.Value = i
+
+				list.Items = append(list.Items, &num)
+
+				
+
+				i++
+			}
+
+			return &class
 		}
 
 		num := Number{}
