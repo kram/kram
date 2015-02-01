@@ -128,15 +128,7 @@ func (vm *VM) Operation(node Node, on ON) Type {
 		return vm.OperationReturn(ret)
 	}
 
-	if vm.Debug {
-		fmt.Printf("Was not able to execute %s\n", node)
-	}
-
-	// Default
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Null{}
 }
 
 func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
@@ -215,11 +207,7 @@ func (vm *VM) OperationLiteral(literal Literal) Type {
 
 	log.Panicf("Not able to handle Literal %s", literal)
 
-	// Default
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Null{}
 }
 
 func (vm *VM) OperationVariable(variable Variable) Type {
@@ -230,11 +218,7 @@ func (vm *VM) OperationVariable(variable Variable) Type {
 
 	log.Print("Undefined variable, " + variable.Name)
 
-	// Default
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Null{}
 }
 
 func (vm *VM) ClassOperationVariable(variable Variable) Type {
@@ -247,11 +231,7 @@ func (vm *VM) ClassOperationVariable(variable Variable) Type {
 
 	log.Print("Undefined variable, " + class.Type() + "." + variable.Name)
 
-	// Default
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Null{}
 }
 
 func (vm *VM) OperationSet(set Set) Type {
@@ -371,11 +351,7 @@ func (vm *VM) OperationDefineClass(def DefineClass) Type {
 
 	vm.Environment.Set(def.Name, &class)
 
-	// Default
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Null{}
 }
 
 func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
@@ -392,11 +368,7 @@ func (vm *VM) OperationDefineMethod(def DefineMethod) Type {
 
 	vm.Classes[len(vm.Classes)-1].AddMethod(def.Name, method)
 
-	// Default
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Null{}
 }
 
 func (vm *VM) OperationPushClass(pushClass PushClass) Type {
@@ -429,11 +401,7 @@ func (vm *VM) OperationPushClass(pushClass PushClass) Type {
 		return res
 	}
 
-	// Default
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Null{}
 }
 
 func (vm *VM) OperationCreateList(list CreateList) Type {

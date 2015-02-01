@@ -1,2 +1,7 @@
-IO.Println(0..3)
-IO.Println(0...3)
+var i = 0
+i++
+i++
+i++
+i--
+
+IO.Println(i)

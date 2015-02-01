@@ -32,14 +32,15 @@ func (self *Number) ToString() string {
 func (self *Number) Math(method string, right Type) Type {
 
 	r, ok := right.(*Number)
+	_, is_null := right.(*Null)
 
-	if !ok {
+	if !ok && !is_null {
 		log.Panicf("You can not apply %s to a %s() with a %s()", method, self.Type(), right.Type())
 	}
 
 	val := float64(0)
 
-	if method == "+" || method == "-" || method == "*" || method == "/" || method == "%" || method == "**" || method ==  ".." || method == "..." {
+	if method == "+" || method == "-" || method == "*" || method == "/" || method == "%" || method == "**" || method ==  ".." || method == "..." || method ==  "++" || method == "--" {
 		switch method {
 		case "+":
 			val = self.Value + r.Value
@@ -53,6 +54,12 @@ func (self *Number) Math(method string, right Type) Type {
 			val = math.Mod(self.Value, r.Value)
 		case "**":
 			val = math.Pow(self.Value, r.Value)
+		case "++":
+			self.Value++
+			val = self.Value
+		case "--":
+			self.Value--
+			val = self.Value
 		case "..", "...":
 
 			list := Library_List{}

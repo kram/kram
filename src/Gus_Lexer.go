@@ -42,6 +42,9 @@ func (l *Lexer) Init(source string) {
 	l.Operators[".."] = true
 	l.Operators["."] = true
 
+	l.Operators["++"] = true
+	l.Operators["--"] = true
+
 	l.Keywords = make(map[string]bool)
 	l.Keywords["if"] = true
 	l.Keywords["else"] = true
