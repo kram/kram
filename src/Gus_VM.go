@@ -453,7 +453,6 @@ func (vm *VM) OperationInstance(instance Instance) Type {
 	return vm.Clone(class)
 }
 
-
 //
 // for before; condition; each { body }
 //
@@ -469,7 +468,7 @@ func (vm *VM) OperationFor(f For) Type {
 		// Test condition
 		res := vm.Operation(f.Condition, ON_FOR_PART)
 
-		condition, is_bool := res.(*Bool);
+		condition, is_bool := res.(*Bool)
 
 		if !is_bool {
 			log.Panicf("Expected bool in for, got %s", res.Type())

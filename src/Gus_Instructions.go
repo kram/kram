@@ -103,6 +103,6 @@ type For struct {
 	For       bool
 	Before    Node
 	Condition Node
-	Each     Node
+	Each      Node
 	Body      Block
 }

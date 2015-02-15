@@ -40,7 +40,7 @@ func (self *Number) Math(method string, right Type) Type {
 
 	val := float64(0)
 
-	if method == "+" || method == "-" || method == "*" || method == "/" || method == "%" || method == "**" || method ==  ".." || method == "..." || method ==  "++" || method == "--" {
+	if method == "+" || method == "-" || method == "*" || method == "/" || method == "%" || method == "**" || method == ".." || method == "..." || method == "++" || method == "--" {
 		switch method {
 		case "+":
 			val = self.Value + r.Value
@@ -79,8 +79,6 @@ func (self *Number) Math(method string, right Type) Type {
 				num.Value = i
 
 				list.Items = append(list.Items, &num)
-
-				
 
 				i++
 			}
