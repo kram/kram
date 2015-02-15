@@ -98,3 +98,11 @@ type PushClass struct {
 	Left      Node
 	Right     Node
 }
+
+type For struct {
+	For       bool
+	Before    Node
+	Condition Node
+	Each     Node
+	Body      Block
+}

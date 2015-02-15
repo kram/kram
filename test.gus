@@ -1,7 +1,3 @@
-var i = 0
-i++
-i++
-i++
-i--
-
-IO.Println(i)
+for var i = 0; i < 10; i++ {
+	IO.Println(i)
+}

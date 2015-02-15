@@ -28,6 +28,7 @@ const (
 	EXPECTING_IF_BODY                           // 4
 	EXPECTING_METHOD_BODY                       // 8
 	EXPECTING_EXPRESSION                        // 16
+	EXPECTING_FOR_PART                          // 32
 )
 
 // --------------- Constants
@@ -286,6 +287,28 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	}, 0, true)
 
+	p.Symbol("for", func() Node {
+
+		f := For{}
+
+		// Before
+		f.Before = p.Statements(EXPECTING_FOR_PART)
+
+		// Condition
+		p.Advance()
+		f.Condition = p.Expressions()
+		p.Advance()
+
+		// After
+		f.Each = p.Statements(EXPECTING_FOR_PART)
+
+		// For body
+		f.Body = p.Statements(EXPECTING_NOTHING)
+
+		return f
+
+	}, 0, true)
+
 	p.Infix("number", 0)
 	p.Infix("string", 0)
 	p.Infix("bool", 0)
@@ -406,7 +429,7 @@ func (p *Parser) Expression(advance bool) Node {
 	previous := p.Previous()
 	current := p.Token
 
-	if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == ",") {
+	if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == "," || current.Value == ";") {
 		return Nil{}
 	}
 
@@ -615,6 +638,11 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 			break
 		}
 
+		if expecting == EXPECTING_FOR_PART && tok.Type == "operator" && tok.Value == ";" {
+			hasContent = true
+			break
+		}
+
 		if _, ok := p.Symbols[tok.Value]; ok {
 			statement = p.Symbols[tok.Value].Function()
 			hasContent = true
@@ -643,8 +671,6 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 			hasContent = true
 			break
 		}
-
-		// log.Panicf("How do I handle %s %s?\n", tok.Type, tok.Value)
 	}
 
 	return statement, hasContent
@@ -668,6 +694,11 @@ func (p *Parser) Statements(expecting Expecting) Block {
 		if (p.Token.Type == "operator" && p.Token.Value == "}") || p.Token.Type == "EOF" {
 
 			// To force a new statement
+			p.Token.Type = "ForceStatement"
+			break
+		}
+
+		if expecting == EXPECTING_FOR_PART && (p.Token.Type == "operator" && p.Token.Value == ";" || p.Token.Type == "EOL") {
 			p.Token.Type = "ForceStatement"
 			break
 		}

@@ -12,6 +12,7 @@ const (
 	ON_NOTHING    ON = 1 << iota // 1
 	ON_CLASS                     // 2
 	ON_CLASS_BODY                // 4
+	ON_FOR_PART                  // 8
 )
 
 type VM struct {
@@ -128,13 +129,19 @@ func (vm *VM) Operation(node Node, on ON) Type {
 		return vm.OperationReturn(ret)
 	}
 
+	if f, ok := node.(For); ok {
+		return vm.OperationFor(f)
+	}
+
 	return &Null{}
 }
 
 func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 
-	// Push
-	vm.Environment = vm.Environment.Push()
+	// Create new scope
+	if on != ON_FOR_PART {
+		vm.Environment = vm.Environment.Push()
+	}
 
 	if on == ON_CLASS_BODY {
 		vm.ShouldReturn = append(vm.ShouldReturn, false)
@@ -154,7 +161,10 @@ func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 		vm.ShouldReturn = vm.ShouldReturn[:len(vm.ShouldReturn)-1]
 	}
 
-	vm.Environment = vm.Environment.Pop()
+	// Restore scope
+	if on != ON_FOR_PART {
+		vm.Environment = vm.Environment.Pop()
+	}
 
 	return last
 }
@@ -443,6 +453,48 @@ func (vm *VM) OperationInstance(instance Instance) Type {
 	return vm.Clone(class)
 }
 
+
+//
+// for before; condition; each { body }
+//
+func (vm *VM) OperationFor(f For) Type {
+	// Create variable scope
+	vm.Environment = vm.Environment.Push()
+
+	// Execute before part
+	vm.Operation(f.Before, ON_FOR_PART)
+
+	for {
+
+		// Test condition
+		res := vm.Operation(f.Condition, ON_FOR_PART)
+
+		condition, is_bool := res.(*Bool);
+
+		if !is_bool {
+			log.Panicf("Expected bool in for, got %s", res.Type())
+		}
+
+		if !condition.Value {
+			break
+		}
+
+		// Execute body
+		vm.Operation(f.Body, ON_NOTHING)
+
+		// Execute part after each run
+		vm.Operation(f.Each, ON_FOR_PART)
+	}
+
+	// Restore scope
+	vm.Environment = vm.Environment.Pop()
+
+	return &Null{}
+}
+
+//
+// Clones a type, returns the new one
+//
 func (vm *VM) Clone(in Type) (out Type) {
 
 	if class, ok := in.(*Class); ok {
