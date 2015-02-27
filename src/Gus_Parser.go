@@ -121,7 +121,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 		p.Stack.Add(&Nil{})
 
-		n.Right = p.Expressions()
+		n.Right, _ = p.Statement(EXPECTING_NOTHING)
 
 		return n
 	}, 0, true)
