@@ -1,11 +1,5 @@
 // 123.000000
 // Tihi
-class IO {
-	static Print(v) {
-		Println(v)
-	}
-}
-
 class Loop {
 	static First(first, second) {
 		IO.Println(first)

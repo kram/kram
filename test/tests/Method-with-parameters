@@ -8,12 +8,6 @@
 // 7.000000
 // 8.000000
 // 9.000000
-class IO {
-	static Print(v) {
-		Println(v)
-	}
-}
-
 class Loop {
 	static First(step) {
 		if step < 10 {

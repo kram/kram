@@ -106,7 +106,12 @@ func (self *Class) Type() string {
 }
 
 func (self *Class) ToString() string {
-	return self.Extension.ToString()
+
+	if _, ok := self.Extension.(Lib); ok {
+		return self.Extension.ToString()
+	}
+
+	return self.Class
 }
 
 func (self *Class) Math(method string, right Type) Type {

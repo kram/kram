@@ -2,7 +2,7 @@
 var age = 1
 
 if age > 100 {
-	Println("Old!")
+	IO.Println("Old!")
 } else {
-	Println("Young")
+	IO.Println("Young")
 }

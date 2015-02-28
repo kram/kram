@@ -37,7 +37,7 @@ func Test(path string, file os.FileInfo, err error) error {
 	stdout, err := cmd.Output()
 
 	if err != nil {
-		println(err.Error())
+		println(path, err.Error())
 		return nil
 	}
 
