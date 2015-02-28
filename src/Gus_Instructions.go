@@ -101,8 +101,15 @@ type PushClass struct {
 
 type For struct {
 	For       bool
-	Before    Node
+	IsForIn   bool
+	Before    Block
 	Condition Node
 	Each      Node
 	Body      Block
+}
+
+type Iterate struct {
+	Iterate bool
+	Name    string
+	Object  Node
 }

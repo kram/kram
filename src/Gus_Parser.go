@@ -13,7 +13,7 @@ type Symbol struct {
 	IsStatement  bool
 }
 
-type SymbolReturn func() Node
+type SymbolReturn func(Expecting) Node
 type SymbolCaseReturn func(Expecting) Symbol
 
 // --------------- Symbols
@@ -102,7 +102,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Stack.Reset()
 
 	// var
-	p.Symbol("var", func() Node {
+	p.Symbol("var", func(expecting Expecting) Node {
 		n := Assign{}
 
 		name := p.Advance()
@@ -115,13 +115,26 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 		eq := p.Advance()
 
-		if eq.Type != "operator" && eq.Value == "=" {
+		p.Stack.Add(&Nil{})
+
+		// for var a in 1..2
+		// for var a in ["first", "second"]
+		// for var a in list
+		if expecting == EXPECTING_FOR_PART && eq.Type == "keyword" && eq.Value == "in" {
+
+			// Define an iterator object with the name that we already have
+			iter := Iterate{}
+			iter.Object, _ = p.Statement(EXPECTING_EXPRESSION)
+			iter.Name = n.Name
+
+			return iter
+		}
+
+		if !(eq.Type == "operator" && eq.Value == "=") {
 			log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
 		}
 
-		p.Stack.Add(&Nil{})
-
-		n.Right, _ = p.Statement(EXPECTING_NOTHING)
+		n.Right = p.Expressions()
 
 		return n
 	}, 0, true)
@@ -133,12 +146,12 @@ func (p *Parser) Parse(tokens []Token) Block {
 		sym.IsStatement = false
 
 		// The basic Infix function
-		sym.Function = func() Node {
+		sym.Function = func(expecting Expecting) Node {
 			return p.Expression(false)
 		}
 
 		if expecting == EXPECTING_CLASS_BODY {
-			sym.Function = func() Node {
+			sym.Function = func(expecting Expecting) Node {
 				return p.Method()
 			}
 
@@ -148,7 +161,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		// Var as assignment
 		if len(*p.Stack.Items) == 0 {
 			sym.IsStatement = true
-			sym.Function = func() Node {
+			sym.Function = func(expecting Expecting) Node {
 
 				name := p.Token
 
@@ -181,7 +194,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	})
 
 	// var
-	p.Symbol("if", func() Node {
+	p.Symbol("if", func(expecting Expecting) Node {
 		i := If{}
 
 		i.Condition = p.Expressions()
@@ -198,7 +211,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	}, 0, true)
 
 	// Define a class
-	p.Symbol("class", func() Node {
+	p.Symbol("class", func(expecting Expecting) Node {
 
 		class := DefineClass{}
 
@@ -220,7 +233,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	}, 0, true)
 
 	// Define a static method
-	p.Symbol("static", func() Node {
+	p.Symbol("static", func(expecting Expecting) Node {
 
 		p.Advance()
 
@@ -231,7 +244,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	}, 0, true)
 
 	// Create class instance
-	p.Symbol("new", func() Node {
+	p.Symbol("new", func(expecting Expecting) Node {
 		inst := Instance{}
 
 		name := p.Advance()
@@ -257,7 +270,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		return inst
 	}, 0, true)
 
-	p.Symbol("[", func() Node {
+	p.Symbol("[", func(expecting Expecting) Node {
 
 		list := CreateList{}
 		list.Items = make([]Node, 0)
@@ -273,7 +286,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 		return list
 	}, 0, true)
 
-	p.Symbol("return", func() Node {
+	p.Symbol("return", func(expecting Expecting) Node {
 
 		res := Return{}
 
@@ -287,15 +300,23 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	}, 0, true)
 
-	p.Symbol("for", func() Node {
+	p.Symbol("for", func(expecting Expecting) Node {
 
 		f := For{}
 
 		// Before
 		f.Before = p.Statements(EXPECTING_FOR_PART)
 
+		// Test if we got an iterator, if that is the case we should skip to the body part directly
+		if _, ok := f.Before.Body[0].(Iterate); ok {
+			f.IsForIn = true
+			f.Body = p.Statements(EXPECTING_NOTHING)
+			return f
+		}
+
 		// Condition
 		p.Advance()
+
 		f.Condition = p.Expressions()
 		p.Advance()
 
@@ -339,6 +360,10 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix("*", 60)
 	p.Infix("/", 60)
 
+	// Builtins
+	p.Infix("...", 70)
+	p.Infix("..", 70)
+
 	top := p.Statements(EXPECTING_NOTHING)
 
 	return top
@@ -361,7 +386,7 @@ func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
 
 // Shortcut for adding Infix's to the symbol table
 func (p *Parser) Infix(str string, importance int) {
-	p.Symbol(str, func() Node {
+	p.Symbol(str, func(expecting Expecting) Node {
 		return p.Expression(false)
 	}, importance, false)
 }
@@ -618,6 +643,8 @@ func (p *Parser) Method() DefineMethod {
 
 func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 
+	p.Stack.Push()
+
 	var statement Node
 
 	hasContent := false
@@ -638,13 +665,24 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 			break
 		}
 
+		// for var a = 0; a < 10; a++ {}
 		if expecting == EXPECTING_FOR_PART && tok.Type == "operator" && tok.Value == ";" {
 			hasContent = true
 			break
 		}
 
+		// for var a in abc {}
+		if expecting == EXPECTING_FOR_PART && tok.Type == "keyword" && tok.Value == "in" {
+			hasContent = true
+			break
+		}
+
 		if _, ok := p.Symbols[tok.Value]; ok {
-			statement = p.Symbols[tok.Value].Function()
+
+			statement = p.Symbols[tok.Value].Function(expecting)
+
+			p.Stack.Add(statement)
+
 			hasContent = true
 
 			if p.Symbols[tok.Value].IsStatement {
@@ -655,14 +693,15 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 		}
 
 		if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" {
-			statement = p.Symbols[tok.Type].Function()
+			statement = p.Symbols[tok.Type].Function(expecting)
+			p.Stack.Add(statement)
 			hasContent = true
 			continue
 		}
 
 		if tok.Type == "name" {
 			sym := p.Symbols["variable"].CaseFunction(expecting)
-			statement = sym.Function()
+			statement = sym.Function(expecting)
 			hasContent = true
 			break
 		}
@@ -673,6 +712,8 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 		}
 	}
 
+	p.Stack.Pop()
+
 	return statement, hasContent
 }
 
@@ -681,11 +722,7 @@ func (p *Parser) Statements(expecting Expecting) Block {
 
 	for {
 
-		p.Stack.Push()
-
 		statement, ok := p.Statement(expecting)
-
-		p.Stack.Pop()
 
 		if ok && statement != nil {
 			n.Body = append(n.Body, statement)
@@ -698,7 +735,7 @@ func (p *Parser) Statements(expecting Expecting) Block {
 			break
 		}
 
-		if expecting == EXPECTING_FOR_PART && (p.Token.Type == "operator" && p.Token.Value == ";" || p.Token.Type == "EOL") {
+		if expecting == EXPECTING_FOR_PART && (p.Token.Type == "operator" && p.Token.Value == ";" || p.Token.Type == "EOL" || p.Token.Type == "keyword" && p.Token.Value == "in") {
 			p.Token.Type = "ForceStatement"
 			break
 		}

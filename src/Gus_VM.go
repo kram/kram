@@ -457,6 +457,11 @@ func (vm *VM) OperationInstance(instance Instance) Type {
 // for before; condition; each { body }
 //
 func (vm *VM) OperationFor(f For) Type {
+
+	if f.IsForIn {
+		return vm.OperationForIn(f)
+	}
+
 	// Create variable scope
 	vm.Environment = vm.Environment.Push()
 
@@ -483,6 +488,58 @@ func (vm *VM) OperationFor(f For) Type {
 
 		// Execute part after each run
 		vm.Operation(f.Each, ON_FOR_PART)
+	}
+
+	// Restore scope
+	vm.Environment = vm.Environment.Pop()
+
+	return &Null{}
+}
+
+// for var item in 1..2
+// for var item in ["first", "second"]
+// for var item in list
+func (vm *VM) OperationForIn(f For) Type {
+
+	// Create variable scope
+	vm.Environment = vm.Environment.Push()
+
+	iterator, ok := f.Before.Body[0].(Iterate);
+
+	if !ok {
+		log.Print(f.Before)
+		log.Panic("Expected iterator in ForIn")
+	}
+
+	object := vm.Operation(iterator.Object, ON_NOTHING)
+
+	if object.Type() != "List" {
+		log.Panicf("Expected List in ForIn, got %s", object.Type())
+	}
+
+	class, ok := object.(*Class)
+
+	if !ok {
+		log.Panic("Expected object to be of type *Class")
+	}
+
+	list, ok := class.Extension.(*Library_List)
+
+	if !ok {
+		log.Panic("Expected class to be of type *Library_List")
+	}
+
+	length := list.Length()
+
+	for key := 0; key < length; key++ {
+
+		item := list.ItemAtPosition(key)
+
+		// TODO - Create a proper instruction for asigning a Type{}
+		vm.Environment.Set(iterator.Name, item)
+
+		// Run body
+		vm.Operation(f.Body, ON_NOTHING)
 	}
 
 	// Restore scope

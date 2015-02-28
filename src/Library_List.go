@@ -42,3 +42,11 @@ func (list *Library_List) ToString() string {
 
 	return "[" + strings.Join(out, ", ") + "]"
 }
+
+func (list *Library_List) Length() int {
+	return len(list.Items)
+}
+
+func (list *Library_List) ItemAtPosition(pos int) Type {
+	return list.Items[pos]
+}
