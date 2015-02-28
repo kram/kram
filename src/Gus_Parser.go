@@ -517,6 +517,8 @@ func (p *Parser) Expression(advance bool) Node {
 		for {
 			param := p.Expressions()
 
+			p.Advance()
+
 			if _, ok := param.(Nil); ok {
 				break
 			}
