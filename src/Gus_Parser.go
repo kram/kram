@@ -101,234 +101,16 @@ func (p *Parser) Parse(tokens []Token) Block {
 	// Initialize Stack
 	p.Stack.Reset()
 
-	// var
-	p.Symbol("var", func(expecting Expecting) Node {
-		n := Assign{}
-
-		name := p.Advance()
-
-		if name.Type != "name" {
-			log.Panicf("var, expected name, got %s", name.Type)
-		}
-
-		n.Name = name.Value
-
-		eq := p.Advance()
-
-		p.Stack.Add(&Nil{})
-
-		// for var a in 1..2
-		// for var a in ["first", "second"]
-		// for var a in list
-		if expecting == EXPECTING_FOR_PART && eq.Type == "keyword" && eq.Value == "in" {
-
-			// Define an iterator object with the name that we already have
-			iter := Iterate{}
-			iter.Object, _ = p.Statement(EXPECTING_EXPRESSION)
-			iter.Name = n.Name
-
-			return iter
-		}
-
-		if !(eq.Type == "operator" && eq.Value == "=") {
-			log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
-		}
-
-		n.Right = p.Expressions()
-
-		return n
-	}, 0, true)
-
-	p.SymbolCase("variable", func(expecting Expecting) Symbol {
-
-		sym := Symbol{}
-		sym.Importance = 0
-		sym.IsStatement = false
-
-		// The basic Infix function
-		sym.Function = func(expecting Expecting) Node {
-			return p.Expression(false)
-		}
-
-		if expecting == EXPECTING_CLASS_BODY {
-			sym.Function = func(expecting Expecting) Node {
-				return p.Method()
-			}
-
-			return sym
-		}
-
-		// Var as assignment
-		if len(*p.Stack.Items) == 0 {
-			sym.IsStatement = true
-			sym.Function = func(expecting Expecting) Node {
-
-				name := p.Token
-
-				if name.Type != "name" {
-					log.Panicf("var, expected name, got %s", name.Type)
-				}
-
-				tok := p.Advance()
-
-				// Set
-				// abc = 123
-				if tok.Type == "operator" && tok.Value == "=" {
-					set := Set{}
-					set.Name = name.Value
-					set.Right = p.Expressions()
-
-					return set
-				}
-
-				if tok.Type == "EOL" || tok.Type == "EOF" {
-					return &Nil{}
-				}
-
-				p.Reverse(2)
-				return p.Expressions()
-			}
-		}
-
-		return sym
-	})
-
-	// var
-	p.Symbol("if", func(expecting Expecting) Node {
-		i := If{}
-
-		i.Condition = p.Expressions()
-		i.True = p.Statements(EXPECTING_IF_BODY)
-
-		p.Advance()
-
-		if p.Token.Type == "keyword" && p.Token.Value == "else" {
-			p.Advance()
-			i.False = p.Statements(EXPECTING_IF_BODY)
-		}
-
-		return i
-	}, 0, true)
-
-	// Define a class
-	p.Symbol("class", func(expecting Expecting) Node {
-
-		class := DefineClass{}
-
-		name := p.Advance()
-
-		if name.Type != "name" {
-			log.Panicf("Expected name after class, got %s (%s)", name.Type, name.Value)
-		}
-
-		p.Advance()
-
-		p.Stack.Add(&class)
-
-		class.Name = name.Value
-		class.Body = p.Statements(EXPECTING_CLASS_BODY)
-
-		return class
-
-	}, 0, true)
-
-	// Define a static method
-	p.Symbol("static", func(expecting Expecting) Node {
-
-		p.Advance()
-
-		method := p.Method()
-		method.IsStatic = true
-
-		return method
-	}, 0, true)
-
-	// Create class instance
-	p.Symbol("new", func(expecting Expecting) Node {
-		inst := Instance{}
-
-		name := p.Advance()
-
-		if name.Type != "name" {
-			log.Panicf("Expected name after new, got %s (%s)", name.Type, name.Value)
-		}
-
-		inst.Left = name.Value
-
-		next := p.Advance()
-
-		if next.Type != "operator" && next.Value != "(" {
-			log.Panicf("Expected ( after new, got %s (%s)", name.Type, name.Value)
-		}
-
-		next = p.Advance()
-
-		if next.Type != "operator" && next.Value != ")" {
-			log.Panicf("Expected ) after new, got %s (%s)", name.Type, name.Value)
-		}
-
-		return inst
-	}, 0, true)
-
-	p.Symbol("[", func(expecting Expecting) Node {
-
-		list := CreateList{}
-		list.Items = make([]Node, 0)
-
-		for {
-			if i, ok := p.Statement(EXPECTING_NOTHING); ok {
-				list.Items = append(list.Items, i)
-			} else {
-				break
-			}
-		}
-
-		return list
-	}, 0, true)
-
-	p.Symbol("return", func(expecting Expecting) Node {
-
-		res := Return{}
-
-		if i, ok := p.Statement(EXPECTING_NOTHING); ok {
-			res.Statement = i
-		} else {
-			res.Statement = Literal{Type: "null"}
-		}
-
-		return res
-
-	}, 0, true)
-
-	p.Symbol("for", func(expecting Expecting) Node {
-
-		f := For{}
-
-		// Before
-		f.Before = p.Statements(EXPECTING_FOR_PART)
-
-		// Test if we got an iterator, if that is the case we should skip to the body part directly
-		if _, ok := f.Before.Body[0].(Iterate); ok {
-			f.IsForIn = true
-			f.Body = p.Statements(EXPECTING_NOTHING)
-			return f
-		}
-
-		// Condition
-		p.Advance()
-
-		f.Condition = p.Expressions()
-		p.Advance()
-
-		// After
-		f.Each = p.Statements(EXPECTING_FOR_PART)
-
-		// For body
-		f.Body = p.Statements(EXPECTING_NOTHING)
-
-		return f
-
-	}, 0, true)
+	p.Symbol("var", p.Symbol_var, 0, true)
+	p.Symbol("if", p.Symbol_if, 0, true)
+	p.Symbol("class", p.Symbol_class, 0, true)
+	p.Symbol("static", p.Symbol_static, 0, true)
+	p.Symbol("new", p.Symbol_new, 0, true)
+	p.Symbol("[", p.Symbol_list, 0, true)
+	p.Symbol("return", p.Symbol_return, 0, true)
+	p.Symbol("for", p.Symbol_for, 0, true)
+
+	p.SymbolCase("variable", p.Symbol_variable)
 
 	p.Infix("number", 0)
 	p.Infix("string", 0)
@@ -744,4 +526,219 @@ func (p *Parser) Statements(expecting Expecting) Block {
 	}
 
 	return n
+}
+
+func (p *Parser) Symbol_var(expecting Expecting) Node {
+	n := Assign{}
+
+	name := p.Advance()
+
+	if name.Type != "name" {
+		log.Panicf("var, expected name, got %s", name.Type)
+	}
+
+	n.Name = name.Value
+
+	eq := p.Advance()
+
+	p.Stack.Add(&Nil{})
+
+	// for var a in 1..2
+	// for var a in ["first", "second"]
+	// for var a in list
+	if expecting == EXPECTING_FOR_PART && eq.Type == "keyword" && eq.Value == "in" {
+
+		// Define an iterator object with the name that we already have
+		iter := Iterate{}
+		iter.Object, _ = p.Statement(EXPECTING_EXPRESSION)
+		iter.Name = n.Name
+
+		return iter
+	}
+
+	if !(eq.Type == "operator" && eq.Value == "=") {
+		log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
+	}
+
+	n.Right = p.Expressions()
+
+	return n
+}
+
+func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
+	sym := Symbol{}
+	sym.Importance = 0
+	sym.IsStatement = false
+
+	// The basic Infix function
+	sym.Function = func(expecting Expecting) Node {
+		return p.Expression(false)
+	}
+
+	if expecting == EXPECTING_CLASS_BODY {
+		sym.Function = func(expecting Expecting) Node {
+			return p.Method()
+		}
+
+		return sym
+	}
+
+	// Var as assignment
+	if len(*p.Stack.Items) == 0 {
+		sym.IsStatement = true
+		sym.Function = func(expecting Expecting) Node {
+
+			name := p.Token
+
+			if name.Type != "name" {
+				log.Panicf("var, expected name, got %s", name.Type)
+			}
+
+			tok := p.Advance()
+
+			// Set
+			// abc = 123
+			if tok.Type == "operator" && tok.Value == "=" {
+				set := Set{}
+				set.Name = name.Value
+				set.Right = p.Expressions()
+
+				return set
+			}
+
+			if tok.Type == "EOL" || tok.Type == "EOF" {
+				return &Nil{}
+			}
+
+			p.Reverse(2)
+			return p.Expressions()
+		}
+	}
+
+	return sym
+}
+
+func (p *Parser) Symbol_if(expecting Expecting) Node {
+	i := If{}
+
+	i.Condition = p.Expressions()
+	i.True = p.Statements(EXPECTING_IF_BODY)
+
+	p.Advance()
+
+	if p.Token.Type == "keyword" && p.Token.Value == "else" {
+		p.Advance()
+		i.False = p.Statements(EXPECTING_IF_BODY)
+	}
+
+	return i
+}
+
+func (p *Parser) Symbol_class(expecting Expecting) Node {
+	class := DefineClass{}
+
+	name := p.Advance()
+
+	if name.Type != "name" {
+		log.Panicf("Expected name after class, got %s (%s)", name.Type, name.Value)
+	}
+
+	p.Advance()
+
+	p.Stack.Add(&class)
+
+	class.Name = name.Value
+	class.Body = p.Statements(EXPECTING_CLASS_BODY)
+
+	return class
+}
+
+func (p *Parser) Symbol_static(expecting Expecting) Node {
+	p.Advance()
+
+	method := p.Method()
+	method.IsStatic = true
+
+	return method
+}
+
+func (p *Parser) Symbol_new(expecting Expecting) Node {
+	inst := Instance{}
+
+	name := p.Advance()
+
+	if name.Type != "name" {
+		log.Panicf("Expected name after new, got %s (%s)", name.Type, name.Value)
+	}
+
+	inst.Left = name.Value
+
+	next := p.Advance()
+
+	if next.Type != "operator" && next.Value != "(" {
+		log.Panicf("Expected ( after new, got %s (%s)", name.Type, name.Value)
+	}
+
+	next = p.Advance()
+
+	if next.Type != "operator" && next.Value != ")" {
+		log.Panicf("Expected ) after new, got %s (%s)", name.Type, name.Value)
+	}
+
+	return inst
+}
+
+func (p *Parser) Symbol_list(expecting Expecting) Node {
+	list := CreateList{}
+	list.Items = make([]Node, 0)
+
+	for {
+		if i, ok := p.Statement(EXPECTING_NOTHING); ok {
+			list.Items = append(list.Items, i)
+		} else {
+			break
+		}
+	}
+
+	return list
+}
+
+func (p *Parser) Symbol_return(expecting Expecting) Node {
+	res := Return{}
+
+	if i, ok := p.Statement(EXPECTING_NOTHING); ok {
+		res.Statement = i
+	} else {
+		res.Statement = Literal{Type: "null"}
+	}
+
+	return res
+}
+
+func (p *Parser) Symbol_for(expecting Expecting) Node {
+	f := For{}
+
+	// Before
+	f.Before = p.Statements(EXPECTING_FOR_PART)
+
+	// Test if we got an iterator, if that is the case we should skip to the body part directly
+	if _, ok := f.Before.Body[0].(Iterate); ok {
+		f.IsForIn = true
+		f.Body = p.Statements(EXPECTING_NOTHING)
+		return f
+	}
+
+	// Condition
+	p.Advance()
+
+	f.Condition = p.Expressions()
+	p.Advance()
+
+	// After
+	f.Each = p.Statements(EXPECTING_FOR_PART)
+
+	// For body
+	f.Body = p.Statements(EXPECTING_NOTHING)
+
+	return f
 }
