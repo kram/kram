@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"fmt"
 )
 
 // --------------- Symbols
@@ -103,12 +104,12 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	p.Symbol("var", p.Symbol_var, 0, true)
 	p.Symbol("if", p.Symbol_if, 0, true)
-	p.Symbol("class", p.Symbol_class, 0, true)
-	p.Symbol("static", p.Symbol_static, 0, true)
+	//p.Symbol("class", p.Symbol_class, 0, true)
+	//p.Symbol("static", p.Symbol_static, 0, true)
 	p.Symbol("new", p.Symbol_new, 0, true)
-	p.Symbol("[", p.Symbol_list, 0, true)
-	p.Symbol("return", p.Symbol_return, 0, true)
-	p.Symbol("for", p.Symbol_for, 0, true)
+	//p.Symbol("[", p.Symbol_list, 0, true)
+	//p.Symbol("return", p.Symbol_return, 0, true)
+	//p.Symbol("for", p.Symbol_for, 0, true)
 
 	p.SymbolCase("variable", p.Symbol_variable)
 
@@ -146,9 +147,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix("...", 70)
 	p.Infix("..", 70)
 
-	top := p.Statements(EXPECTING_NOTHING)
-
-	return top
+	return p.ParseFile()
 }
 
 // Add to the symbol table
@@ -166,15 +165,19 @@ func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
 	}
 }
 
+//
 // Shortcut for adding Infix's to the symbol table
+//
 func (p *Parser) Infix(str string, importance int) {
 	p.Symbol(str, func(expecting Expecting) Node {
-		return p.Expression(false)
+		return p.ParseStatementPart(false)
 	}, importance, false)
 }
 
+//
+// Get the next token in p.Tokens
+//
 func (p *Parser) Advance() Token {
-
 	if p.Current >= len(p.Tokens) {
 		p.Token = Token{
 			Type: "EOF",
@@ -190,10 +193,16 @@ func (p *Parser) Advance() Token {
 	return token
 }
 
+//
+// Reverse progress made by p.Advance()
+// 
 func (p *Parser) Reverse(times int) {
 	p.Current -= times
 }
 
+//
+// Take a sneek-peak et the next token
+//
 func (p *Parser) NextToken(i int) Token {
 
 	// End or beginning of p.Tokens (i can be negative)
@@ -208,8 +217,62 @@ func (p *Parser) NextToken(i int) Token {
 	return p.Tokens[p.Current+i]
 }
 
-func (p *Parser) Previous() Node {
+func (p *Parser) GetOperatorImportance(str string) int {
+	if _, ok := p.Symbols[str]; ok {
+		return p.Symbols[str].Importance
+	}
 
+	return 0
+}
+
+func (p *Parser) ReadUntil(tokenType, value string) (Node, bool) {
+	for {
+		p.ParseStatement()
+	}
+}
+
+func (p *Parser) ParseStatement() Node {
+	p.Stack.Push()
+
+	for {
+		current := p.ParseStatementPart(true)
+
+		if _, ok := current.(Nil); ok {
+			break
+		}
+
+		p.Stack.Add(current)
+	}
+
+	p.Stack.Pop()
+
+	return p.TopOfStack()
+}
+
+func (p *Parser) ParseBlock() Node {
+
+	block := Block{}
+
+	for {
+		statement, finnished := p.ReadUntil("operator", "}")
+
+		block.Body = append(block.Body, statement)
+
+		if finnished {
+			return block
+		}
+	}
+
+	return block
+}
+
+func (p *Parser) ParseFile() Block {
+	ret, _ := p.ReadUntil("EOF", "")
+
+	return ret.(Block)
+}
+
+func (p *Parser) TopOfStack() Node {
 	if len(*p.Stack.Items) > 0 {
 		items := *p.Stack.Items
 		return items[len(items)-1]
@@ -218,27 +281,20 @@ func (p *Parser) Previous() Node {
 	return Nil{}
 }
 
-func (p *Parser) GetOperatorImportance(str string) int {
-
-	if _, ok := p.Symbols[str]; ok {
-		return p.Symbols[str].Importance
-	}
-
-	return 0
-}
-
-func (p *Parser) Expression(advance bool) Node {
+func (p *Parser) ParseStatementPart(advance bool) Node {
 
 	if advance {
 		p.Advance()
 	}
 
-	previous := p.Previous()
+	previous := p.TopOfStack()
 	current := p.Token
 
-	if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == "," || current.Value == ";") {
-		return Nil{}
-	}
+	fmt.Println("ParseStatementPart()", current)
+
+	// if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == "," || current.Value == ";") {
+	// 	return Nil{}
+	// }
 
 	// Number or string
 	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
@@ -273,7 +329,7 @@ func (p *Parser) Expression(advance bool) Node {
 			}
 		}
 
-		push.Right = p.Expressions()
+		// todo push.Right = p.Expressions()
 
 		return push
 	}
@@ -297,7 +353,8 @@ func (p *Parser) Expression(advance bool) Node {
 		method.Parameters = make([]Node, 0)
 
 		for {
-			param := p.Expressions()
+			// todo
+			/*param := p.Expressions()
 
 			p.Advance()
 
@@ -305,7 +362,7 @@ func (p *Parser) Expression(advance bool) Node {
 				break
 			}
 
-			method.Parameters = append(method.Parameters, param)
+			method.Parameters = append(method.Parameters, param)*/
 		}
 
 		return method
@@ -333,24 +390,24 @@ func (p *Parser) Expression(advance bool) Node {
 				math.Right = Math{
 					Method: current.Value,
 					Left:   prev.Right,
-					Right:  p.Expression(true),
+					Right:  p.ParseStatementPart(true),
 				}
 			} else {
 				math.Left = previous
-				math.Right = p.Expression(true)
+				math.Right = p.ParseStatementPart(true)
 			}
 		}
 
 		_, ok = previous.(Literal)
 		if ok {
 			math.Left = previous
-			math.Right = p.Expression(true)
+			math.Right = p.ParseStatementPart(true)
 		}
 
 		_, ok = previous.(Variable)
 		if ok {
 			math.Left = previous
-			math.Right = p.Expression(true)
+			math.Right = p.ParseStatementPart(true)
 		}
 
 		p.Stack.Add(math)
@@ -361,6 +418,7 @@ func (p *Parser) Expression(advance bool) Node {
 	return Nil{}
 }
 
+<<<<<<< HEAD
 func (p *Parser) Expressions() Node {
 
 	p.Stack.Push()
@@ -560,7 +618,8 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 		log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
 	}
 
-	n.Right = p.Expressions()
+	// todo
+	// n.Right = p.Expressions()
 
 	return n
 }
@@ -572,12 +631,14 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 
 	// The basic Infix function
 	sym.Function = func(expecting Expecting) Node {
-		return p.Expression(false)
+		return p.ParseStatementPart(false)
 	}
 
 	if expecting == EXPECTING_CLASS_BODY {
 		sym.Function = func(expecting Expecting) Node {
-			return p.Method()
+			return Nil{}
+			// todo
+			//return p.Symbol_method()
 		}
 
 		return sym
@@ -601,7 +662,8 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 			if tok.Type == "operator" && tok.Value == "=" {
 				set := Set{}
 				set.Name = name.Value
-				set.Right = p.Expressions()
+				// todo
+				//set.Right = p.Expressions()
 
 				return set
 			}
@@ -609,9 +671,12 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 			if tok.Type == "EOL" || tok.Type == "EOF" {
 				return &Nil{}
 			}
+  			
+  			// todo
+			// p.Reverse(2)
+			// return p.Expressions()
 
-			p.Reverse(2)
-			return p.Expressions()
+			return &Nil{}
 		}
 	}
 
@@ -621,19 +686,22 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 func (p *Parser) Symbol_if(expecting Expecting) Node {
 	i := If{}
 
-	i.Condition = p.Expressions()
-	i.True = p.Statements(EXPECTING_IF_BODY)
+	// todo
+
+	//i.Condition = p.Expressions()
+	//i.True = p.Statements(EXPECTING_IF_BODY)
 
 	p.Advance()
 
 	if p.Token.Type == "keyword" && p.Token.Value == "else" {
 		p.Advance()
-		i.False = p.Statements(EXPECTING_IF_BODY)
+	//	i.False = p.Statements(EXPECTING_IF_BODY)
 	}
 
 	return i
 }
 
+/*
 func (p *Parser) Symbol_class(expecting Expecting) Node {
 	class := DefineClass{}
 
@@ -652,15 +720,18 @@ func (p *Parser) Symbol_class(expecting Expecting) Node {
 
 	return class
 }
+*/
 
+/*
 func (p *Parser) Symbol_static(expecting Expecting) Node {
 	p.Advance()
 
-	method := p.Method()
+	method := p.Symbol_method()
 	method.IsStatic = true
 
 	return method
 }
+*/
 
 func (p *Parser) Symbol_new(expecting Expecting) Node {
 	inst := Instance{}
@@ -688,6 +759,7 @@ func (p *Parser) Symbol_new(expecting Expecting) Node {
 	return inst
 }
 
+/*
 func (p *Parser) Symbol_list(expecting Expecting) Node {
 	list := CreateList{}
 	list.Items = make([]Node, 0)
@@ -702,7 +774,9 @@ func (p *Parser) Symbol_list(expecting Expecting) Node {
 
 	return list
 }
+*/
 
+/*
 func (p *Parser) Symbol_return(expecting Expecting) Node {
 	res := Return{}
 
@@ -714,7 +788,9 @@ func (p *Parser) Symbol_return(expecting Expecting) Node {
 
 	return res
 }
+*/
 
+/*
 func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f := For{}
 
@@ -742,3 +818,49 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 
 	return f
 }
+*/
+
+/*
+func (p *Parser) Symbol_method() DefineMethod {
+	method := DefineMethod{}
+	method.Parameters = make([]Parameter, 0)
+
+	if p.Token.Type != "name" {
+		log.Panicf("Expecting method name, got %s (%s)", p.Token.Type, p.Token.Value)
+	}
+
+	method.Name = p.Token.Value
+
+	// IsPublic
+	if string(method.Name[0]) >= "A" && string(method.Name[0]) <= "Z" {
+		method.IsPublic = true
+	}
+
+	method.Parameters = make([]Parameter, 0)
+
+	next := p.NextToken(0)
+
+	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
+		method.Body = p.Statements(EXPECTING_METHOD_BODY)
+	} else {
+		for {
+
+			tok := p.Advance()
+
+			if tok.Type == "operator" && tok.Value == ")" {
+				break
+			}
+
+			if tok.Type == "name" {
+				param := Parameter{}
+				param.Name = tok.Value
+				method.Parameters = append(method.Parameters, param)
+			}
+		}
+
+		method.Body = p.Statements(EXPECTING_METHOD_BODY)
+	}
+
+	return method
+}
+*/

@@ -1,20 +1,3 @@
-// 0.000000
-// 1.000000
-// 2.000000
-// 3.000000
-// 4.000000
-// 5.000000
-// 6.000000
-// 7.000000
-// 8.000000
-// 9.000000
-class Loop {
-	static First(step) {
-		if step < 10 {
-			IO.Println(step)
-			Loop.First(step + 1)
-		}
-	}
+if 10 > 5 {
+	IO.Println(10)
 }
-
-Loop.First(0)
