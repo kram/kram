@@ -1,5 +1,7 @@
 # Gus - A class based scripting language
 
+**Clarification**, this project is currently just a prototype. Don't actually use it anywhere. Things will break.
+
 ## Example
 
 ```dart
@@ -70,4 +72,4 @@ Magician.Woho() // Woho!
 
 ## The future of Gus
 
-There is a lot of [stuff](https://github.com/zegl/Gus/labels/Feature) that needs to be implemented before Gus in complete. And **you** are very welcome to help! :ok_hand:
+There is a lot of [stuff](https://github.com/zegl/Gus/labels/Feature) that needs to be implemented before Gus is complete. And **you** are very welcome to help! :ok_hand:
