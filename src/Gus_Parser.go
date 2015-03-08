@@ -225,9 +225,43 @@ func (p *Parser) GetOperatorImportance(str string) int {
 	return 0
 }
 
-func (p *Parser) ReadUntil(tokenType, value string) (Node, bool) {
+func (p *Parser) ParseNext() Node {
+	fmt.Println("ParseNext()", p.Token)
+
+	tok := p.Token
+
+	expecting := EXPECTING_NOTHING
+
+	if _, ok := p.Symbols[tok.Value]; ok {
+		return p.Symbols[tok.Value].Function(expecting)
+	}
+
+	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" {
+		return p.Symbols[tok.Type].Function(expecting)
+	}
+
+	if tok.Type == "name" {
+		sym := p.Symbols["variable"].CaseFunction(expecting)
+		return sym.Function(expecting)
+	}
+
+	return &Nil{}
+}
+
+func (p *Parser) ReadUntil(tokenType, value string) (res Node) {
+
+	res = &Nil{}
+
 	for {
-		p.ParseStatement()
+		p.Advance()
+
+		if p.Token.Type == tokenType && p.Token.Value == value {
+			fmt.Println("ReadUntil() Stop at ", p.Token)
+			return 
+		}
+
+		fmt.Println()
+		res = p.ParseNext()
 	}
 }
 
@@ -250,24 +284,11 @@ func (p *Parser) ParseStatement() Node {
 }
 
 func (p *Parser) ParseBlock() Node {
-
-	block := Block{}
-
-	for {
-		statement, finnished := p.ReadUntil("operator", "}")
-
-		block.Body = append(block.Body, statement)
-
-		if finnished {
-			return block
-		}
-	}
-
-	return block
+	return p.ReadUntil("operator", "}")
 }
 
 func (p *Parser) ParseFile() Block {
-	ret, _ := p.ReadUntil("EOF", "")
+	ret := p.ReadUntil("EOF", "")
 
 	return ret.(Block)
 }
@@ -416,71 +437,6 @@ func (p *Parser) ParseStatementPart(advance bool) Node {
 	}
 
 	return Nil{}
-}
-
-<<<<<<< HEAD
-func (p *Parser) Expressions() Node {
-
-	p.Stack.Push()
-
-	for {
-		expression := p.Expression(true)
-
-		if _, ok := expression.(Nil); ok {
-			p.Reverse(1)
-			return p.Previous()
-		}
-
-		p.Stack.Add(expression)
-	}
-
-	p.Stack.Pop()
-
-	return Nil{}
-}
-
-func (p *Parser) Method() DefineMethod {
-
-	method := DefineMethod{}
-	method.Parameters = make([]Parameter, 0)
-
-	if p.Token.Type != "name" {
-		log.Panicf("Expecting method name, got %s (%s)", p.Token.Type, p.Token.Value)
-	}
-
-	method.Name = p.Token.Value
-
-	// IsPublic
-	if string(method.Name[0]) >= "A" && string(method.Name[0]) <= "Z" {
-		method.IsPublic = true
-	}
-
-	method.Parameters = make([]Parameter, 0)
-
-	next := p.NextToken(0)
-
-	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	} else {
-		for {
-
-			tok := p.Advance()
-
-			if tok.Type == "operator" && tok.Value == ")" {
-				break
-			}
-
-			if tok.Type == "name" {
-				param := Parameter{}
-				param.Name = tok.Value
-				method.Parameters = append(method.Parameters, param)
-			}
-		}
-
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	}
-
-	return method
 }
 
 func (p *Parser) Statement(expecting Expecting) (Node, bool) {
