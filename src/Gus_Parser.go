@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"fmt"
+	"os"
+	"encoding/json"
 )
 
 // --------------- Symbols
@@ -170,6 +172,7 @@ func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
 //
 func (p *Parser) Infix(str string, importance int) {
 	p.Symbol(str, func(expecting Expecting) Node {
+		fmt.Println("Infix()")
 		return p.ParseStatementPart(false)
 	}, importance, false)
 }
@@ -225,7 +228,12 @@ func (p *Parser) GetOperatorImportance(str string) int {
 	return 0
 }
 
-func (p *Parser) ParseNext() Node {
+func (p *Parser) ParseNext(advance bool) Node {
+
+	if advance {
+		p.Advance()
+	}
+
 	fmt.Println("ParseNext()", p.Token)
 
 	tok := p.Token
@@ -245,42 +253,46 @@ func (p *Parser) ParseNext() Node {
 		return sym.Function(expecting)
 	}
 
+	fmt.Println("ParseNext() return Nil")
+
 	return &Nil{}
 }
 
 func (p *Parser) ReadUntil(tokenType, value string) (res Node) {
 
+	fmt.Println("ReadUntil() Start", tokenType, value)
+
 	res = &Nil{}
+
+	p.Stack.Push()
 
 	for {
 		p.Advance()
 
 		if p.Token.Type == tokenType && p.Token.Value == value {
-			fmt.Println("ReadUntil() Stop at ", p.Token)
+			fmt.Println("ReadUntil() Stop", tokenType, value)
 			return 
 		}
 
 		fmt.Println()
-		res = p.ParseNext()
-	}
-}
+		r := p.ParseNext(false)
 
-func (p *Parser) ParseStatement() Node {
-	p.Stack.Push()
-
-	for {
-		current := p.ParseStatementPart(true)
-
-		if _, ok := current.(Nil); ok {
-			break
+		if _, ok := r.(Nil); !ok {
+			res = r
+			p.Stack.Add(r)
 		}
 
-		p.Stack.Add(current)
+		b, _ := json.MarshalIndent(res, "", "  ")
+		fmt.Println(string(b))
 	}
 
 	p.Stack.Pop()
 
-	return p.TopOfStack()
+	return
+}
+
+func (p *Parser) ParseStatement() Node {
+	return p.ParseStatementPart(true)
 }
 
 func (p *Parser) ParseBlock() Node {
@@ -305,13 +317,13 @@ func (p *Parser) TopOfStack() Node {
 func (p *Parser) ParseStatementPart(advance bool) Node {
 
 	if advance {
-		p.Advance()
+		//p.Advance()
 	}
 
 	previous := p.TopOfStack()
 	current := p.Token
 
-	fmt.Println("ParseStatementPart()", current)
+	fmt.Println("ParseStatementPart()", current, previous)
 
 	// if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == "," || current.Value == ";") {
 	// 	return Nil{}
@@ -411,27 +423,25 @@ func (p *Parser) ParseStatementPart(advance bool) Node {
 				math.Right = Math{
 					Method: current.Value,
 					Left:   prev.Right,
-					Right:  p.ParseStatementPart(true),
+					Right:  p.ParseNext(true),
 				}
 			} else {
 				math.Left = previous
-				math.Right = p.ParseStatementPart(true)
+				math.Right = p.ParseNext(true)
 			}
 		}
 
 		_, ok = previous.(Literal)
 		if ok {
 			math.Left = previous
-			math.Right = p.ParseStatementPart(true)
+			math.Right = p.ParseNext(true)
 		}
 
 		_, ok = previous.(Variable)
 		if ok {
 			math.Left = previous
-			math.Right = p.ParseStatementPart(true)
+			math.Right = p.ParseNext(true)
 		}
-
-		p.Stack.Add(math)
 
 		return math
 	}
@@ -640,17 +650,39 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 }
 
 func (p *Parser) Symbol_if(expecting Expecting) Node {
+
+	fmt.Println("Symbol_if()")
+
 	i := If{}
+
+	i.Condition = p.ReadUntil("operator", "{")
+
+	b, _ := json.MarshalIndent(i.Condition, "", "  ")
+	fmt.Println(string(b))
+
+	block := p.ReadUntil("operator", "}")
+
+	b, _ = json.MarshalIndent(block, "", "  ")
+	fmt.Println(string(b))
+
+
+
+	os.Exit(1)
+
+
+
+	//i.True = .(Block)
+
 
 	// todo
 
 	//i.Condition = p.Expressions()
 	//i.True = p.Statements(EXPECTING_IF_BODY)
 
-	p.Advance()
+	//p.Advance()
 
 	if p.Token.Type == "keyword" && p.Token.Value == "else" {
-		p.Advance()
+	//	p.Advance()
 	//	i.False = p.Statements(EXPECTING_IF_BODY)
 	}
 
