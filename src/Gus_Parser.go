@@ -149,6 +149,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix("...", 70)
 	p.Infix("..", 70)
 
+	p.Infix(".", 80)
+	p.Infix("(", 80)
+
 	return p.ParseFile()
 }
 
@@ -173,7 +176,7 @@ func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
 func (p *Parser) Infix(str string, importance int) {
 	p.Symbol(str, func(expecting Expecting) Node {
 		fmt.Println("Infix()")
-		return p.ParseStatementPart(false)
+		return p.ParseStatementPart()
 	}, importance, false)
 }
 
@@ -291,10 +294,6 @@ func (p *Parser) ReadUntil(tokenType, value string) (res Node) {
 	return
 }
 
-func (p *Parser) ParseStatement() Node {
-	return p.ParseStatementPart(true)
-}
-
 func (p *Parser) ParseBlock() Node {
 	return p.ReadUntil("operator", "}")
 }
@@ -314,20 +313,12 @@ func (p *Parser) TopOfStack() Node {
 	return Nil{}
 }
 
-func (p *Parser) ParseStatementPart(advance bool) Node {
-
-	if advance {
-		//p.Advance()
-	}
+func (p *Parser) ParseStatementPart() Node {
 
 	previous := p.TopOfStack()
 	current := p.Token
 
 	fmt.Println("ParseStatementPart()", current, previous)
-
-	// if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == "," || current.Value == ";") {
-	// 	return Nil{}
-	// }
 
 	// Number or string
 	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
@@ -362,7 +353,7 @@ func (p *Parser) ParseStatementPart(advance bool) Node {
 			}
 		}
 
-		// todo push.Right = p.Expressions()
+		push.Right = p.ParseNext(true)
 
 		return push
 	}
@@ -386,16 +377,13 @@ func (p *Parser) ParseStatementPart(advance bool) Node {
 		method.Parameters = make([]Node, 0)
 
 		for {
-			// todo
-			/*param := p.Expressions()
+			next := p.NextToken(0)
 
-			p.Advance()
-
-			if _, ok := param.(Nil); ok {
+			if next.Type == "operator" && next.Value == ")" {
 				break
 			}
 
-			method.Parameters = append(method.Parameters, param)*/
+			method.Parameters = append(method.Parameters, p.ParseNext(true))
 		}
 
 		return method
@@ -597,7 +585,7 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 
 	// The basic Infix function
 	sym.Function = func(expecting Expecting) Node {
-		return p.ParseStatementPart(false)
+		return p.ParseStatementPart()
 	}
 
 	if expecting == EXPECTING_CLASS_BODY {
