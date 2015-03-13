@@ -1,3 +1,3 @@
 if 10 > 5 {
-	IO.Println(10)
+	IO.Print("swag")
 }

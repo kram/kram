@@ -264,30 +264,30 @@ func (p *Parser) ParseNext(advance bool) Node {
 
 	tok := p.Token
 
-	p.Log(1, "ParseNext() (Start)", tok)
+	p.Log(1, "ParseNext() (Start) ", tok)
 
 	expecting := EXPECTING_NOTHING
 
 	if _, ok := p.Symbols[tok.Value]; ok {
 		a := p.Symbols[tok.Value].Function(expecting)
-		p.Log(-1, "ParseNext() (End)", tok)
+		p.Log(-1, "ParseNext() (End) ", tok)
 		return a
 	}
 
 	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" {
 		a := p.Symbols[tok.Type].Function(expecting)
-		p.Log(-1, "ParseNext() (End)", tok)
+		p.Log(-1, "ParseNext() (End) ", tok)
 		return a
 	}
 
 	if tok.Type == "name" {
 		sym := p.Symbols["variable"].CaseFunction(expecting)
 		a := sym.Function(expecting)
-		p.Log(-1, "ParseNext() (End)", tok)
+		p.Log(-1, "ParseNext() (End) ", tok)
 		return a
 	}
 
-	p.Log(-1, "ParseNext() (Nil)", tok)
+	p.Log(-1, "ParseNext() (Nil) ", tok)
 
 	return &Nil{}
 }
@@ -696,6 +696,9 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 
 	// Var as assignment
 	if len(*p.Stack.Items) == 0 {
+
+		fmt.Println("VAR AS ASSIGNMENT")
+
 		sym.IsStatement = true
 		sym.Function = func(expecting Expecting) Node {
 
@@ -705,11 +708,14 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 				log.Panicf("var, expected name, got %s", name.Type)
 			}
 
-			tok := p.Advance()
+			next := p.NextToken(1)
 
 			// Set
 			// abc = 123
-			if tok.Type == "operator" && tok.Value == "=" {
+			if next.Type == "operator" && next.Value == "=" {
+
+				fmt.Println("Not implemented 9JJASDOA66s")
+
 				set := Set{}
 				set.Name = name.Value
 				// todo
@@ -718,15 +724,12 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 				return set
 			}
 
-			if tok.Type == "EOL" || tok.Type == "EOF" {
+			if next.Type == "EOL" || next.Type == "EOF" {
+				fmt.Println("Should we really end up here? 81238nadouas8u")
 				return &Nil{}
 			}
-  			
-  			// todo
-			// p.Reverse(2)
-			// return p.Expressions()
 
-			return &Nil{}
+			return p.ParseStatementPart()
 		}
 	}
 
