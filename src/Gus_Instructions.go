@@ -2,7 +2,9 @@ package main
 
 type Node interface{}
 
-type Nil struct{}
+type Nil struct {
+	Nil bool
+}
 
 type Block struct {
 	Block bool
