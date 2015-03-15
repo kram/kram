@@ -131,7 +131,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Symbol("new", p.Symbol_new, 0, true)
 	//p.Symbol("[", p.Symbol_list, 0, true)
 	//p.Symbol("return", p.Symbol_return, 0, true)
-	//p.Symbol("for", p.Symbol_for, 0, true)
+	p.Symbol("for", p.Symbol_for, 0, true)
 
 	p.SymbolCase("variable", p.Symbol_variable)
 
@@ -171,11 +171,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	p.Infix(".", 80)
 	p.Infix("(", 80)
+	p.Infix("=", 80)
 
 	file := p.ParseFile()
-
-	//b, _ := json.MarshalIndent(file, "", "  ")
-	//fmt.Println(string(b))
 
 	p.Log(-1, "Parse()")
 
@@ -344,7 +342,7 @@ func (p *Parser) ParseBlock() Block {
 	block := Block{}
 
 	for {
-		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}})
+		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}	, Token{"operator", "}"}})
 
 
 		b, _ := json.MarshalIndent(i, "", "  ")
@@ -371,19 +369,15 @@ func (p *Parser) ParseFile() Block {
 
 	p.Log(1, "ParseFile()")
 
-	ret := p.ReadUntil([]Token{Token{"EOF", ""}})
-
-	b, _ := json.MarshalIndent(ret, "", "  ")
-	fmt.Println(string(b))
-
-	if block, ok := ret.(Block); ok {
-		p.Log(-1, "ParseFile()")
-		return block
-	}
-
 	block := Block{}
 
-	block.Body = append(block.Body, ret)
+	for {
+		if next := p.NextToken(1); next.Type == "EOF" {
+			break
+		}
+
+		block.Body = append(block.Body, p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}}))
+	}
 
 	p.Log(-1, "ParseFile()")
 	return block
@@ -447,6 +441,16 @@ func (p *Parser) ParseStatementPart() Node {
 		p.Log(-1, "ParseStatementPart()")
 
 		return push
+	}
+
+	// Assignment
+	if current.Type == "operator" && current.Value == "=" {
+		if assignment, ok := previous.(Assign); ok {
+			assignment.Right = p.ParseNext(true)
+			return assignment
+		} else {
+			log.Panicf("Expected previous to be an assignment, it wasn't")
+		}
 	}
 
 	// Call
@@ -664,26 +668,35 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 
 	n.Name = name.Value
 
-	eq := p.Advance()
+	next := p.NextToken(0)
 
-	p.Stack.Add(&Nil{})
+	// eq := p.Advance()
+
+	// p.Stack.Add(&Nil{})
 
 	// for var a in 1..2
 	// for var a in ["first", "second"]
 	// for var a in list
-	if expecting == EXPECTING_FOR_PART && eq.Type == "keyword" && eq.Value == "in" {
+	if expecting == EXPECTING_FOR_PART && next.Type == "keyword" && next.Value == "in" {
+
+		fmt.Println("Got keyword in, 1290802180280")
 
 		// Define an iterator object with the name that we already have
 		iter := Iterate{}
-		iter.Object, _ = p.Statement(EXPECTING_EXPRESSION)
-		iter.Name = n.Name
+		//iter.Object, _ = p.Statement(EXPECTING_EXPRESSION)
+		//iter.Name = n.Name
 
 		return iter
 	}
 
-	if !(eq.Type == "operator" && eq.Value == "=") {
-		log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
-	}
+	b, _ := json.MarshalIndent(n, "", "  ")
+	fmt.Println(string(b))
+
+	return n
+
+	//if !(eq.Type == "operator" && eq.Value == "=") {
+	//	log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
+	//}
 
 	// todo
 	// n.Right = p.Expressions()
@@ -861,35 +874,42 @@ func (p *Parser) Symbol_return(expecting Expecting) Node {
 }
 */
 
-/*
 func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f := For{}
 
+	before := p.ReadUntil([]Token{Token{"operator", ";"}})
+
+
+
 	// Before
-	f.Before = p.Statements(EXPECTING_FOR_PART)
+	//f.Before = 
+
+	fmt.Println(before)
+	os.Exit(1)
+
+	//f.Before = p.Statements(EXPECTING_FOR_PART)
 
 	// Test if we got an iterator, if that is the case we should skip to the body part directly
-	if _, ok := f.Before.Body[0].(Iterate); ok {
+	//if _, ok := f.Before.Body[0].(Iterate); ok {
 		f.IsForIn = true
-		f.Body = p.Statements(EXPECTING_NOTHING)
+		//f.Body = p.Statements(EXPECTING_NOTHING)
 		return f
-	}
+	//}
 
 	// Condition
-	p.Advance()
+	//p.Advance()
 
-	f.Condition = p.Expressions()
-	p.Advance()
+	//f.Condition = p.Expressions()
+	//p.Advance()
 
 	// After
-	f.Each = p.Statements(EXPECTING_FOR_PART)
+	//f.Each = p.Statements(EXPECTING_FOR_PART)
 
 	// For body
-	f.Body = p.Statements(EXPECTING_NOTHING)
+	//f.Body = p.Statements(EXPECTING_NOTHING)
 
 	return f
 }
-*/
 
 /*
 func (p *Parser) Symbol_method() DefineMethod {
