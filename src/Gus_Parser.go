@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"strings"
+	"os"
 )
 
 // --------------- Symbols
@@ -453,19 +454,10 @@ func (p *Parser) ParseStatementPart() Node {
 	//    ^^^^^^^
 	if current.Type == "operator" && current.Value == "(" {
 
-		method := Call{}
-		method.Left = previous
+		call := Call{}
+		call.Parameters = make([]Node, 0)
 
-		// Convert Variable to literal
-		if v, ok := method.Left.(Variable); ok {
-			method.Left = Literal{
-				Type:  "string",
-				Value: v.Name,
-			}
-		}
-
-		method.Parameters = make([]Node, 0)
-
+		// Get parameters
 		for {
 			next := p.NextToken(0)
 
@@ -473,12 +465,37 @@ func (p *Parser) ParseStatementPart() Node {
 				break
 			}
 
-			method.Parameters = append(method.Parameters, p.ParseNext(true))
+			call.Parameters = append(call.Parameters, p.ParseNext(true))
 		}
+
+		// Put Call{} into the a previous PushClass if neeccesary
+		if push, ok := previous.(PushClass); ok {
+			call.Left = push.Right
+
+			// Convert Variable to literal
+			if v, ok := call.Left.(Variable); ok {
+				call.Left = Literal{
+					Type:  "string",
+					Value: v.Name,
+				}
+			}
+
+
+			push.Right = call
+
+			p.Log(-1, "ParseStatementPart()")
+
+			return push
+		}
+			
+		// Leave this to see if it actually can happen
+		call.Left = previous
+		fmt.Println("This happened, 918238yyhaUSHDHASD")
+		os.Exit(1)
 
 		p.Log(-1, "ParseStatementPart()")
 
-		return method
+		return call
 	}
 
 	// We encountered an operator, check the type of the previous expression
