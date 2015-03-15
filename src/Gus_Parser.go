@@ -760,24 +760,13 @@ func (p *Parser) Symbol_if(expecting Expecting) Node {
 	i := If{}
 
 	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
-
-	b, _ := json.MarshalIndent(i.Condition, "", "  ")
-	fmt.Println(string(b))
 	
 	i.True = p.ParseBlock()
 
-	b, _ = json.MarshalIndent(i.Condition, "", "  ")
-	fmt.Println(string(b))
+	next := p.NextToken(0)
 
-	//block := p.ReadUntil([]Token{Token{"operator", "}"}})
-	//i.True = block.(Block)
-
-	// todo
-	//p.Advance()
-
-	if p.Token.Type == "keyword" && p.Token.Value == "else" {
-		//	p.Advance()
-		//	i.False = p.Statements(EXPECTING_IF_BODY)
+	if next.Type == "keyword" && next.Value == "else" {
+		i.False = p.ParseBlock()
 	}
 
 	return i

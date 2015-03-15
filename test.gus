@@ -1,3 +1,5 @@
 if 10 > 5 {
-	IO.Print("swag")
+	IO.Print("true")
+} else {
+	IO.Print("false")
 }
