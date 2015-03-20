@@ -509,7 +509,7 @@ func (vm *VM) OperationForIn(f For) Type {
 	// Create variable scope
 	vm.Environment = vm.Environment.Push()
 
-	iterator, ok := f.Before.Body[0].(Iterate);
+	iterator, ok := f.Before.(Iterate);
 
 	if !ok {
 		log.Print(f.Before)

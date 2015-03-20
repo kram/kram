@@ -172,6 +172,8 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Infix(".", 80)
 	p.Infix("(", 80)
 	p.Infix("=", 80)
+	p.Infix("++", 80)
+	p.Infix("--", 80)
 
 	file := p.ParseFile()
 
@@ -298,7 +300,22 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 
 	p.Stack.Push()
 
+	first := true
+
 	for {
+
+		if !first {
+			for _, t := range until {
+				if p.Token.Type == t.Type && p.Token.Value == t.Value {
+					p.Log(-1, "ReadUntil() (Premature End)", until)
+					p.Stack.Pop()
+					return
+				}
+			}
+		}
+
+		first = false
+
 		p.Advance()
 
 		for _, t := range until {
@@ -344,7 +361,6 @@ func (p *Parser) ParseBlock() Block {
 	for {
 		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}	, Token{"operator", "}"}})
 
-
 		b, _ := json.MarshalIndent(i, "", "  ")
 		fmt.Println(string(b))
 
@@ -357,6 +373,11 @@ func (p *Parser) ParseBlock() Block {
 
 		if p.Token.Type == "operator" && p.Token.Value == "}" {
 			p.Log(-1, "ParseBlock()")
+			return block
+		}
+
+		if p.Token.Type == "EOF" {
+			p.Log(-1, "ParseBlock() EOF")
 			return block
 		}
 	}
@@ -376,7 +397,7 @@ func (p *Parser) ParseFile() Block {
 			break
 		}
 
-		block.Body = append(block.Body, p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}}))
+		block.Body = append(block.Body, p.ParseBlock())
 	}
 
 	p.Log(-1, "ParseFile()")
@@ -448,9 +469,9 @@ func (p *Parser) ParseStatementPart() Node {
 		if assignment, ok := previous.(Assign); ok {
 			assignment.Right = p.ParseNext(true)
 			return assignment
-		} else {
-			log.Panicf("Expected previous to be an assignment, it wasn't")
 		}
+
+		log.Panicf("Expected previous to be an assignment, it wasn't")
 	}
 
 	// Call
@@ -738,18 +759,20 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 				log.Panicf("var, expected name, got %s", name.Type)
 			}
 
-			next := p.NextToken(1)
+			next := p.NextToken(0)
 
 			// Set
 			// abc = 123
 			if next.Type == "operator" && next.Value == "=" {
-
-				fmt.Println("Not implemented 9JJASDOA66s")
-
 				set := Set{}
 				set.Name = name.Value
-				// todo
-				//set.Right = p.Expressions()
+
+				p.Advance()
+
+				set.Right = p.ReadUntil([]Token{Token{"EOL", ""}})
+
+				b, _ := json.MarshalIndent(set, "", "  ")
+				fmt.Println(string(b))
 
 				return set
 			}
@@ -877,17 +900,13 @@ func (p *Parser) Symbol_return(expecting Expecting) Node {
 func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f := For{}
 
-	before := p.ReadUntil([]Token{Token{"operator", ";"}})
+	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}})
+	f.Condition = p.ReadUntil([]Token{Token{"operator", ";"}})
+	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
 
+	f.Body = p.ParseBlock()
 
-
-	// Before
-	//f.Before = 
-
-	fmt.Println(before)
-	os.Exit(1)
-
-	//f.Before = p.Statements(EXPECTING_FOR_PART)
+	return f
 
 	// Test if we got an iterator, if that is the case we should skip to the body part directly
 	//if _, ok := f.Before.Body[0].(Iterate); ok {
@@ -895,18 +914,6 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 		//f.Body = p.Statements(EXPECTING_NOTHING)
 		return f
 	//}
-
-	// Condition
-	//p.Advance()
-
-	//f.Condition = p.Expressions()
-	//p.Advance()
-
-	// After
-	//f.Each = p.Statements(EXPECTING_FOR_PART)
-
-	// For body
-	//f.Body = p.Statements(EXPECTING_NOTHING)
 
 	return f
 }

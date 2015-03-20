@@ -104,7 +104,7 @@ type PushClass struct {
 type For struct {
 	For       bool
 	IsForIn   bool
-	Before    Block
+	Before    Node
 	Condition Node
 	Each      Node
 	Body      Block
