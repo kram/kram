@@ -64,6 +64,8 @@ func (l *Lexer) Init(source string) {
 
 func (l *Lexer) Parse() {
 
+	last_type := ""
+
 	for {
 		t, v := l.ParseNext()
 
@@ -76,11 +78,20 @@ func (l *Lexer) Parse() {
 			return
 		}
 
-		if t != "" || v != "" {
-			l.Push(t, v)
+		l.I++
+
+		if t == "" && v == "" {
+			continue
 		}
 
-		l.I++
+		if last_type == "number" && t == "number" {
+			l.Append(v)
+			continue
+		}
+
+		last_type = t
+		
+		l.Push(t, v)
 	}
 }
 
@@ -105,9 +116,9 @@ func (l *Lexer) ParseNext() (string, string) {
 
 	// Comments
 	if l.C == "/" && l.CharAtPos(l.I+1) == "/" {
+
 		// Comments contine until the end of the file or a new row
 		for {
-
 			l.I++
 
 			l.C = l.CharAtPos(l.I)
@@ -151,7 +162,6 @@ func (l *Lexer) ParseNext() (string, string) {
 	// Numbers
 	if l.C >= "0" && l.C <= "9" {
 		str := l.C
-		
 
 		// Look for more digits.
 		for {
@@ -223,4 +233,8 @@ func (l *Lexer) Push(typ, value string) {
 		Type:  typ,
 		Value: value,
 	})
+}
+
+func (l *Lexer) Append(value string) {
+	l.Tokens[len(l.Tokens) - 1].Value += value
 }
