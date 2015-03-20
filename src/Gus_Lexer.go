@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"fmt"
 )
 
 type Token struct {
@@ -64,148 +65,149 @@ func (l *Lexer) Init(source string) {
 func (l *Lexer) Parse() {
 
 	for {
+		t, v := l.ParseNext()
 
-		// End
-		if l.I >= l.Length {
+		if t == "EOF" {
+
+			// Push both EOL and EOF before quitting
 			l.Push("EOL", "")
 			l.Push("EOF", "")
-			break
+
+			return
 		}
 
-		// Get current char
-		l.C = l.CharAtPos(l.I)
-
-		// Line endings
-		if l.C == "\n" || l.C == "\r" || l.C == "" {
-			l.I++
-			l.Push("EOL", "")
-			continue
-		}
-
-		// Ignore Whitespace
-		if strings.TrimSpace(l.C) != l.C {
-			l.I++
-			continue
-		}
-
-		// Comments
-		if l.C == "/" && l.CharAtPos(l.I+1) == "/" {
-			l.I++
-
-			// Comments contine until the end of the file or a new row
-			for {
-				l.C = l.CharAtPos(l.I)
-
-				if l.C == "\n" || l.C == "\r" || l.C == "" {
-					break
-				}
-
-				l.I++
-			}
-			continue
-		}
-
-		// Names
-		// Begins with a char a-Z
-		if (l.C >= "a" && l.C <= "z") || (l.C >= "A" && l.C <= "Z") {
-			str := l.C
-			l.I++
-
-			for {
-				l.C = l.CharAtPos(l.I)
-
-				// After the beginning, a name can be a-Z0-9_
-				if (l.C >= "a" && l.C <= "z") || (l.C >= "A" && l.C <= "Z") || (l.C >= "0" && l.C <= "9") || l.C == "_" {
-					str += l.C
-					l.I++
-				} else {
-					break
-				}
-			}
-
-			if str == "true" || str == "false" {
-				l.Push("bool", str)
-				continue
-			}
-
-			if _, ok := l.Keywords[str]; ok {
-				l.Push("keyword", str)
-				continue
-			}
-
-			l.Push("name", str)
-			continue
-		}
-
-		// Numbers
-		if l.C >= "0" && l.C <= "9" {
-			str := l.C
-			l.I++
-
-			// Look for more digits.
-			for {
-				l.C = l.CharAtPos(l.I)
-
-				if l.C < "0" || l.C > "9" {
-					break
-				}
-
-				l.I++
-				str += l.C
-			}
-
-			// TODO Decimal
-			// TODO Verify that it ends with a space?
-
-			l.Push("number", str)
-			continue
-		}
-
-		// Strings
-		if l.C == "\"" {
-			str := ""
-			l.I++
-
-			// TODO escaping
-
-			for {
-				if l.CharAtPos(l.I) == "\"" {
-					l.I++
-					break
-				}
-
-				l.C = l.CharAtPos(l.I)
-				str += l.C
-				l.I++
-			}
-
-			l.Push("string", str)
-			continue
-		}
-
-		// Operators
-		if _, ok := l.Operators[l.C]; ok {
-			l.I++
-			str := l.C
-
-			for {
-				if _, ok := l.Operators[str+l.CharAtPos(l.I)]; ok {
-					l.C = l.CharAtPos(l.I)
-					l.I++
-					str += l.C
-				} else {
-					break
-				}
-			}
-
-			l.Push("operator", str)
-			continue
+		if t != "" || v != "" {
+			l.Push(t, v)
 		}
 
 		l.I++
-
-		l.Push("operator", l.C)
 	}
+}
+
+func (l *Lexer) ParseNext() (string, string) {
+	// End
+	if l.I >= l.Length {
+		return "EOF", ""
+	}
+
+	// Get current char
+	l.C = l.CharAtPos(l.I)
+
+	// Line endings
+	if l.C == "\n" || l.C == "\r" || l.C == "" {
+		return "EOL", ""
+	}
+
+	// Ignore Whitespace
+	if strings.TrimSpace(l.C) != l.C {
+		return "", ""
+	}
+
+	// Comments
+	if l.C == "/" && l.CharAtPos(l.I+1) == "/" {
+		// Comments contine until the end of the file or a new row
+		for {
+
+			l.I++
+
+			l.C = l.CharAtPos(l.I)
+
+			if l.C == "\n" || l.C == "\r" || l.C == "" {
+				return "", ""
+			}
+		}
+
+		return "", ""
+	}
+
+	// Names
+	// Begins with a char a-Z
+	if (l.C >= "a" && l.C <= "z") || (l.C >= "A" && l.C <= "Z") {
+		str := l.C
+
+		for {
+			c := l.CharAtPos(l.I + 1)
+
+			// After the beginning, a name can be a-Z0-9_
+			if (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9") || c == "_" {
+				str += c
+				l.I++
+			} else {
+				break
+			}
+		}
+
+		if str == "true" || str == "false" {
+			return "bool", str
+		}
+
+		if _, ok := l.Keywords[str]; ok {
+			return "keyword", str
+		}
+
+		return "name", str
+	}
+
+	// Numbers
+	if l.C >= "0" && l.C <= "9" {
+		str := l.C
+		
+
+		// Look for more digits.
+		for {
+			c := l.CharAtPos(l.I + 1)
+
+			if c < "0" || c > "9" {
+				break
+			}
+
+			l.I++
+			str += c
+		}
+
+		// TODO Decimal
+		// TODO Verify that it ends with a space?
+
+		return "number", str
+	}
+
+	// Strings
+	if l.C == "\"" {
+		str := ""
+
+		// TODO escaping
+
+		for {
+			if l.CharAtPos(l.I + 1) == "\"" {
+				l.I++
+				break
+			}
+
+			l.I++
+
+			str += l.CharAtPos(l.I)
+		}
+
+		return "string", str
+	}
+
+	// Operators
+	if _, ok := l.Operators[l.C]; ok {
+		str := l.C
+
+		for {
+			if _, ok := l.Operators[str+l.CharAtPos(l.I + 1)]; ok {
+				l.I++
+				str += l.CharAtPos(l.I)
+			} else {
+				break
+			}
+		}
+
+		return "operator", str
+	}
+
+	return "operator", l.C
 }
 
 func (l *Lexer) CharAtPos(pos int) string {
