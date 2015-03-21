@@ -1,0 +1,242 @@
+func (p *Parser) Expression(advance bool) Node {
+
+	if advance {
+		p.Advance()
+	}
+
+	previous := p.Previous()
+	current := p.Token
+
+	if current.Type == "operator" && (current.Value == "}" || current.Value == "{" || current.Value == ")" || current.Value == "," || current.Value == ";") {
+		return Nil{}
+	}
+
+	// Number or string
+	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
+		literal := Literal{
+			Type:  current.Type,
+			Value: current.Value,
+		}
+
+		return literal
+	}
+
+	// Variables
+	if current.Type == "name" {
+		variable := Variable{}
+		variable.Name = current.Value
+
+		return variable
+	}
+
+	// PushClass
+	// IO.Println("123")
+	//   ^
+	if current.Type == "operator" && current.Value == "." {
+		push := PushClass{}
+		push.Left = previous
+
+		// Convert Variable to literal
+		if v, ok := push.Left.(Variable); ok {
+			push.Left = Literal{
+				Type:  "string",
+				Value: v.Name,
+			}
+		}
+
+		push.Right = p.Expressions()
+
+		return push
+	}
+
+	// Call
+	// IO.Println("123")
+	//    ^^^^^^^
+	if current.Type == "operator" && current.Value == "(" {
+
+		method := Call{}
+		method.Left = previous
+
+		// Convert Variable to literal
+		if v, ok := method.Left.(Variable); ok {
+			method.Left = Literal{
+				Type:  "string",
+				Value: v.Name,
+			}
+		}
+
+		method.Parameters = make([]Node, 0)
+
+		for {
+			param := p.Expressions()
+
+			if _, ok := param.(Nil); ok {
+				break
+			}
+
+			method.Parameters = append(method.Parameters, param)
+		}
+
+		return method
+	}
+
+	// We encountered an operator, check the type of the previous expression
+	if current.Type == "operator" {
+
+		math := Math{}
+		math.Method = current.Value // + - * /
+
+		// Differentiate between comparisions and arithmetic operators
+		if _, ok := p.Comparisions[math.Method]; ok {
+			math.IsComparision = true
+		} else {
+			math.IsComparision = false
+		}
+
+		prev, ok := previous.(Math)
+
+		if ok {
+			if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
+				math.Left = prev.Left
+				math.Method = prev.Method
+				math.Right = Math{
+					Method: current.Value,
+					Left:   prev.Right,
+					Right:  p.Expression(true),
+				}
+			} else {
+				math.Left = previous
+				math.Right = p.Expression(true)
+			}
+		}
+
+		_, ok = previous.(Literal)
+		if ok {
+			math.Left = previous
+			math.Right = p.Expression(true)
+		}
+
+		_, ok = previous.(Variable)
+		if ok {
+			math.Left = previous
+			math.Right = p.Expression(true)
+		}
+
+		p.Stack.Add(math)
+
+		return math
+	}
+
+	return Nil{}
+}
+
+func (p *Parser) Expressions() Node {
+
+	p.Stack.Push()
+
+	for {
+		expression := p.Expression(true)
+
+		if _, ok := expression.(Nil); ok {
+			p.Reverse(1)
+			return p.Previous()
+		}
+
+		p.Stack.Add(expression)
+	}
+
+	p.Stack.Pop()
+
+	return Nil{}
+}
+
+func (p *Parser) Statement(expecting Expecting) (Node, bool) {
+
+	var statement Node
+
+	hasContent := false
+
+	for {
+		tok := p.Advance()
+
+		if tok.Type == "EOF" || tok.Type == "EOL" {
+			break
+		}
+
+		// IO.Println("first", "second")
+		if tok.Type == "operator" && tok.Value == "," {
+			break
+		}
+
+		if tok.Type == "operator" && tok.Value == ")" {
+			break
+		}
+
+		if expecting == EXPECTING_FOR_PART && tok.Type == "operator" && tok.Value == ";" {
+			hasContent = true
+			break
+		}
+
+		if _, ok := p.Symbols[tok.Value]; ok {
+			statement = p.Symbols[tok.Value].Function()
+			hasContent = true
+
+			if p.Symbols[tok.Value].IsStatement {
+				break
+			}
+
+			continue
+		}
+
+		if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" {
+			statement = p.Symbols[tok.Type].Function()
+			hasContent = true
+			continue
+		}
+
+		if tok.Type == "name" {
+			sym := p.Symbols["variable"].CaseFunction(expecting)
+			statement = sym.Function()
+			hasContent = true
+			break
+		}
+
+		if tok.Type == "operator" && tok.Value == "}" {
+			hasContent = true
+			break
+		}
+	}
+
+	return statement, hasContent
+}
+
+func (p *Parser) Statements(expecting Expecting) Block {
+	n := Block{}
+
+	for {
+
+		p.Stack.Push()
+
+		statement, ok := p.Statement(expecting)
+
+		p.Stack.Pop()
+
+		if ok && statement != nil {
+			n.Body = append(n.Body, statement)
+		}
+
+		if (p.Token.Type == "operator" && p.Token.Value == "}") || p.Token.Type == "EOF" {
+
+			// To force a new statement
+			p.Token.Type = "ForceStatement"
+			break
+		}
+
+		if expecting == EXPECTING_FOR_PART && (p.Token.Type == "operator" && p.Token.Value == ";" || p.Token.Type == "EOL") {
+			p.Token.Type = "ForceStatement"
+			break
+		}
+	}
+
+	return n
+}

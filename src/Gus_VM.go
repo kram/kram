@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 )
@@ -305,6 +304,8 @@ func (vm *VM) OperationCall(call Call) Type {
 	bl := Bool{}
 	bl.Init("false")
 
+	/*
+
 	// Built in method
 	if call.Left == "Println" {
 
@@ -323,7 +324,11 @@ func (vm *VM) OperationCall(call Call) Type {
 
 		bl.Init("true")
 		return &bl
-	}
+	}*/
+
+	method := vm.Operation(call.Left, ON_NOTHING)
+
+	fmt.Println(method)
 
 	// Calling a method
 	if len(vm.Classes) >= 0 {
@@ -504,7 +509,7 @@ func (vm *VM) OperationForIn(f For) Type {
 	// Create variable scope
 	vm.Environment = vm.Environment.Push()
 
-	iterator, ok := f.Before.Body[0].(Iterate);
+	iterator, ok := f.Before.(Iterate);
 
 	if !ok {
 		log.Print(f.Before)

@@ -2,7 +2,9 @@ package main
 
 type Node interface{}
 
-type Nil struct{}
+type Nil struct {
+	Nil bool
+}
 
 type Block struct {
 	Block bool
@@ -102,7 +104,7 @@ type PushClass struct {
 type For struct {
 	For       bool
 	IsForIn   bool
-	Before    Block
+	Before    Node
 	Condition Node
 	Each      Node
 	Body      Block
