@@ -89,7 +89,7 @@ func (l *Lexer) Parse() {
 		}
 
 		last_type = t
-		
+
 		l.Push(t, v)
 	}
 }
@@ -187,7 +187,7 @@ func (l *Lexer) ParseNext() (string, string) {
 		// TODO escaping
 
 		for {
-			if l.CharAtPos(l.I + 1) == "\"" {
+			if l.CharAtPos(l.I+1) == "\"" {
 				l.I++
 				break
 			}
@@ -205,7 +205,7 @@ func (l *Lexer) ParseNext() (string, string) {
 		str := l.C
 
 		for {
-			if _, ok := l.Operators[str+l.CharAtPos(l.I + 1)]; ok {
+			if _, ok := l.Operators[str+l.CharAtPos(l.I+1)]; ok {
 				l.I++
 				str += l.CharAtPos(l.I)
 			} else {
@@ -235,5 +235,5 @@ func (l *Lexer) Push(typ, value string) {
 }
 
 func (l *Lexer) Append(value string) {
-	l.Tokens[len(l.Tokens) - 1].Value += value
+	l.Tokens[len(l.Tokens)-1].Value += value
 }

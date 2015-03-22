@@ -1,11 +1,11 @@
 package main
 
 import (
-	"log"
-	"fmt"
 	"encoding/json"
-	"strings"
+	"fmt"
+	"log"
 	"os"
+	"strings"
 )
 
 // --------------- Symbols
@@ -227,7 +227,7 @@ func (p *Parser) Advance() Token {
 
 //
 // Reverse progress made by p.Advance()
-// 
+//
 func (p *Parser) Reverse(times int) {
 	p.Current -= times
 }
@@ -340,7 +340,7 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 			p.Log(0, "ReadUntil()", "Was nil, not overwriting...")
 			continue
 		}
-		
+
 		res = r
 		p.Stack.Add(r)
 	}
@@ -359,7 +359,7 @@ func (p *Parser) ParseBlock() Block {
 	block := Block{}
 
 	for {
-		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}	, Token{"operator", "}"}})
+		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}})
 
 		b, _ := json.MarshalIndent(i, "", "  ")
 		fmt.Println(string(b))
@@ -505,14 +505,13 @@ func (p *Parser) ParseStatementPart() Node {
 				}
 			}
 
-
 			push.Right = call
 
 			p.Log(-1, "ParseStatementPart()")
 
 			return push
 		}
-			
+
 		// Leave this to see if it actually can happen
 		call.Left = previous
 		fmt.Println("This happened, 918238yyhaUSHDHASD")
@@ -796,7 +795,7 @@ func (p *Parser) Symbol_if(expecting Expecting) Node {
 	i := If{}
 
 	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
-	
+
 	i.True = p.ParseBlock()
 
 	next := p.NextToken(0)
@@ -910,9 +909,9 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 
 	// Test if we got an iterator, if that is the case we should skip to the body part directly
 	//if _, ok := f.Before.Body[0].(Iterate); ok {
-		f.IsForIn = true
-		//f.Body = p.Statements(EXPECTING_NOTHING)
-		return f
+	f.IsForIn = true
+	//f.Body = p.Statements(EXPECTING_NOTHING)
+	return f
 	//}
 
 	return f
