@@ -70,6 +70,14 @@ Harry.Woho() // Woho!
 Magician.Woho() // Woho!
 ```
 
+### Pretty numbers
+
+You can seperate numbers by spaces (as many or as few as you like) to increase readability of the sourcecode.
+
+```dart
+IO.Println(20 000) // Prints "20000"
+```
+
 ## The future of Gus
 
 There is a lot of [stuff](https://github.com/zegl/Gus/labels/Feature) that needs to be implemented before Gus is complete. And **you** are very welcome to help! :ok_hand:
