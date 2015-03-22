@@ -126,7 +126,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	p.Symbol("var", p.Symbol_var, 0, true)
 	p.Symbol("if", p.Symbol_if, 0, true)
-	//p.Symbol("class", p.Symbol_class, 0, true)
+	p.Symbol("class", p.Symbol_class, 0, true)
 	//p.Symbol("static", p.Symbol_static, 0, true)
 	p.Symbol("new", p.Symbol_new, 0, true)
 	//p.Symbol("[", p.Symbol_list, 0, true)
@@ -476,7 +476,7 @@ func (p *Parser) ParseStatementPart() Node {
 
 	// Call
 	// IO.Println("123")
-	//    ^^^^^^^
+	//           ^
 	if current.Type == "operator" && current.Value == "(" {
 
 		call := Call{}
@@ -511,6 +511,13 @@ func (p *Parser) ParseStatementPart() Node {
 
 			return push
 		}
+
+		// When the previous was a name
+		// This is now a method definition
+		if variable, ok := previous.(Variable); ok {
+			return p.Symbol_MethodWithName(variable.Name)
+		}
+
 
 		// Leave this to see if it actually can happen
 		call.Left = previous
@@ -807,7 +814,6 @@ func (p *Parser) Symbol_if(expecting Expecting) Node {
 	return i
 }
 
-/*
 func (p *Parser) Symbol_class(expecting Expecting) Node {
 	class := DefineClass{}
 
@@ -817,16 +823,11 @@ func (p *Parser) Symbol_class(expecting Expecting) Node {
 		log.Panicf("Expected name after class, got %s (%s)", name.Type, name.Value)
 	}
 
-	p.Advance()
-
-	p.Stack.Add(&class)
-
 	class.Name = name.Value
-	class.Body = p.Statements(EXPECTING_CLASS_BODY)
+	class.Body = p.ParseBlock()
 
 	return class
 }
-*/
 
 /*
 func (p *Parser) Symbol_static(expecting Expecting) Node {
@@ -915,6 +916,63 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 	//}
 
 	return f
+}
+
+func (p *Parser) Symbol_MethodWithName(name string) DefineMethod {
+	// Initialize
+	method := DefineMethod{}
+	method.Parameters = make([]Parameter, 0)
+
+	method.Name = name
+
+	// IsPublic
+	if string(method.Name[0]) >= "A" && string(method.Name[0]) <= "Z" {
+		method.IsPublic = true
+	}
+
+	for {
+		next := p.NextToken(0)
+
+		// We're done where when the next char is a )
+		if next.Type == "operator" && next.Value == ")" {
+			break
+		}
+
+		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}})
+
+		fmt.Println("TODO: Convert parameters correctly (123sjsjsjass)")
+		fmt.Println(param)
+		os.Exit(1)
+
+		//method.Parameters = append(method.Parameters, param)
+	}
+
+	method.Body = p.ParseBlock()
+
+	/*next := p.NextToken(0)
+
+	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
+		method.Body = p.Statements(EXPECTING_METHOD_BODY)
+	} else {
+		for {
+
+			tok := p.Advance()
+
+			if tok.Type == "operator" && tok.Value == ")" {
+				break
+			}
+
+			if tok.Type == "name" {
+				param := Parameter{}
+				param.Name = tok.Value
+				method.Parameters = append(method.Parameters, param)
+			}
+		}
+
+		method.Body = p.Statements(EXPECTING_METHOD_BODY)
+	}*/
+
+	return method
 }
 
 /*
