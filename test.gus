@@ -1,3 +1,7 @@
-var i = 0
-i = 20
-IO.Println(i)
+class Dog {
+	Hey() {
+		IO.Println("YO")
+	}
+}
+
+Dog.Hey()

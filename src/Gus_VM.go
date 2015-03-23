@@ -138,7 +138,7 @@ func (vm *VM) Operation(node Node, on ON) Type {
 func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 
 	// Create new scope
-	if on != ON_FOR_PART {
+	if on != ON_FOR_PART && block.Scope == true {
 		vm.Environment = vm.Environment.Push()
 	}
 
@@ -161,7 +161,7 @@ func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 	}
 
 	// Restore scope
-	if on != ON_FOR_PART {
+	if on != ON_FOR_PART && block.Scope == true {
 		vm.Environment = vm.Environment.Pop()
 	}
 

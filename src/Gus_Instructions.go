@@ -9,6 +9,7 @@ type Nil struct {
 type Block struct {
 	Block bool
 	Body  []Node
+	Scope bool
 }
 
 type Assign struct {

@@ -804,11 +804,13 @@ func (p *Parser) Symbol_if(expecting Expecting) Node {
 	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
 
 	i.True = p.ParseBlock()
+	i.True.Scope = true // Create new scope
 
 	next := p.NextToken(0)
 
 	if next.Type == "keyword" && next.Value == "else" {
 		i.False = p.ParseBlock()
+		i.False.Scope = true // Create new scope
 	}
 
 	return i
@@ -825,6 +827,7 @@ func (p *Parser) Symbol_class(expecting Expecting) Node {
 
 	class.Name = name.Value
 	class.Body = p.ParseBlock()
+	class.Body.Scope = true
 
 	return class
 }
@@ -905,6 +908,7 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
 
 	f.Body = p.ParseBlock()
+	f.Body.Scope = true
 
 	return f
 
@@ -948,6 +952,7 @@ func (p *Parser) Symbol_MethodWithName(name string) DefineMethod {
 	}
 
 	method.Body = p.ParseBlock()
+	method.Body.Scope = true
 
 	/*next := p.NextToken(0)
 
