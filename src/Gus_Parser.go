@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -361,9 +360,6 @@ func (p *Parser) ParseBlock() Block {
 	for {
 		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}})
 
-		b, _ := json.MarshalIndent(i, "", "  ")
-		fmt.Println(string(b))
-
 		if _, ok := i.(Nil); ok {
 			p.Log(-1, "ParseBlock() Was nil")
 			return block
@@ -689,9 +685,6 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 		return iter
 	}
 
-	b, _ := json.MarshalIndent(n, "", "  ")
-	fmt.Println(string(b))
-
 	return n
 
 	//if !(eq.Type == "operator" && eq.Value == "=") {
@@ -749,9 +742,6 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 				p.Advance()
 
 				set.Right = p.ReadUntil([]Token{Token{"EOL", ""}})
-
-				b, _ := json.MarshalIndent(set, "", "  ")
-				fmt.Println(string(b))
 
 				return set
 			}
