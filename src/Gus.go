@@ -39,6 +39,8 @@ func main() {
 		}
 
 		var parse = Parser{}
+		parse.Debug = *debug
+
 		tree := parse.Parse(lexer.Tokens)
 
 		if *debug {
@@ -51,10 +53,7 @@ func main() {
 		}
 
 		var vm = VM{}
-
-		if *debug {
-			vm.Debug = true
-		}
+		vm.Debug = *debug
 
 		vm.Run(tree)
 

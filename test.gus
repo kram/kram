@@ -1,7 +1,11 @@
 class Dog {
-	Hey() {
+	Hey(a, b, c) {
 		IO.Println("YO")
+		IO.Println(a)
+		IO.Println(b)
+		IO.Println(c)
 	}
 }
 
-Dog.Hey()
+Dog.Hey("apa", "banan", "citron")
+

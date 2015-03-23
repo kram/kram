@@ -304,32 +304,6 @@ func (vm *VM) OperationCall(call Call) Type {
 	bl := Bool{}
 	bl.Init("false")
 
-	/*
-
-		// Built in method
-		if call.Left == "Println" {
-
-			for _, param := range call.Parameters {
-				fmt.Println(vm.Operation(param, ON_NOTHING).ToString())
-			}
-
-			bl.Init("true")
-			return &bl
-		}
-
-		if call.Left == "Dump" {
-
-			b, _ := json.MarshalIndent(vm.Environment, "", "  ")
-			fmt.Println(string(b))
-
-			bl.Init("true")
-			return &bl
-		}*/
-
-	method := vm.Operation(call.Left, ON_NOTHING)
-
-	fmt.Println(method)
-
 	// Calling a method
 	if len(vm.Classes) >= 0 {
 		return vm.Classes[len(vm.Classes)-1].Invoke(vm, vm.Operation(call.Left, ON_NOTHING).ToString(), call.Parameters)

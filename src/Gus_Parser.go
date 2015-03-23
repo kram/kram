@@ -96,9 +96,15 @@ type Parser struct {
 	Stack Stack
 
 	Depth int
+
+	Debug bool
 }
 
 func (p *Parser) Log(change int, str string, a ...interface{}) {
+
+	if !p.Debug {
+		return
+	}
 
 	if change > 0 {
 		p.Depth += change
@@ -325,7 +331,6 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 			}
 		}
 
-		fmt.Println()
 		r := p.ParseNext(false)
 
 		if _, ok := r.(*Nil); ok {
@@ -465,18 +470,28 @@ func (p *Parser) ParseStatementPart() Node {
 	//           ^
 	if current.Type == "operator" && current.Value == "(" {
 
+		// When the previous was a name
+		// This is now a method definition
+		if variable, ok := previous.(Variable); ok {
+			return p.Symbol_MethodWithName(variable.Name)
+		}
+
+		// The default case
+		// We are now defining a method call
 		call := Call{}
 		call.Parameters = make([]Node, 0)
 
-		// Get parameters
 		for {
 			next := p.NextToken(0)
 
-			if next.Type == "operator" && next.Value == ")" {
+			// We're done here
+			if (next.Type == "operator" && next.Value == ")") || next.Type == "EOL" || next.Type == "EOF" {
 				break
 			}
 
-			call.Parameters = append(call.Parameters, p.ParseNext(true))
+			param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}})
+
+			call.Parameters = append(call.Parameters, param)
 		}
 
 		// Put Call{} into the a previous PushClass if neeccesary
@@ -493,17 +508,10 @@ func (p *Parser) ParseStatementPart() Node {
 
 			push.Right = call
 
-			p.Log(-1, "ParseStatementPart()")
+			p.Log(-1, "ParseStatementPart() PushClass")
 
 			return push
 		}
-
-		// When the previous was a name
-		// This is now a method definition
-		if variable, ok := previous.(Variable); ok {
-			return p.Symbol_MethodWithName(variable.Name)
-		}
-
 
 		// Leave this to see if it actually can happen
 		call.Left = previous
@@ -710,8 +718,6 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 	// Var as assignment
 	if len(*p.Stack.Items) == 0 {
 
-		fmt.Println("VAR AS ASSIGNMENT")
-
 		sym.IsStatement = true
 		sym.Function = func(expecting Expecting) Node {
 
@@ -876,6 +882,7 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 }
 
 func (p *Parser) Symbol_MethodWithName(name string) DefineMethod {
+
 	// Initialize
 	method := DefineMethod{}
 	method.Parameters = make([]Parameter, 0)
@@ -888,47 +895,27 @@ func (p *Parser) Symbol_MethodWithName(name string) DefineMethod {
 	}
 
 	for {
-		next := p.NextToken(0)
+		next := p.NextToken(-1)
 
 		// We're done where when the next char is a )
 		if next.Type == "operator" && next.Value == ")" {
 			break
 		}
 
-		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}})
+		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"operator", "{"}, Token{"EOF", ""}})
 
-		fmt.Println("TODO: Convert parameters correctly (123sjsjsjass)")
-		fmt.Println(param)
-		os.Exit(1)
+		// Convert Variable{} to a Parameter{}
+		// They are basically the same, but not really
+		if v, ok := param.(Variable); ok {
+			par := Parameter{}
+			par.Name = v.Name
 
-		//method.Parameters = append(method.Parameters, param)
+			method.Parameters = append(method.Parameters, par)
+		}
 	}
 
 	method.Body = p.ParseBlock()
 	method.Body.Scope = true
-
-	/*next := p.NextToken(0)
-
-	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	} else {
-		for {
-
-			tok := p.Advance()
-
-			if tok.Type == "operator" && tok.Value == ")" {
-				break
-			}
-
-			if tok.Type == "name" {
-				param := Parameter{}
-				param.Name = tok.Value
-				method.Parameters = append(method.Parameters, param)
-			}
-		}
-
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	}*/
 
 	return method
 }
