@@ -328,14 +328,7 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 		fmt.Println()
 		r := p.ParseNext(false)
 
-		if _, ok := r.(Nil); ok {
-			fmt.Println("Was nil, not overwriting...")
-			p.Log(0, "ReadUntil()", "Was nil, not overwriting...")
-			continue
-		}
-
 		if _, ok := r.(*Nil); ok {
-			fmt.Println("Was nil, not overwriting...")
 			p.Log(0, "ReadUntil()", "Was nil, not overwriting...")
 			continue
 		}
