@@ -1,11 +1,3 @@
-class Dog {
-	Hey(a, b, c) {
-		IO.Println("YO")
-		IO.Println(a)
-		IO.Println(b)
-		IO.Println(c)
-	}
-}
+var hej = [1, 2, 3]
 
-Dog.Hey("apa", "banan", "citron")
-
+IO.Println(hej)
