@@ -360,12 +360,9 @@ func (p *Parser) ParseBlock() Block {
 	for {
 		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}})
 
-		if _, ok := i.(Nil); ok {
-			p.Log(-1, "ParseBlock() Was nil")
-			return block
+		if _, ok := i.(*Nil); !ok {
+			block.Body = append(block.Body, i)
 		}
-
-		block.Body = append(block.Body, i)
 
 		if p.Token.Type == "operator" && p.Token.Value == "}" {
 			p.Log(-1, "ParseBlock()")
