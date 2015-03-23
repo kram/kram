@@ -657,33 +657,6 @@ func (p *Parser) Statement(expecting Expecting) (Node, bool) {
 	return statement, hasContent
 }
 
-func (p *Parser) Statements(expecting Expecting) Block {
-	n := Block{}
-
-	for {
-
-		statement, ok := p.Statement(expecting)
-
-		if ok && statement != nil {
-			n.Body = append(n.Body, statement)
-		}
-
-		if (p.Token.Type == "operator" && p.Token.Value == "}") || p.Token.Type == "EOF" {
-
-			// To force a new statement
-			p.Token.Type = "ForceStatement"
-			break
-		}
-
-		if expecting == EXPECTING_FOR_PART && (p.Token.Type == "operator" && p.Token.Value == ";" || p.Token.Type == "EOL" || p.Token.Type == "keyword" && p.Token.Value == "in") {
-			p.Token.Type = "ForceStatement"
-			break
-		}
-	}
-
-	return n
-}
-
 func (p *Parser) Symbol_var(expecting Expecting) Node {
 	n := Assign{}
 
