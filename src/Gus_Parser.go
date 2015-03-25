@@ -862,7 +862,18 @@ func (p *Parser) Symbol_return(expecting Expecting) Node {
 func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f := For{}
 
-	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}})
+	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}, Token{"keyword", "in"}})
+
+	next := p.NextToken(-1)
+
+	if next.Type == "keyword" && next.Value == "in" {
+		return p.Symbol_for_in(f)
+	}
+
+	return p.Symbol_for_normal(f)
+}
+
+func (p *Parser) Symbol_for_normal(f For) For {
 	f.Condition = p.ReadUntil([]Token{Token{"operator", ";"}})
 	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
 
@@ -870,13 +881,14 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f.Body.Scope = true
 
 	return f
+}
 
-	// Test if we got an iterator, if that is the case we should skip to the body part directly
-	//if _, ok := f.Before.Body[0].(Iterate); ok {
+func (p *Parser) Symbol_for_in(f For) For {
 	f.IsForIn = true
-	//f.Body = p.Statements(EXPECTING_NOTHING)
-	return f
-	//}
+	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
+
+	f.Body = p.ParseBlock()
+	f.Body.Scope = true
 
 	return f
 }

@@ -1,11 +1,4 @@
-class Dog {
-	Hey(a, b, c) {
-		IO.Println("YO")
-		IO.Println(a)
-		IO.Println(b)
-		IO.Println(c)
-	}
+for var i in ["first", "second", "third"] {
+	IO.Println("beep")
+	IO.Println(i)
 }
-
-Dog.Hey("apa", "banan", "citron")
-
