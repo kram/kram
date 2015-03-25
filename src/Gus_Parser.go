@@ -662,8 +662,6 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 
 	n.Name = name.Value
 
-	next := p.NextToken(0)
-
 	return n
 }
 
@@ -717,9 +715,6 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 }
 
 func (p *Parser) Symbol_if(expecting Expecting) Node {
-
-	fmt.Println("Symbol_if()")
-
 	i := If{}
 
 	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
