@@ -664,34 +664,6 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 
 	next := p.NextToken(0)
 
-	// eq := p.Advance()
-
-	// p.Stack.Add(&Nil{})
-
-	// for var a in 1..2
-	// for var a in ["first", "second"]
-	// for var a in list
-	if expecting == EXPECTING_FOR_PART && next.Type == "keyword" && next.Value == "in" {
-
-		fmt.Println("Got keyword in, 1290802180280")
-
-		// Define an iterator object with the name that we already have
-		iter := Iterate{}
-		//iter.Object, _ = p.Statement(EXPECTING_EXPRESSION)
-		//iter.Name = n.Name
-
-		return iter
-	}
-
-	return n
-
-	//if !(eq.Type == "operator" && eq.Value == "=") {
-	//	log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
-	//}
-
-	// todo
-	// n.Right = p.Expressions()
-
 	return n
 }
 
@@ -703,16 +675,6 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 	// The basic Infix function
 	sym.Function = func(expecting Expecting) Node {
 		return p.ParseStatementPart()
-	}
-
-	if expecting == EXPECTING_CLASS_BODY {
-		sym.Function = func(expecting Expecting) Node {
-			return Nil{}
-			// todo
-			//return p.Symbol_method()
-		}
-
-		return sym
 	}
 
 	// Var as assignment
@@ -931,48 +893,3 @@ func (p *Parser) Symbol_MethodWithName(name string) DefineMethod {
 
 	return method
 }
-
-/*
-func (p *Parser) Symbol_method() DefineMethod {
-	method := DefineMethod{}
-	method.Parameters = make([]Parameter, 0)
-
-	if p.Token.Type != "name" {
-		log.Panicf("Expecting method name, got %s (%s)", p.Token.Type, p.Token.Value)
-	}
-
-	method.Name = p.Token.Value
-
-	// IsPublic
-	if string(method.Name[0]) >= "A" && string(method.Name[0]) <= "Z" {
-		method.IsPublic = true
-	}
-
-	method.Parameters = make([]Parameter, 0)
-
-	next := p.NextToken(0)
-
-	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	} else {
-		for {
-
-			tok := p.Advance()
-
-			if tok.Type == "operator" && tok.Value == ")" {
-				break
-			}
-
-			if tok.Type == "name" {
-				param := Parameter{}
-				param.Name = tok.Value
-				method.Parameters = append(method.Parameters, param)
-			}
-		}
-
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	}
-
-	return method
-}
-*/
