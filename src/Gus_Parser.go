@@ -134,7 +134,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Symbol("class", p.Symbol_class, 0, true)
 	//p.Symbol("static", p.Symbol_static, 0, true)
 	p.Symbol("new", p.Symbol_new, 0, true)
-	//p.Symbol("[", p.Symbol_list, 0, true)
+	p.Symbol("[", p.Symbol_list, 0, true)
 	//p.Symbol("return", p.Symbol_return, 0, true)
 	p.Symbol("for", p.Symbol_for, 0, true)
 
@@ -828,22 +828,22 @@ func (p *Parser) Symbol_new(expecting Expecting) Node {
 	return inst
 }
 
-/*
 func (p *Parser) Symbol_list(expecting Expecting) Node {
 	list := CreateList{}
 	list.Items = make([]Node, 0)
 
 	for {
-		if i, ok := p.Statement(EXPECTING_NOTHING); ok {
-			list.Items = append(list.Items, i)
-		} else {
+		next := p.NextToken(-1)
+
+		if next.Type == "operator" && next.Value == "]" {
 			break
 		}
+
+		list.Items = append(list.Items, p.ReadUntil([]Token{Token{"operator", ","}, Token{"operator", "]"}}))
 	}
 
 	return list
 }
-*/
 
 /*
 func (p *Parser) Symbol_return(expecting Expecting) Node {
