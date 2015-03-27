@@ -1,4 +1,14 @@
-for var i in ["first", "second", "third"] {
-	IO.Println("beep")
-	IO.Println(i)
+class Dog {
+	IsOld(age) {
+		IO.Print("The dogs age is: ", age)
+
+		if age > 6 {
+			return true
+		}
+
+		return false
+	}
 }
+
+IO.Println(Dog.IsOld(12))
+IO.Println(Dog.IsOld(2))

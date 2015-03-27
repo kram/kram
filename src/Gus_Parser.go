@@ -135,7 +135,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	//p.Symbol("static", p.Symbol_static, 0, true)
 	p.Symbol("new", p.Symbol_new, 0, true)
 	p.Symbol("[", p.Symbol_list, 0, true)
-	//p.Symbol("return", p.Symbol_return, 0, true)
+	p.Symbol("return", p.Symbol_return, 0, true)
 	p.Symbol("for", p.Symbol_for, 0, true)
 
 	p.SymbolCase("variable", p.Symbol_variable)
@@ -305,21 +305,7 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 
 	p.Stack.Push()
 
-	first := true
-
 	for {
-
-		if !first {
-			for _, t := range until {
-				if p.Token.Type == t.Type && p.Token.Value == t.Value {
-					p.Log(-1, "ReadUntil() (Premature End)", until)
-					p.Stack.Pop()
-					return
-				}
-			}
-		}
-
-		first = false
 
 		p.Advance()
 
@@ -802,19 +788,12 @@ func (p *Parser) Symbol_list(expecting Expecting) Node {
 	return list
 }
 
-/*
 func (p *Parser) Symbol_return(expecting Expecting) Node {
 	res := Return{}
-
-	if i, ok := p.Statement(EXPECTING_NOTHING); ok {
-		res.Statement = i
-	} else {
-		res.Statement = Literal{Type: "null"}
-	}
+	res.Statement = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
 
 	return res
 }
-*/
 
 func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f := For{}

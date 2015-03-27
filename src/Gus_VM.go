@@ -10,7 +10,7 @@ type ON int
 const (
 	ON_NOTHING    ON = 1 << iota // 1
 	ON_CLASS                     // 2
-	ON_CLASS_BODY                // 4
+	ON_METHOD_BODY               // 4
 	ON_FOR_PART                  // 8
 )
 
@@ -142,7 +142,7 @@ func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 		vm.Environment = vm.Environment.Push()
 	}
 
-	if on == ON_CLASS_BODY {
+	if on == ON_METHOD_BODY {
 		vm.ShouldReturn = append(vm.ShouldReturn, false)
 	}
 
@@ -156,7 +156,7 @@ func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 	}
 
 	// Pop
-	if on == ON_CLASS_BODY {
+	if on == ON_METHOD_BODY {
 		vm.ShouldReturn = vm.ShouldReturn[:len(vm.ShouldReturn)-1]
 	}
 
@@ -333,10 +333,10 @@ func (vm *VM) OperationDefineClass(def DefineClass) Type {
 
 	for _, body := range def.Body.Body {
 
-		if assign, ok := body.(Assign); ok {
+		/*if assign, ok := body.(Assign); ok {
 			class.SetVariable(assign.Name, vm.Operation(assign.Right, ON_NOTHING))
 			continue
-		}
+		}*/
 
 		// Fallback
 		vm.Operation(body, ON_NOTHING)
@@ -418,6 +418,7 @@ func (vm *VM) OperationCreateList(list CreateList) Type {
 }
 
 func (vm *VM) OperationReturn(ret Return) Type {
+
 	vm.ShouldReturn[len(vm.ShouldReturn)-1] = true
 
 	return vm.Operation(ret.Statement, ON_NOTHING)
