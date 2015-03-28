@@ -10,7 +10,7 @@ type ON int
 const (
 	ON_NOTHING    ON = 1 << iota // 1
 	ON_CLASS                     // 2
-	ON_CLASS_BODY                // 4
+	ON_METHOD_BODY               // 4
 	ON_FOR_PART                  // 8
 )
 
@@ -142,7 +142,7 @@ func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 		vm.Environment = vm.Environment.Push()
 	}
 
-	if on == ON_CLASS_BODY {
+	if on == ON_METHOD_BODY {
 		vm.ShouldReturn = append(vm.ShouldReturn, false)
 	}
 
@@ -156,7 +156,7 @@ func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 	}
 
 	// Pop
-	if on == ON_CLASS_BODY {
+	if on == ON_METHOD_BODY {
 		vm.ShouldReturn = vm.ShouldReturn[:len(vm.ShouldReturn)-1]
 	}
 
@@ -170,7 +170,15 @@ func (vm *VM) OperationBlock(block Block, on ON) (last Type) {
 
 func (vm *VM) OperationAssign(assign Assign) Type {
 
-	value := vm.Operation(assign.Right, ON_NOTHING)
+	var value Type
+
+	// Assign.Right is already a Type{}
+	// Used in a ForIn for example
+	if t, ok := assign.Right.(Type); ok {
+		value = t
+	} else {
+		value = vm.Operation(assign.Right, ON_NOTHING)	
+	}
 
 	vm.Environment.Set(assign.Name, value)
 
@@ -325,10 +333,10 @@ func (vm *VM) OperationDefineClass(def DefineClass) Type {
 
 	for _, body := range def.Body.Body {
 
-		if assign, ok := body.(Assign); ok {
+		/*if assign, ok := body.(Assign); ok {
 			class.SetVariable(assign.Name, vm.Operation(assign.Right, ON_NOTHING))
 			continue
-		}
+		}*/
 
 		// Fallback
 		vm.Operation(body, ON_NOTHING)
@@ -410,6 +418,7 @@ func (vm *VM) OperationCreateList(list CreateList) Type {
 }
 
 func (vm *VM) OperationReturn(ret Return) Type {
+
 	vm.ShouldReturn[len(vm.ShouldReturn)-1] = true
 
 	return vm.Operation(ret.Statement, ON_NOTHING)
@@ -482,21 +491,18 @@ func (vm *VM) OperationForIn(f For) Type {
 
 	// Create variable scope
 	vm.Environment = vm.Environment.Push()
+ 
+	// Convert Before to an assign object
+	assign, assign_ok := f.Before.(Assign)
 
-	iterator, ok := f.Before.(Iterate)
+	// Get iterator object
+	each := vm.Operation(f.Each, ON_NOTHING)
 
-	if !ok {
-		log.Print(f.Before)
-		log.Panic("Expected iterator in ForIn")
+	if (each.Type() != "List") {
+		log.Panic("Expected List in for ... in, got %s", each.Type())
 	}
 
-	object := vm.Operation(iterator.Object, ON_NOTHING)
-
-	if object.Type() != "List" {
-		log.Panicf("Expected List in ForIn, got %s", object.Type())
-	}
-
-	class, ok := object.(*Class)
+	class, ok := each.(*Class)
 
 	if !ok {
 		log.Panic("Expected object to be of type *Class")
@@ -512,10 +518,12 @@ func (vm *VM) OperationForIn(f For) Type {
 
 	for key := 0; key < length; key++ {
 
-		item := list.ItemAtPosition(key)
-
-		// TODO - Create a proper instruction for asigning a Type{}
-		vm.Environment.Set(iterator.Name, item)
+		// Update variable
+		if assign_ok {
+			item := list.ItemAtPosition(key)
+			assign.Right = item
+			vm.Operation(assign, ON_NOTHING)
+		}
 
 		// Run body
 		vm.Operation(f.Body, ON_NOTHING)

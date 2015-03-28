@@ -135,7 +135,11 @@ func (p *Parser) Parse(tokens []Token) Block {
 	//p.Symbol("static", p.Symbol_static, 0, true)
 	p.Symbol("new", p.Symbol_new, 0, true)
 	p.Symbol("[", p.Symbol_list, 0, true)
+<<<<<<< HEAD
 	//p.Symbol("return", p.Symbol_return, 0, true)
+=======
+	p.Symbol("return", p.Symbol_return, 0, true)
+>>>>>>> origin/master
 	p.Symbol("for", p.Symbol_for, 0, true)
 
 	p.SymbolCase("variable", p.Symbol_variable)
@@ -305,21 +309,7 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 
 	p.Stack.Push()
 
-	first := true
-
 	for {
-
-		if !first {
-			for _, t := range until {
-				if p.Token.Type == t.Type && p.Token.Value == t.Value {
-					p.Log(-1, "ReadUntil() (Premature End)", until)
-					p.Stack.Pop()
-					return
-				}
-			}
-		}
-
-		first = false
 
 		p.Advance()
 
@@ -662,36 +652,6 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 
 	n.Name = name.Value
 
-	next := p.NextToken(0)
-
-	// eq := p.Advance()
-
-	// p.Stack.Add(&Nil{})
-
-	// for var a in 1..2
-	// for var a in ["first", "second"]
-	// for var a in list
-	if expecting == EXPECTING_FOR_PART && next.Type == "keyword" && next.Value == "in" {
-
-		fmt.Println("Got keyword in, 1290802180280")
-
-		// Define an iterator object with the name that we already have
-		iter := Iterate{}
-		//iter.Object, _ = p.Statement(EXPECTING_EXPRESSION)
-		//iter.Name = n.Name
-
-		return iter
-	}
-
-	return n
-
-	//if !(eq.Type == "operator" && eq.Value == "=") {
-	//	log.Panicf("var, expected =, got %s %s", eq.Type, eq.Value)
-	//}
-
-	// todo
-	// n.Right = p.Expressions()
-
 	return n
 }
 
@@ -703,16 +663,6 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 	// The basic Infix function
 	sym.Function = func(expecting Expecting) Node {
 		return p.ParseStatementPart()
-	}
-
-	if expecting == EXPECTING_CLASS_BODY {
-		sym.Function = func(expecting Expecting) Node {
-			return Nil{}
-			// todo
-			//return p.Symbol_method()
-		}
-
-		return sym
 	}
 
 	// Var as assignment
@@ -755,9 +705,6 @@ func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
 }
 
 func (p *Parser) Symbol_if(expecting Expecting) Node {
-
-	fmt.Println("Symbol_if()")
-
 	i := If{}
 
 	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
@@ -833,38 +780,49 @@ func (p *Parser) Symbol_list(expecting Expecting) Node {
 	list.Items = make([]Node, 0)
 
 	for {
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 		next := p.NextToken(-1)
 
 		if next.Type == "operator" && next.Value == "]" {
 			break
 		}
 
+<<<<<<< HEAD
 		item := p.ReadUntil([]Token{Token{"operator", "]"}, Token{"operator", ","}})
 		list.Items = append(list.Items, item)
+=======
+		list.Items = append(list.Items, p.ReadUntil([]Token{Token{"operator", ","}, Token{"operator", "]"}}))
+>>>>>>> origin/master
 	}
 
 	return list
 }
 
-/*
 func (p *Parser) Symbol_return(expecting Expecting) Node {
 	res := Return{}
-
-	if i, ok := p.Statement(EXPECTING_NOTHING); ok {
-		res.Statement = i
-	} else {
-		res.Statement = Literal{Type: "null"}
-	}
+	res.Statement = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
 
 	return res
 }
-*/
 
 func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f := For{}
 
-	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}})
+	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}, Token{"keyword", "in"}})
+
+	next := p.NextToken(-1)
+
+	if next.Type == "keyword" && next.Value == "in" {
+		return p.Symbol_for_in(f)
+	}
+
+	return p.Symbol_for_normal(f)
+}
+
+func (p *Parser) Symbol_for_normal(f For) For {
 	f.Condition = p.ReadUntil([]Token{Token{"operator", ";"}})
 	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
 
@@ -872,13 +830,14 @@ func (p *Parser) Symbol_for(expecting Expecting) Node {
 	f.Body.Scope = true
 
 	return f
+}
 
-	// Test if we got an iterator, if that is the case we should skip to the body part directly
-	//if _, ok := f.Before.Body[0].(Iterate); ok {
+func (p *Parser) Symbol_for_in(f For) For {
 	f.IsForIn = true
-	//f.Body = p.Statements(EXPECTING_NOTHING)
-	return f
-	//}
+	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
+
+	f.Body = p.ParseBlock()
+	f.Body.Scope = true
 
 	return f
 }
@@ -921,48 +880,3 @@ func (p *Parser) Symbol_MethodWithName(name string) DefineMethod {
 
 	return method
 }
-
-/*
-func (p *Parser) Symbol_method() DefineMethod {
-	method := DefineMethod{}
-	method.Parameters = make([]Parameter, 0)
-
-	if p.Token.Type != "name" {
-		log.Panicf("Expecting method name, got %s (%s)", p.Token.Type, p.Token.Value)
-	}
-
-	method.Name = p.Token.Value
-
-	// IsPublic
-	if string(method.Name[0]) >= "A" && string(method.Name[0]) <= "Z" {
-		method.IsPublic = true
-	}
-
-	method.Parameters = make([]Parameter, 0)
-
-	next := p.NextToken(0)
-
-	if next.Type == "operator" && next.Value == "(" && next.Type == "operator" && next.Value == ")" {
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	} else {
-		for {
-
-			tok := p.Advance()
-
-			if tok.Type == "operator" && tok.Value == ")" {
-				break
-			}
-
-			if tok.Type == "name" {
-				param := Parameter{}
-				param.Name = tok.Value
-				method.Parameters = append(method.Parameters, param)
-			}
-		}
-
-		method.Body = p.Statements(EXPECTING_METHOD_BODY)
-	}
-
-	return method
-}
-*/

@@ -1,3 +1,14 @@
-var hej = [1, 2, 3]
+class Dog {
+	IsOld(age) {
+		IO.Print("The dogs age is: ", age)
 
-IO.Println(hej)
+		if age > 6 {
+			return true
+		}
+
+		return false
+	}
+}
+
+IO.Println(Dog.IsOld(12))
+IO.Println(Dog.IsOld(2))
