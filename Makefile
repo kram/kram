@@ -1,13 +1,13 @@
 gus:
-	go build -o Gus ./src
+	go build -o bin/Gus ./src
 
 all: gus
 
 build_test:
-	go build -o RunTests ./test
+	go build -o bin/Test ./test
 
 test: clean gus build_test
-	./RunTests
+	./bin/Test $(CURDIR)/test/tests
 
 clean:
-	rm Gus RunTests
+	-rm bin/*

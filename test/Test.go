@@ -13,11 +13,15 @@ import (
 func main() {
 	all := true
 
-	files, _ := ioutil.ReadDir("test/tests")
+	dirs := os.Args[1:]
 
-	for _, file := range files {
-		if !Test("test/tests/" + file.Name()) {
-			all = false
+	for _, dir := range dirs {
+		files, _ := ioutil.ReadDir(dir)
+
+		for _, file := range files {
+			if !Test(dir + "/" + file.Name()) {
+				all = false
+			}
 		}
 	}
 
@@ -47,7 +51,7 @@ func Test(path string) bool {
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("Gus.exe", path)
 	} else {
-		cmd = exec.Command("./Gus", path)
+		cmd = exec.Command("./bin/Gus", path)
 	}
 
 	stdout, err := cmd.Output()
