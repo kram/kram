@@ -1,5 +1,5 @@
 // The dogs age is: 12.000000true
-// The dogs age is: 2.000000trueoiasd
+// The dogs age is: 2.000000false
 class Dog {
 	IsOld(age) {
 		IO.Print("The dogs age is: ", age)
