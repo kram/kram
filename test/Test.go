@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"runtime"
 )
 
 func main() {
@@ -33,7 +34,14 @@ func Test(path string, file os.FileInfo, err error) error {
 	// Normalize newlines
 	expect = strings.Replace(expect, "\r\n", "\n", -1)
 
-	cmd := exec.Command("Gus.exe", path)
+	var cmd *exec.Cmd
+
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("Gus.exe", path)
+	} else {
+		cmd = exec.Command("./Gus", path)
+	}
+
 	stdout, err := cmd.Output()
 
 	if err != nil {

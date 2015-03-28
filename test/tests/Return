@@ -1,0 +1,16 @@
+// The dogs age is: 12.000000true
+// The dogs age is: 2.000000false
+class Dog {
+	IsOld(age) {
+		IO.Print("The dogs age is: ", age)
+
+		if age > 6 {
+			return true
+		}
+
+		return false
+	}
+}
+
+IO.Println(Dog.IsOld(12))
+IO.Println(Dog.IsOld(2))
