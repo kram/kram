@@ -305,7 +305,22 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 
 	p.Stack.Push()
 
+	first := true
+
 	for {
+
+		// Multiple statements can end at the same EOL
+		if !first {
+			for _, t := range until {
+				if t.Type == "EOL" && p.Token.Type == t.Type {
+					p.Log(-1, "ReadUntil() (Premature End)", until)
+					p.Stack.Pop()
+					return
+				}
+			}
+		}
+
+		first = false
 
 		p.Advance()
 
