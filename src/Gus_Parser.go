@@ -312,7 +312,7 @@ func (p *Parser) ReadUntil(until []Token) (res Node) {
 		// Multiple statements can end at the same EOL
 		if !first {
 			for _, t := range until {
-				if t.Type == "EOL" && p.Token.Type == t.Type {
+				if (t.Type == "EOL" || (t.Type == "operator" && t.Value == ";")) && p.Token.Type == t.Type {
 					p.Log(-1, "ReadUntil() (Premature End)", until)
 					p.Stack.Pop()
 					return
@@ -655,13 +655,19 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 
 	next := p.NextToken(0)
 
+	// As in:
+	// for var name in
+	if next.Type == "keyword" && next.Value == "in" {
+		return n
+	}
+
 	if next.Type == "operator" && next.Value == "=" {
 		p.Advance()
 	} else {
-		log.Panic("var, expected = got %s, %s", next.Type, next.Value)
+		log.Panicf("var, expected = got %s, %s", next.Type, next.Value)
 	}
 
-	n.Right = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
+	n.Right = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}, Token{"operator", ";"}})
 
 	return n
 }
