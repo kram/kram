@@ -16,7 +16,7 @@ func main() {
 	files, _ := ioutil.ReadDir("test/tests")
 
 	for _, file := range files {
-		if !Test("test/tests" + file.Name()) {
+		if !Test("test/tests/" + file.Name()) {
 			all = false
 		}
 	}
