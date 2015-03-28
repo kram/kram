@@ -1,5 +1,7 @@
 # Gus - A class based scripting language
 
+[![Build Status](https://travis-ci.org/zegl/Gus.svg?branch=master)](https://travis-ci.org/zegl/Gus)
+
 **Clarification**, this project is currently just a prototype. Don't actually use it anywhere. Things will break.
 
 ## Example
