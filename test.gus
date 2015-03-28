@@ -1,7 +1,1 @@
-var content = ""
-content = File.Read("test.gus")
-IO.Println(content)
-
-content = content + "// kiss"
-
-File.Write("test.gus", content)
+IO.Println("Hello world")
