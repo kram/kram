@@ -47,6 +47,7 @@ func (vm *VM) Libraries() {
 	libs = append(libs, &Library_IO{})
 	libs = append(libs, &Library_List{})
 	libs = append(libs, &Library_String{})
+	libs = append(libs, &Library_File{})
 
 	for _, lib := range libs {
 
