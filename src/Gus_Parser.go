@@ -456,16 +456,6 @@ func (p *Parser) ParseStatementPart() Node {
 		return push
 	}
 
-	// Assignment
-	if current.Type == "operator" && current.Value == "=" {
-		if assignment, ok := previous.(Assign); ok {
-			assignment.Right = p.ParseNext(true)
-			return assignment
-		}
-
-		log.Panicf("Expected previous to be an assignment, it wasn't")
-	}
-
 	// Call
 	// IO.Println("123")
 	//           ^
@@ -662,6 +652,16 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 	}
 
 	n.Name = name.Value
+
+	next := p.NextToken(0)
+
+	if next.Type == "operator" && next.Value == "=" {
+		p.Advance()
+	} else {
+		log.Panic("var, expected = got %s, %s", next.Type, next.Value)
+	}
+
+	n.Right = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
 
 	return n
 }
