@@ -5,22 +5,30 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"runtime"
 )
 
 func main() {
-	filepath.Walk("test/tests", Test)
+	all := true
+
+	files, _ := ioutil.ReadDir("test/tests")
+
+	for _, file := range files {
+		if !Test("test/tests" + file.Name()) {
+			all = false
+		}
+	}
+
+	if all {
+		os.Exit(0)
+	}
+
+	os.Exit(1)
 }
 
-func Test(path string, file os.FileInfo, err error) error {
-
-	// No not test the dir :)
-	if file.IsDir() {
-		return nil
-	}
+func Test(path string) bool {
 
 	content, _ := ioutil.ReadFile(path)
 
@@ -46,15 +54,16 @@ func Test(path string, file os.FileInfo, err error) error {
 
 	if err != nil {
 		println(path, err.Error())
-		return nil
+		return false
 	}
 
 	if expect == string(stdout) {
 		fmt.Printf("1: %s\n", path)
-	} else {
-		fmt.Printf("0: %s\n", path)
-		fmt.Printf("Expected\n---\n'%s'---\ngot\n---\n'%s'---\n", expect, string(stdout))
+		return true
 	}
+	
+	fmt.Printf("0: %s\n", path)
+	fmt.Printf("Expected\n---\n'%s'---\ngot\n---\n'%s'---\n", expect, string(stdout))
 
-	return nil
+	return false
 }
