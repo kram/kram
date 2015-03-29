@@ -91,12 +91,13 @@ type Parser struct {
 	Symbols map[string]Symbol
 
 	Comparisions map[string]bool
+	LeftOnlyInfix map[string]bool
 
 	// The current stack (used by Expression)
 	Stack Stack
 
+	// Used for debugging
 	Depth int
-
 	Debug bool
 }
 
@@ -163,6 +164,10 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Comparisions["<="] = true
 	p.Comparisions["&&"] = true
 	p.Comparisions["||"] = true
+
+	p.LeftOnlyInfix = make(map[string]bool)
+	p.LeftOnlyInfix["++"] = true
+	p.LeftOnlyInfix["--"] = true
 
 	// Math
 	p.Infix("+", 50)
@@ -527,6 +532,8 @@ func (p *Parser) ParseStatementPart() Node {
 			math.IsComparision = false
 		}
 
+		_, isLeftOnly := p.LeftOnlyInfix[math.Method]
+
 		prev, ok := previous.(Math)
 
 		if ok {
@@ -547,13 +554,19 @@ func (p *Parser) ParseStatementPart() Node {
 		_, ok = previous.(Literal)
 		if ok {
 			math.Left = previous
-			math.Right = p.ParseNext(true)
+
+			if !isLeftOnly {
+				math.Right = p.ParseNext(true)
+			}
 		}
 
 		_, ok = previous.(Variable)
 		if ok {
 			math.Left = previous
-			math.Right = p.ParseNext(true)
+
+			if !isLeftOnly {
+				math.Right = p.ParseNext(true)
+			}
 		}
 
 		p.Log(-1, "ParseStatementPart()")
