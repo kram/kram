@@ -3,21 +3,18 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
+	"os"
 )
 
 // --------------- Symbols
 
 type Symbol struct {
-	Function     SymbolReturn
-	CaseFunction SymbolCaseReturn
+	Function     SymbolFunction
 	Importance   int
-	IsStatement  bool
 }
 
-type SymbolReturn func(Expecting) Node
-type SymbolCaseReturn func(Expecting) Symbol
+type SymbolFunction func(Expecting) Node
 
 // --------------- Symbols
 
@@ -130,16 +127,16 @@ func (p *Parser) Parse(tokens []Token) Block {
 	// Initialize Stack
 	p.Stack.Reset()
 
-	p.Symbol("var", p.Symbol_var, 0, true)
-	p.Symbol("if", p.Symbol_if, 0, true)
-	p.Symbol("class", p.Symbol_class, 0, true)
-	//p.Symbol("static", p.Symbol_static, 0, true)
-	p.Symbol("new", p.Symbol_new, 0, true)
-	p.Symbol("[", p.Symbol_list, 0, true)
-	p.Symbol("return", p.Symbol_return, 0, true)
-	p.Symbol("for", p.Symbol_for, 0, true)
+	p.Symbol("var", p.Symbol_var, 0)
+	p.Symbol("if", p.Symbol_if, 0)
+	p.Symbol("class", p.Symbol_class, 0)
+	//p.Symbol("static", p.Symbol_static, 0)
+	p.Symbol("new", p.Symbol_new, 0)
+	p.Symbol("return", p.Symbol_return, 0)
+	p.Symbol("for", p.Symbol_for, 0)
 
-	p.SymbolCase("variable", p.Symbol_variable)
+	p.Symbol("[", p.Symbol_list, 5)
+	p.Symbol("variable", p.Symbol_variable, 2)
 
 	p.Infix("number", 0)
 	p.Infix("string", 0)
@@ -193,17 +190,10 @@ func (p *Parser) Parse(tokens []Token) Block {
 }
 
 // Add to the symbol table
-func (p *Parser) Symbol(str string, function SymbolReturn, importance int, isStatement bool) {
+func (p *Parser) Symbol(str string, function SymbolFunction, importance int) {
 	p.Symbols[str] = Symbol{
 		Function:    function,
 		Importance:  importance,
-		IsStatement: isStatement,
-	}
-}
-
-func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
-	p.Symbols[str] = Symbol{
-		CaseFunction: function,
 	}
 }
 
@@ -213,7 +203,7 @@ func (p *Parser) SymbolCase(str string, function SymbolCaseReturn) {
 func (p *Parser) Infix(str string, importance int) {
 	p.Symbol(str, func(expecting Expecting) Node {
 		return p.ParseStatementPart()
-	}, importance, false)
+	}, importance)
 }
 
 //
@@ -285,15 +275,8 @@ func (p *Parser) ParseNext(advance bool) Node {
 		return a
 	}
 
-	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" {
+	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" || tok.Type == "name" {
 		a := p.Symbols[tok.Type].Function(expecting)
-		p.Log(-1, "ParseNext() (End) ", tok)
-		return a
-	}
-
-	if tok.Type == "name" {
-		sym := p.Symbols["variable"].CaseFunction(expecting)
-		a := sym.Function(expecting)
 		p.Log(-1, "ParseNext() (End) ", tok)
 		return a
 	}
@@ -609,53 +592,39 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 	return n
 }
 
-func (p *Parser) Symbol_variable(expecting Expecting) Symbol {
-	sym := Symbol{}
-	sym.Importance = 0
-	sym.IsStatement = false
+func (p *Parser) Symbol_variable(expecting Expecting) Node {
+	// Var as assignment
+	if len(*p.Stack.Items) == 0 {
+		name := p.Token
 
-	// The basic Infix function
-	sym.Function = func(expecting Expecting) Node {
+		if name.Type != "name" {
+			log.Panicf("var, expected name, got %s", name.Type)
+		}
+
+		next := p.NextToken(0)
+
+		// Set
+		// abc = 123
+		if next.Type == "operator" && next.Value == "=" {
+			set := Set{}
+			set.Name = name.Value
+
+			p.Advance()
+
+			set.Right = p.ReadUntil([]Token{Token{"EOL", ""}})
+
+			return set
+		}
+
+		if next.Type == "EOL" || next.Type == "EOF" {
+			fmt.Println("Should we really end up here? 81238nadouas8u")
+			return &Nil{}
+		}
+
 		return p.ParseStatementPart()
 	}
 
-	// Var as assignment
-	if len(*p.Stack.Items) == 0 {
-
-		sym.IsStatement = true
-		sym.Function = func(expecting Expecting) Node {
-
-			name := p.Token
-
-			if name.Type != "name" {
-				log.Panicf("var, expected name, got %s", name.Type)
-			}
-
-			next := p.NextToken(0)
-
-			// Set
-			// abc = 123
-			if next.Type == "operator" && next.Value == "=" {
-				set := Set{}
-				set.Name = name.Value
-
-				p.Advance()
-
-				set.Right = p.ReadUntil([]Token{Token{"EOL", ""}})
-
-				return set
-			}
-
-			if next.Type == "EOL" || next.Type == "EOF" {
-				fmt.Println("Should we really end up here? 81238nadouas8u")
-				return &Nil{}
-			}
-
-			return p.ParseStatementPart()
-		}
-	}
-
-	return sym
+	return p.ParseStatementPart()
 }
 
 func (p *Parser) Symbol_if(expecting Expecting) Node {
