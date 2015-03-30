@@ -121,7 +121,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Symbol("for", p.Symbol_for, 0)
 
 	p.Symbol("[", p.Symbol_list, 5)
-	p.Symbol("variable", p.Symbol_variable, 2)
+	p.Symbol("name", p.Symbol_name, 2)
 
 	p.Infix("number", 0)
 	p.Infix("string", 0)
@@ -575,7 +575,7 @@ func (p *Parser) Symbol_var() Node {
 	return n
 }
 
-func (p *Parser) Symbol_variable() Node {
+func (p *Parser) Symbol_name() Node {
 	// Var as assignment
 	if len(*p.Stack.Items) == 0 {
 		name := p.Token
