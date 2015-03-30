@@ -14,24 +14,9 @@ type Symbol struct {
 	Importance   int
 }
 
-type SymbolFunction func(Expecting) Node
+type SymbolFunction func() Node
 
 // --------------- Symbols
-
-// --------------- Constants
-
-type Expecting int
-
-const (
-	EXPECTING_NOTHING     Expecting = 1 << iota // 1
-	EXPECTING_CLASS_BODY                        // 2
-	EXPECTING_IF_BODY                           // 4
-	EXPECTING_METHOD_BODY                       // 8
-	EXPECTING_EXPRESSION                        // 16
-	EXPECTING_FOR_PART                          // 32
-)
-
-// --------------- Constants
 
 // --------------- Stack
 
@@ -201,7 +186,7 @@ func (p *Parser) Symbol(str string, function SymbolFunction, importance int) {
 // Shortcut for adding Infix's to the symbol table
 //
 func (p *Parser) Infix(str string, importance int) {
-	p.Symbol(str, func(expecting Expecting) Node {
+	p.Symbol(str, func() Node {
 		return p.ParseStatementPart()
 	}, importance)
 }
@@ -267,16 +252,14 @@ func (p *Parser) ParseNext(advance bool) Node {
 
 	p.Log(1, "ParseNext() (Start) ", tok)
 
-	expecting := EXPECTING_NOTHING
-
 	if _, ok := p.Symbols[tok.Value]; ok {
-		a := p.Symbols[tok.Value].Function(expecting)
+		a := p.Symbols[tok.Value].Function()
 		p.Log(-1, "ParseNext() (End) ", tok)
 		return a
 	}
 
 	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" || tok.Type == "name" {
-		a := p.Symbols[tok.Type].Function(expecting)
+		a := p.Symbols[tok.Type].Function()
 		p.Log(-1, "ParseNext() (End) ", tok)
 		return a
 	}
@@ -562,7 +545,7 @@ func (p *Parser) ParseStatementPart() Node {
 	return Nil{}
 }
 
-func (p *Parser) Symbol_var(expecting Expecting) Node {
+func (p *Parser) Symbol_var() Node {
 	n := Assign{}
 
 	name := p.Advance()
@@ -592,7 +575,7 @@ func (p *Parser) Symbol_var(expecting Expecting) Node {
 	return n
 }
 
-func (p *Parser) Symbol_variable(expecting Expecting) Node {
+func (p *Parser) Symbol_variable() Node {
 	// Var as assignment
 	if len(*p.Stack.Items) == 0 {
 		name := p.Token
@@ -627,7 +610,7 @@ func (p *Parser) Symbol_variable(expecting Expecting) Node {
 	return p.ParseStatementPart()
 }
 
-func (p *Parser) Symbol_if(expecting Expecting) Node {
+func (p *Parser) Symbol_if() Node {
 	i := If{}
 
 	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
@@ -645,7 +628,7 @@ func (p *Parser) Symbol_if(expecting Expecting) Node {
 	return i
 }
 
-func (p *Parser) Symbol_class(expecting Expecting) Node {
+func (p *Parser) Symbol_class() Node {
 	class := DefineClass{}
 
 	name := p.Advance()
@@ -662,7 +645,7 @@ func (p *Parser) Symbol_class(expecting Expecting) Node {
 }
 
 /*
-func (p *Parser) Symbol_static(expecting Expecting) Node {
+func (p *Parser) Symbol_static() Node {
 	p.Advance()
 
 	method := p.Symbol_method()
@@ -672,7 +655,7 @@ func (p *Parser) Symbol_static(expecting Expecting) Node {
 }
 */
 
-func (p *Parser) Symbol_new(expecting Expecting) Node {
+func (p *Parser) Symbol_new() Node {
 	inst := Instance{}
 
 	name := p.Advance()
@@ -698,7 +681,7 @@ func (p *Parser) Symbol_new(expecting Expecting) Node {
 	return inst
 }
 
-func (p *Parser) Symbol_list(expecting Expecting) Node {
+func (p *Parser) Symbol_list() Node {
 	list := CreateList{}
 	list.Items = make([]Node, 0)
 
@@ -715,14 +698,14 @@ func (p *Parser) Symbol_list(expecting Expecting) Node {
 	return list
 }
 
-func (p *Parser) Symbol_return(expecting Expecting) Node {
+func (p *Parser) Symbol_return() Node {
 	res := Return{}
 	res.Statement = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
 
 	return res
 }
 
-func (p *Parser) Symbol_for(expecting Expecting) Node {
+func (p *Parser) Symbol_for() Node {
 	f := For{}
 
 	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}, Token{"keyword", "in"}})
