@@ -86,9 +86,15 @@ type Instance struct {
 	Left     string
 }
 
-type CreateList struct {
-	CreateList bool
+type ListCreate struct {
+	ListCreate bool
 	Items      []Node
+}
+
+type ListAccess struct {
+	ListAccess bool
+	List       Node
+	Right      Node
 }
 
 type Return struct {

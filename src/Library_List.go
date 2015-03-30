@@ -2,6 +2,8 @@ package main
 
 import (
 	"strings"
+	"log"
+	"math"
 )
 
 type Library_List struct {
@@ -32,6 +34,36 @@ func (list *Library_List) Pop(vm *VM, params []Type) Type {
 	return res
 }
 
+func (list *Library_List) ItemAt(vm *VM, params []Type) Type {
+	if len(params) != 1 {
+		log.Panic("Library_List::ItemAt() expected only 1 parameter")
+	}
+
+	param := params[0]
+
+	if num, ok := param.(*Number); ok {
+
+		// Use https://golang.org/pkg/math/#Trunc to make sure that the float
+		// is a whole number
+		key_float := math.Trunc(num.Value)
+
+		if key_float != num.Value {
+			log.Panic("Library_List::ItemAt() can only be used together with whole numbers")
+		}
+
+		if len(list.Items) > int(key_float) {
+			return list.Items[int(key_float)]
+		}
+
+		log.Panic("Library_List::ItemAt() out of range!")
+	}
+
+	log.Panic("Library_List::ItemAt() expected parameter 1 to be of type Number")
+
+	// Will never be reached
+    return &Null{}
+}
+
 func (list *Library_List) ToString() string {
 
 	out := make([]string, len(list.Items))
@@ -43,10 +75,12 @@ func (list *Library_List) ToString() string {
 	return "[" + strings.Join(out, ", ") + "]"
 }
 
+// Used when iterating over each object in the list
 func (list *Library_List) Length() int {
 	return len(list.Items)
 }
 
+// Used when iterating over each object in the list
 func (list *Library_List) ItemAtPosition(pos int) Type {
 	return list.Items[pos]
 }

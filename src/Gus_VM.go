@@ -121,8 +121,12 @@ func (vm *VM) Operation(node Node, on ON) Type {
 		return vm.OperationInstance(instance)
 	}
 
-	if list, ok := node.(CreateList); ok {
-		return vm.OperationCreateList(list)
+	if list, ok := node.(ListCreate); ok {
+		return vm.OperationListCreate(list)
+	}
+
+	if list, ok := node.(ListAccess); ok {
+		return vm.OperationListAccess(list)
 	}
 
 	if ret, ok := node.(Return); ok {
@@ -402,7 +406,7 @@ func (vm *VM) OperationPushClass(pushClass PushClass) Type {
 	return &Null{}
 }
 
-func (vm *VM) OperationCreateList(list CreateList) Type {
+func (vm *VM) OperationListCreate(list ListCreate) Type {
 	l := vm.OperationInstance(Instance{
 		Left: "List",
 	})
@@ -416,6 +420,33 @@ func (vm *VM) OperationCreateList(list CreateList) Type {
 	class.Invoke(vm, "Init", list.Items)
 
 	return l
+}
+
+func (vm *VM) OperationListAccess(access ListAccess) Type {
+
+	// Extract the List
+	list := vm.Operation(access.List, ON_NOTHING)
+
+	if (list.Type() != "List") {
+		log.Panic("Expected List in [], got %s", list.Type())
+	}
+
+	class, ok := list.(*Class)
+
+	if !ok {
+		log.Panic("Expected object to be of type *Class")
+	}
+
+	library, ok := class.Extension.(*Library_List)
+
+	if !ok {
+		log.Panic("Expected class to be of type *Library_List")
+	}
+
+	// Get position to access from the list
+	position := vm.Operation(access.Right, ON_NOTHING)
+
+	return library.ItemAt(vm, []Type{position})
 }
 
 func (vm *VM) OperationReturn(ret Return) Type {

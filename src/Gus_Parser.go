@@ -682,7 +682,15 @@ func (p *Parser) Symbol_new() Node {
 }
 
 func (p *Parser) Symbol_list() Node {
-	list := CreateList{}
+	if len(*p.Stack.Items) == 0 {
+		return p.Symbol_ListCreate()
+	}
+
+	return p.Symbol_ListAccess()
+}
+
+func (p *Parser) Symbol_ListCreate() Node {
+	list := ListCreate{}
 	list.Items = make([]Node, 0)
 
 	for {
@@ -696,6 +704,14 @@ func (p *Parser) Symbol_list() Node {
 	}
 
 	return list
+}
+
+func (p *Parser) Symbol_ListAccess() Node {
+	access := ListAccess{}
+	access.List = p.TopOfStack()
+	access.Right = p.ReadUntil([]Token{Token{"operator", "]"}, Token{"EOF", ""}})
+
+	return access
 }
 
 func (p *Parser) Symbol_return() Node {
