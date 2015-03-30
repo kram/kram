@@ -1,0 +1,9 @@
+// [apple, orange, banana, pineapple]
+// pineapple
+// [apple, orange, banana]
+var fruit = ["apple", "orange", "banana"]
+fruit.Push("pineapple")
+
+IO.Println(fruit)
+IO.Println(fruit.Pop())
+IO.Println(fruit)
