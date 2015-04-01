@@ -41,6 +41,10 @@ func (l *Lexer) Init(source string) {
 	l.Operators["..."] = true
 	l.Operators[".."] = true
 	l.Operators["."] = true
+	l.Operators["{"] = true
+	l.Operators["}"] = true
+	l.Operators[":"] = true
+	l.Operators[","] = true
 
 	l.Operators["++"] = true
 	l.Operators["--"] = true

@@ -122,6 +122,7 @@ func (p *Parser) Parse(tokens []Token) Block {
 
 	p.Symbol("[", p.Symbol_list, 5)
 	p.Symbol("name", p.Symbol_name, 2)
+	p.Symbol("{", p.Symbol_map, 0, true)
 
 	p.Infix("number", 0)
 	p.Infix("string", 0)
