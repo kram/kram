@@ -86,6 +86,12 @@ type Instance struct {
 	Left     string
 }
 
+type MapCreate struct {
+	MapCreate bool
+	Keys      []Node
+	Values    []Node
+}
+
 type ListCreate struct {
 	ListCreate bool
 	Items      []Node

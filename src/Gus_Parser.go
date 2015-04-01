@@ -121,8 +121,9 @@ func (p *Parser) Parse(tokens []Token) Block {
 	p.Symbol("for", p.Symbol_for, 0)
 
 	p.Symbol("[", p.Symbol_list, 5)
+	p.Symbol("{", p.Symbol_map, 5)
+
 	p.Symbol("name", p.Symbol_name, 2)
-	p.Symbol("{", p.Symbol_map, 0, true)
 
 	p.Infix("number", 0)
 	p.Infix("string", 0)
@@ -720,6 +721,38 @@ func (p *Parser) Symbol_return() Node {
 	res.Statement = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
 
 	return res
+}
+
+func (p *Parser) Symbol_map() Node {
+	m := MapCreate{}
+	m.Keys = make([]Node, 0)
+	m.Values = make([]Node, 0)
+
+	is_key := true
+
+	for {
+		next := p.NextToken(-1)
+
+		if next.Type == "operator" && next.Value == "}" {
+			break
+		}
+
+		read := p.ReadUntil([]Token{Token{"operator", ","}, Token{"operator", ":"}, Token{"operator", "}"}})
+
+		if _, ok := read.(*Nil); ok {
+			return m
+		}
+
+		if is_key {
+			m.Keys = append(m.Keys, read)
+		} else {
+			m.Values = append(m.Values, read)
+		}
+
+		is_key = !is_key
+	}
+
+	return m
 }
 
 func (p *Parser) Symbol_for() Node {

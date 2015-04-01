@@ -1,19 +1,14 @@
-<<<<<<< Updated upstream
-// a
-// b
-// c
-// d
-var l = ["a", "b", "c", "d", "e", "f"]
-
-IO.Println(l[0])
-IO.Println(l[1])
-IO.Println(l[2])
-IO.Println(l[3])
-=======
 var array = {
 	"key": "value",
 	"key2": "value2",
 }
 
 IO.Println(array)
->>>>>>> Stashed changes
+
+array.Set("swag", "yolo")
+
+IO.Println(array)
+
+array.Set("aList", ["one", "two", "three"])
+
+IO.Println(array)

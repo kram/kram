@@ -42,7 +42,7 @@ func (vm *VM) Run(tree Block) {
 
 func (vm *VM) Libraries() {
 
-	libs := make([]Lib, 5)
+	libs := make([]Lib, 0)
 
 	libs = append(libs, &Library_IO{})
 	libs = append(libs, &Library_List{})
@@ -128,6 +128,10 @@ func (vm *VM) Operation(node Node, on ON) Type {
 
 	if list, ok := node.(ListAccess); ok {
 		return vm.OperationListAccess(list)
+	}
+
+	if m, ok := node.(MapCreate); ok {
+		return vm.OperationMapCreate(m)
 	}
 
 	if ret, ok := node.(Return); ok {
@@ -405,6 +409,29 @@ func (vm *VM) OperationPushClass(pushClass PushClass) Type {
 	}
 
 	return &Null{}
+}
+
+func (vm *VM) OperationMapCreate(m MapCreate) Type {
+	mapinstance := vm.OperationInstance(Instance{
+		Left: "Map",
+	})
+
+	class, ok := mapinstance.(*Class)
+
+	if !ok {
+		log.Panicf("Expected Map, got something else.")
+	}
+
+	params := make([]Node, 0)
+
+	for i, key := range m.Keys {
+		params = append(params, key)
+		params = append(params, m.Values[i])
+	}
+
+	class.Invoke(vm, "Init", params)
+
+	return mapinstance
 }
 
 func (vm *VM) OperationListCreate(list ListCreate) Type {
