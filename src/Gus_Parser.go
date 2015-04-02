@@ -623,6 +623,8 @@ func (p *Parser) Symbol_if() Node {
 	next := p.NextToken(0)
 
 	if next.Type == "keyword" && next.Value == "else" {
+		p.Advance() // TODO (expect else)
+		p.Advance() // TODO (expect {)
 		i.False = p.ParseBlock()
 		i.False.Scope = true // Create new scope
 	}
@@ -637,6 +639,12 @@ func (p *Parser) Symbol_class() Node {
 
 	if name.Type != "name" {
 		log.Panicf("Expected name after class, got %s (%s)", name.Type, name.Value)
+	}
+
+	block_start := p.Advance()
+
+	if block_start.Type != "operator" || block_start.Value != "{" {
+		log.Panicf("Expected { after class name, got %s (%s)", name.Type, name.Value)
 	}
 
 	class.Name = name.Value
@@ -820,6 +828,12 @@ func (p *Parser) Symbol_MethodWithName(name string) DefineMethod {
 
 			method.Parameters = append(method.Parameters, par)
 		}
+	}
+
+	block_start := p.Advance()
+
+	if block_start.Type != "operator" || block_start.Value != "{" {
+		log.Panicf("Expected { after method name, got %s (%s)", block_start.Type, block_start.Value)
 	}
 
 	method.Body = p.ParseBlock()
