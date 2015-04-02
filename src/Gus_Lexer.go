@@ -209,7 +209,14 @@ func (l *Lexer) ParseNext() (string, string) {
 		str := l.C
 
 		for {
-			if _, ok := l.Operators[str+l.CharAtPos(l.I+1)]; ok {
+
+			next := l.CharAtPos(l.I+1)
+
+			if next == "" {
+				break
+			}
+
+			if _, ok := l.Operators[str+next]; ok {
 				l.I++
 				str += l.CharAtPos(l.I)
 			} else {
