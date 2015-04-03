@@ -456,7 +456,7 @@ func (vm *VM) OperationListAccess(access ListAccess) Type {
 	list := vm.Operation(access.List, ON_NOTHING)
 
 	if (list.Type() != "List") {
-		log.Panic("Expected List in [], got %s", list.Type())
+		log.Panicf("Expected List in [], got %s", list.Type())
 	}
 
 	class, ok := list.(*Class)
