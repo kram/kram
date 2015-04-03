@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strings"
 )
 
 type Library_Map struct {
@@ -40,15 +41,20 @@ func (self *Library_Map) Set(vm *VM, params []Type) {
 }
 
 func (self *Library_Map) ToString() string {
-	str := "{"
+	str := "{\n"
+
+	items := make([]string, 0)
 
 	for key, value := range self.items {
-		str += "\"" + key + "\": "
-		str += value.ToString()
-		str += ", "
+		s := "    "
+		s += "\"" + key + "\": "
+		s += value.ToString()
+		items = append(items, s)
 	}
 
-	str += "}"
+	str += strings.Join(items, ",\n")
+
+	str += "\n}"
 
 	return str
 }
