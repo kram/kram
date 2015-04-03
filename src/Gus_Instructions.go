@@ -97,10 +97,10 @@ type ListCreate struct {
 	Items      []Node
 }
 
-type ListAccess struct {
-	ListAccess bool
-	List       Node
-	Right      Node
+type AccessChildItem struct {
+	AccessChildItem bool
+	Item            Node
+	Right           Node
 }
 
 type Return struct {

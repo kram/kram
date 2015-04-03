@@ -1,0 +1,7 @@
+// value2
+var array = {
+	"key": "value",
+	"key2": "value2",
+}
+
+IO.Println(array["key2"])

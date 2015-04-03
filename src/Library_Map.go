@@ -40,6 +40,23 @@ func (self *Library_Map) Set(vm *VM, params []Type) {
 	self.items[key] = value
 }
 
+func (self *Library_Map) Get(vm *VM, params []Type) Type {
+	if len(params) != 1 {
+		log.Panic("Library_Map::Get() expected exactly 1 parameter")
+	}
+
+	key := params[0].ToString()
+
+	if res, ok := self.items[key]; ok {
+		return res
+	}
+
+	log.Panicf("Library_Map::Get() no such key %s", key)
+
+	// Will never be reached
+    return &Null{}
+}
+
 func (self *Library_Map) ToString() string {
 	str := "{\n"
 

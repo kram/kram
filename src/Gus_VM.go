@@ -126,8 +126,8 @@ func (vm *VM) Operation(node Node, on ON) Type {
 		return vm.OperationListCreate(list)
 	}
 
-	if list, ok := node.(ListAccess); ok {
-		return vm.OperationListAccess(list)
+	if access, ok := node.(AccessChildItem); ok {
+		return vm.OperationAccessChildItem(access)
 	}
 
 	if m, ok := node.(MapCreate); ok {
@@ -450,16 +450,21 @@ func (vm *VM) OperationListCreate(list ListCreate) Type {
 	return l
 }
 
-func (vm *VM) OperationListAccess(access ListAccess) Type {
+func (vm *VM) OperationAccessChildItem(access AccessChildItem) Type {
 
-	// Extract the List
-	list := vm.Operation(access.List, ON_NOTHING)
+	// Extract the List or Map
+	item := vm.Operation(access.Item, ON_NOTHING)
 
-	if (list.Type() != "List") {
-		log.Panicf("Expected List in [], got %s", list.Type())
+	// Is Map
+	if item.Type() == "Map" {
+		return vm.OperationAccessChildItemMap(access, item)
 	}
 
-	class, ok := list.(*Class)
+	if (item.Type() != "List") {
+		log.Panicf("Expected List or Map in [], got %s", item.Type())
+	}
+
+	class, ok := item.(*Class)
 
 	if !ok {
 		log.Panic("Expected object to be of type *Class")
@@ -475,6 +480,25 @@ func (vm *VM) OperationListAccess(access ListAccess) Type {
 	position := vm.Operation(access.Right, ON_NOTHING)
 
 	return library.ItemAt(vm, []Type{position})
+}
+
+func (vm *VM) OperationAccessChildItemMap(access AccessChildItem, item Type) Type {
+	class, ok := item.(*Class)
+
+	if !ok {
+		log.Panic("Expected object to be of type *Class")
+	}
+
+	library, ok := class.Extension.(*Library_Map)
+
+	if !ok {
+		log.Panic("Expected class to be of type *Library_List")
+	}
+
+	// Get position to access from the list
+	position := vm.Operation(access.Right, ON_NOTHING)
+
+	return library.Get(vm, []Type{position})
 }
 
 func (vm *VM) OperationReturn(ret Return) Type {

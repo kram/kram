@@ -717,8 +717,8 @@ func (p *Parser) Symbol_ListCreate() Node {
 }
 
 func (p *Parser) Symbol_ListAccess() Node {
-	access := ListAccess{}
-	access.List = p.TopOfStack()
+	access := AccessChildItem{}
+	access.Item = p.TopOfStack()
 	access.Right = p.ReadUntil([]Token{Token{"operator", "]"}, Token{"EOF", ""}})
 
 	return access
