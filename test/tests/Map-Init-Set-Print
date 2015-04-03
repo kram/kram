@@ -1,0 +1,29 @@
+// {
+//     "key": value,
+//     "key2": value2
+// }
+// {
+//     "key": value,
+//     "key2": value2,
+//     "swag": yolo
+// }
+// {
+//     "key": value,
+//     "key2": value2,
+//     "swag": yolo,
+//     "aList": [one, two, three]
+// }
+var array = {
+	"key": "value",
+	"key2": "value2",
+}
+
+IO.Println(array)
+
+array.Set("swag", "yolo")
+
+IO.Println(array)
+
+array.Set("aList", ["one", "two", "three"])
+
+IO.Println(array)
