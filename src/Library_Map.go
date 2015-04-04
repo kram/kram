@@ -14,8 +14,7 @@ func (self *Library_Map) Instance() (Lib, string) {
 	return &Library_Map{}, "Map"
 }
 
-func (self *Library_Map) Init(vm *VM, params []Type) {
-
+func (self *Library_Map) Init(params []Type) {
 	self.items = make(map[string]Type)
 
 	is_key := true
@@ -29,7 +28,7 @@ func (self *Library_Map) Init(vm *VM, params []Type) {
 	}
 }
 
-func (self *Library_Map) Set(vm *VM, params []Type) {
+func (self *Library_Map) Set(params []Type) {
 	if len(params) != 2 {
 		log.Panic("Library_Map::Set() expected exactly 2 parameters")
 	}
@@ -40,7 +39,7 @@ func (self *Library_Map) Set(vm *VM, params []Type) {
 	self.items[key] = value
 }
 
-func (self *Library_Map) Get(vm *VM, params []Type) Type {
+func (self *Library_Map) Get(params []Type) Type {
 	if len(params) != 1 {
 		log.Panic("Library_Map::Get() expected exactly 1 parameter")
 	}

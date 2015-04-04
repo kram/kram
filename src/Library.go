@@ -1,7 +1,7 @@
 package main
 
 type Lib interface {
-	Init(*VM, []Type)
+	Init([]Type)
 	Setup()
 	Instance() (Lib, string)
 	ToString() string
@@ -9,8 +9,8 @@ type Lib interface {
 
 type Library struct{}
 
-func (lib *Library) Init(vm *VM, params []Type) {}
-func (lib *Library) Setup()                     {}
+func (lib *Library) Init(params []Type) {}
+func (lib *Library) Setup() {}
 
 func (lib *Library) ToString() string {
 	return "DEFAULT_LIBRARY"

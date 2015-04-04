@@ -15,26 +15,25 @@ func (list *Library_List) Instance() (Lib, string) {
 	return &Library_List{}, "List"
 }
 
-func (list *Library_List) Init(vm *VM, params []Type) {
+func (list *Library_List) Init(params []Type) {
 	list.Items = make([]Type, 0)
-	list.Push(vm, params)
+	list.Push(params)
 }
 
-func (list *Library_List) Push(vm *VM, params []Type) {
-
+func (list *Library_List) Push(params []Type) {
 	for _, param := range params {
 		list.Items = append(list.Items, param)
 	}
 }
 
-func (list *Library_List) Pop(vm *VM, params []Type) Type {
+func (list *Library_List) Pop(params []Type) Type {
 	res := list.Items[len(list.Items)-1]
 	list.Items = list.Items[:len(list.Items)-1]
 
 	return res
 }
 
-func (list *Library_List) ItemAt(vm *VM, params []Type) Type {
+func (list *Library_List) ItemAt(params []Type) Type {
 	if len(params) != 1 {
 		log.Panic("Library_List::ItemAt() expected only 1 parameter")
 	}
@@ -65,7 +64,6 @@ func (list *Library_List) ItemAt(vm *VM, params []Type) Type {
 }
 
 func (list *Library_List) ToString() string {
-
 	out := make([]string, len(list.Items))
 
 	for i, item := range list.Items {

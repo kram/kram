@@ -479,7 +479,7 @@ func (vm *VM) OperationAccessChildItem(access AccessChildItem) Type {
 	// Get position to access from the list
 	position := vm.Operation(access.Right, ON_NOTHING)
 
-	return library.ItemAt(vm, []Type{position})
+	return library.ItemAt([]Type{position})
 }
 
 func (vm *VM) OperationAccessChildItemMap(access AccessChildItem, item Type) Type {
@@ -498,7 +498,7 @@ func (vm *VM) OperationAccessChildItemMap(access AccessChildItem, item Type) Typ
 	// Get position to access from the list
 	position := vm.Operation(access.Right, ON_NOTHING)
 
-	return library.Get(vm, []Type{position})
+	return library.Get([]Type{position})
 }
 
 func (vm *VM) OperationReturn(ret Return) Type {

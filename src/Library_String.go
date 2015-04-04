@@ -12,8 +12,7 @@ func (self *Library_String) Instance() (Lib, string) {
 	return &Library_String{}, "String"
 }
 
-func (self Library_String) ToLower(vm *VM, params []Type) Type {
-
+func (self Library_String) ToLower(params []Type) Type {
 	str := String{}
 
 	for _, param := range params {
@@ -24,8 +23,7 @@ func (self Library_String) ToLower(vm *VM, params []Type) Type {
 	return &str
 }
 
-func (self Library_String) ToUpper(vm *VM, params []Type) Type {
-
+func (self Library_String) ToUpper(params []Type) Type {
 	str := String{}
 
 	for _, param := range params {

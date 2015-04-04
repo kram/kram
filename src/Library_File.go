@@ -16,7 +16,7 @@ func (self *Library_File) Instance() (Lib, string) {
 // File.Read()
 // @param path String
 // @return String
-func (self Library_File) Read(vm *VM, params []Type) Type {
+func (self Library_File) Read(params []Type) Type {
 
 	if len(params) != 1 {
 		log.Panic("File.Read() expects exactly 1 parameter")
@@ -43,7 +43,7 @@ func (self Library_File) Read(vm *VM, params []Type) Type {
 // @param path String
 // @param content String
 // @return Bool
-func (self Library_File) Write(vm *VM, params []Type) Type {
+func (self Library_File) Write(params []Type) Type {
 
 	if len(params) != 2 {
 		log.Panic("File.Write() expects exactly 2 parameters")
