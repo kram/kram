@@ -48,9 +48,7 @@ func (self *Class) Invoke(vm *VM, name string, params []Node) Type {
 
 func (self *Class) InvokeExtension(vm *VM, method string, params []Node) Type {
 
-	inputs := make([]reflect.Value, 2)
-
-	inputs[0] = reflect.ValueOf(vm)
+	inputs := make([]reflect.Value, 1)
 
 	param_type := make([]Type, len(params))
 
@@ -58,7 +56,7 @@ func (self *Class) InvokeExtension(vm *VM, method string, params []Node) Type {
 		param_type[i] = vm.Operation(param, ON_NOTHING)
 	}
 
-	inputs[1] = reflect.ValueOf(param_type)
+	inputs[0] = reflect.ValueOf(param_type)
 
 	res := reflect.ValueOf(self.Extension).MethodByName(method).Call(inputs)
 
