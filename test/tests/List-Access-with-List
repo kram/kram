@@ -1,0 +1,6 @@
+// [apple, orange]
+// [apple, orange, banana]
+var fruit = ["apple", "orange", "banana", "pineapple"]
+
+IO.Println(fruit[0..2])
+IO.Println(fruit[0...2]) 

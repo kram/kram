@@ -41,26 +41,56 @@ func (list *Library_List) ItemAt(params []Type) Type {
 	param := params[0]
 
 	if num, ok := param.(*Number); ok {
-
-		// Use https://golang.org/pkg/math/#Trunc to make sure that the float
-		// is a whole number
-		key_float := math.Trunc(num.Value)
-
-		if key_float != num.Value {
-			log.Panic("Library_List::ItemAt() can only be used together with whole numbers")
-		}
-
-		if len(list.Items) > int(key_float) {
-			return list.Items[int(key_float)]
-		}
-
-		log.Panic("Library_List::ItemAt() out of range!")
+		return list.ItemAtNumber(num)
 	}
 
-	log.Panic("Library_List::ItemAt() expected parameter 1 to be of type Number")
+	if class, ok := param.(*Class); ok {
+		if li, ok := class.Extension.(*Library_List); ok {
+			return list.ItemAtList(li)
+		}
+	}
+
+	log.Panic("Library_List::ItemAt() expected parameter 1 to be of type Number or List")
 
 	// Will never be reached
     return &Null{}
+}
+
+func (list *Library_List) ItemAtNumber(num *Number) Type {
+	// Use https://golang.org/pkg/math/#Trunc to make sure that the float
+	// is a whole number
+	key_float := math.Trunc(num.Value)
+
+	if key_float != num.Value {
+		log.Panic("Library_List::ItemAt() can only be used together with whole numbers")
+	}
+
+	if len(list.Items) > int(key_float) {
+		return list.Items[int(key_float)]
+	}
+
+	log.Panic("Library_List::ItemAt() out of range!")
+
+	// Will never be reached
+    return &Null{}
+}
+
+func (list *Library_List) ItemAtList(li *Library_List) Type {
+
+	res := Library_List{}
+	res.Items = make([]Type, 0)
+
+	for _, item := range li.Items {
+		if num, ok := item.(*Number); ok {
+			res.Items = append(res.Items, list.ItemAtNumber(num))
+		}
+	}
+
+	class := Class{}
+	class.Init("LIst")
+	class.Extension = &res
+
+	return &class
 }
 
 func (list *Library_List) ToString() string {
