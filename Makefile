@@ -1,8 +1,6 @@
 gus:
 	go build -o bin/Gus
 
-all: gus
-
 build_test:
 	go build -o bin/Test ./test
 
@@ -11,3 +9,8 @@ test: clean gus build_test
 
 clean:
 	-rm bin/*
+
+fmt:
+	go fmt github.com/zegl/Gus/...
+
+all: fmt gus
