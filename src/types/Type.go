@@ -1,41 +1,54 @@
-package main
+package types
 
 import (
 	"fmt"
 	"log"
 	"reflect"
+	ins "../instructions"
 )
+
+type Lib interface {
+	Init(string)
+	Instance() (Lib, string)
+	Type() string
+	ToString() string
+}
 
 type Method struct {
 	Method     bool
-	Parameters []Parameter
-	Body       Block
+	Parameters []ins.Parameter
+	Body       ins.Block
 	IsStatic   bool
 	IsPublic   bool
 }
 
-type Class struct {
+type Type struct {
 	Class     string
 	Methods   map[string]Method
-	Variables map[string]Type
+	Variables map[string]*Type
 	Extension Lib
 }
 
-func (self *Class) Init(str string) {
+func (self *Type) Init(str string) {
 	self.Class = str
 	self.Methods = make(map[string]Method)
-	self.Variables = make(map[string]Type)
+	self.Variables = make(map[string]*Type)
 }
 
-func (self *Class) AddMethod(name string, method Method) {
+func (self *Type) InitWithLib(lib Lib) {
+	self.Init(lib.Type())
+	self.Extension = lib
+}
+
+func (self *Type) AddMethod(name string, method Method) {
 	self.Methods[name] = method
 }
 
-func (self *Class) SetVariable(name string, value Type) {
+func (self *Type) SetVariable(name string, value *Type) {
 	self.Variables[name] = value
 }
 
-func (self *Class) Invoke(vm *VM, name string, params []Node) Type {
+func (self *Type) Invoke(vm VM, name string, params []ins.Node) *Type {
 
 	res, ok := self.InvokeNative(vm, name, params)
 
@@ -46,11 +59,11 @@ func (self *Class) Invoke(vm *VM, name string, params []Node) Type {
 	return self.InvokeExtension(vm, name, params)
 }
 
-func (self *Class) InvokeExtension(vm *VM, method string, params []Node) Type {
+func (self *Type) InvokeExtension(vm VM, method string, params []ins.Node) *Type {
 
 	inputs := make([]reflect.Value, 1)
 
-	param_type := make([]Type, len(params))
+	param_type := make([]*Type, len(params))
 
 	for i, param := range params {
 		param_type[i] = vm.Operation(param, ON_NOTHING)
@@ -61,31 +74,31 @@ func (self *Class) InvokeExtension(vm *VM, method string, params []Node) Type {
 	res := reflect.ValueOf(self.Extension).MethodByName(method).Call(inputs)
 
 	if len(res) > 0 {
-		return res[0].Interface().(Type)
+		return res[0].Interface().(*Type)
 	}
 
-	return &Null{}
+	return &Type{}
 }
 
-func (self *Class) InvokeNative(vm *VM, name string, params []Node) (Type, bool) {
+func (self *Type) InvokeNative(vm VM, name string, params []ins.Node) (*Type, bool) {
 
 	method, ok := self.Methods[name]
 
 	if !ok {
-		return &Bool{}, false
+		return &Type{}, false
 	}
 
 	if len(method.Parameters) != len(params) {
 		fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", self.ToString(), name, len(method.Parameters), len(params))
 
-		return &Bool{}, true
+		return &Type{}, true
 	}
 
-	vm.Environment = vm.Environment.Push()
+	vm.EnvironmentPush()
 
 	// Define variables
 	for i, param := range method.Parameters {
-		ass := Assign{}
+		ass := ins.Assign{}
 		ass.Name = param.Name
 		ass.Right = params[i]
 
@@ -94,16 +107,16 @@ func (self *Class) InvokeNative(vm *VM, name string, params []Node) (Type, bool)
 
 	body := vm.OperationBlock(method.Body, ON_METHOD_BODY)
 
-	vm.Environment = vm.Environment.Push()
+	vm.EnvironmentPop()
 
 	return body, true
 }
 
-func (self *Class) Type() string {
+func (self *Type) Type() string {
 	return self.Class
 }
 
-func (self *Class) ToString() string {
+func (self *Type) ToString() string {
 
 	if _, ok := self.Extension.(Lib); ok {
 		return self.Extension.ToString()
@@ -112,19 +125,16 @@ func (self *Class) ToString() string {
 	return self.Class
 }
 
-func (self *Class) Math(method string, right Type) Type {
+func (self *Type) Math(method string, right *Type) *Type {
 
 	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
 	// This code will never be reached
 
-	res := Bool{}
-	res.Init("false")
-
-	return &res
+	return &Type{}
 }
 
-func (self *Class) Compare(method string, right Type) Type {
+func (self *Type) Compare(method string, right *Type) *Type {
 
 	log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
 
@@ -134,8 +144,5 @@ func (self *Class) Compare(method string, right Type) Type {
 
 	// Will never be reached
 
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &Type{}
 }

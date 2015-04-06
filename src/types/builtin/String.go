@@ -1,22 +1,31 @@
-package main
+package builtin
 
 import (
-	"log"
+	// "log"
+	"../" // types
 )
 
 type String struct {
-	String bool
-	Value  string
+	value  string
 }
 
-func (self *String) Init(str string) {
-	self.Value = str
+func (self String) Instance() (types.Lib, string) {
+	return &String{}, self.Type()
 }
 
 func (self String) Type() string {
 	return "String"
 }
 
+func (self *String) Init(str string) {
+	self.value = str
+}
+
+func (self *String) ToString() string {
+	return self.value
+}
+
+/*
 func (self *String) Math(method string, right Type) Type {
 
 	r, ok := right.(*String)
@@ -74,8 +83,4 @@ func (self *String) Compare(method string, right Type) Type {
 	bl.Value = b
 
 	return &bl
-}
-
-func (self *String) ToString() string {
-	return self.Value
-}
+}*/

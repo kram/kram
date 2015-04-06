@@ -1,47 +1,43 @@
-package main
+package builtin
 
 import (
-	"log"
+	//"fmt"
+	"../" // types
 )
 
 type Bool struct {
-	Bool  bool
-	Value bool
+	value bool
 }
 
-func (self *Bool) Init(str string) {
-
-	if str == "true" {
-		self.Value = true
-	} else {
-		self.Value = false
-	}
+func (self Bool) Instance() (types.Lib, string) {
+	return &Bool{}, self.Type()
 }
 
-func (b Bool) Type() string {
+func (self Bool) Type() string {
 	return "Bool"
 }
 
-func (self *Bool) ToString() string {
+func (self *Bool) Init(str string) {
+	if str == "true" {
+		self.value = true
+	} else {
+		self.value = false
+	}
+}
 
-	if self.Value {
+func (self *Bool) ToString() string {
+	if self.value {
 		return "true"
 	}
 
 	return "false"
 }
 
-func (self *Bool) Math(method string, right Type) Type {
-
-	log.Panicf("You can not apply %s to a %s() with a %s()", method, self.Type(), right.Type())
-
-	// Will never be reached
-
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+func (self *Bool) IsTrue() bool {
+	return self.value
 }
+
+/*
 
 func (self *Bool) Compare(method string, right Type) Type {
 
@@ -67,3 +63,4 @@ func (self *Bool) Compare(method string, right Type) Type {
 
 	return &bl
 }
+*/

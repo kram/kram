@@ -1,14 +1,22 @@
-package main
+package builtin
 
 import (
 	"log"
-	"math"
+	//"math"
 	"strconv"
+	"../" // types
 )
 
 type Number struct {
-	Number bool
 	Value  float64
+}
+
+func (self Number) Instance() (types.Lib, string) {
+	return &Number{}, self.Type()
+}
+
+func (self Number) Type() string {
+	return "Number"
 }
 
 func (self *Number) Init(str string) {
@@ -21,15 +29,11 @@ func (self *Number) Init(str string) {
 	self.Value = value
 }
 
-func (self Number) Type() string {
-	return "Number"
-}
-
 func (self *Number) ToString() string {
 	return strconv.FormatFloat(self.Value, 'f', 6, 64)
 }
 
-func (self *Number) Math(method string, right Type) Type {
+/*func (self *Number) Math(method string, right Type) Type {
 
 	r, ok := right.(*Number)
 	_, is_null := right.(*Null)
@@ -130,4 +134,4 @@ func (self *Number) Compare(method string, right Type) Type {
 	bl.Value = b
 
 	return &bl
-}
+}*/

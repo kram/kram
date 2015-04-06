@@ -57,12 +57,12 @@ func main() {
 
 		vm.Run(tree)
 
-		if *debug {
-			b, _ := json.MarshalIndent(vm.Environment.Env, "", "  ")
+		/*if *debug {
+			b, _ := json.MarshalIndent(vm.Environment().Env, "", "  ")
 			fmt.Println("\n-------------------")
 			fmt.Println("-   ENVIRONMENT   -")
 			fmt.Println("-------------------")
 			fmt.Println(string(b))
-		}
+		}*/
 	}
 }
