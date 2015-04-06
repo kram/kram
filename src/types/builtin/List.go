@@ -1,10 +1,10 @@
 package builtin
 
 import (
-	"strings"
+	"github.com/zegl/Gus/src/types"
 	"log"
 	"math"
-	"github.com/zegl/Gus/src/types"
+	"strings"
 )
 
 type List struct {
@@ -69,11 +69,10 @@ func (list *List) ItemAt(params []*types.Type) *types.Type {
 		return list.ItemAtList(li)
 	}
 
-
 	log.Panic("List::ItemAt() expected parameter 1 to be of type Number or List")
 
 	// Will never be reached
-    return list.Null()
+	return list.Null()
 }
 
 func (list *List) ItemAtNumber(num *Number) *types.Type {
@@ -92,7 +91,7 @@ func (list *List) ItemAtNumber(num *Number) *types.Type {
 	log.Panic("List::ItemAt() out of range!")
 
 	// Will never be reached
-    return list.Null()
+	return list.Null()
 }
 
 func (list *List) ItemAtList(li *List) *types.Type {

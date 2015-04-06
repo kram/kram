@@ -3,8 +3,8 @@ package gus
 import (
 	"fmt"
 	"log"
-	"strings"
 	"os"
+	"strings"
 
 	ins "github.com/zegl/Gus/src/instructions"
 )
@@ -12,8 +12,8 @@ import (
 // --------------- Symbols
 
 type Symbol struct {
-	Function     SymbolFunction
-	Importance   int
+	Function   SymbolFunction
+	Importance int
 }
 
 type SymbolFunction func() ins.Node
@@ -74,7 +74,7 @@ type Parser struct {
 	// Symbols, eg var + -...
 	Symbols map[string]Symbol
 
-	Comparisions map[string]bool
+	Comparisions  map[string]bool
 	LeftOnlyInfix map[string]bool
 
 	// The current stack (used by Expression)
@@ -181,8 +181,8 @@ func (p *Parser) Parse(tokens []Token) ins.Block {
 // Add to the symbol table
 func (p *Parser) Symbol(str string, function SymbolFunction, importance int) {
 	p.Symbols[str] = Symbol{
-		Function:    function,
-		Importance:  importance,
+		Function:   function,
+		Importance: importance,
 	}
 }
 

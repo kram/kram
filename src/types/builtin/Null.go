@@ -4,7 +4,7 @@ import (
 	"github.com/zegl/Gus/src/types"
 )
 
-type Null struct {}
+type Null struct{}
 
 func (self Null) Instance() (types.Lib, string) {
 	return &Null{}, self.Type()
@@ -21,7 +21,7 @@ func (self Null) Init(str string) {
 
 func (self *Null) ToString() string {
 	return "null"
-}/*
+} /*
 
 func (self *Null) Math(method string, right Type) Type {
 

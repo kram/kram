@@ -2,9 +2,9 @@ package types
 
 import (
 	"fmt"
+	ins "github.com/zegl/Gus/src/instructions"
 	"log"
 	"reflect"
-	ins "github.com/zegl/Gus/src/instructions"
 )
 
 type Lib interface {

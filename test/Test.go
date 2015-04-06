@@ -6,8 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strings"
 	"runtime"
+	"strings"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func Test(path string) bool {
 	content, _ := ioutil.ReadFile(path)
 
 	expect := ""
-	
+
 	re, _ := regexp.Compile(`(?m)^// (.*?)$`)
 	for _, str := range re.FindAllString(string(content), -1) {
 		expect += strings.Replace(str, "// ", "", -1) + "\n"
@@ -65,7 +65,7 @@ func Test(path string) bool {
 		fmt.Printf("1: %s\n", path)
 		return true
 	}
-	
+
 	fmt.Printf("0: %s\n", path)
 	fmt.Printf("Expected\n---\n'%s'---\ngot\n---\n'%s'---\n", expect, string(stdout))
 

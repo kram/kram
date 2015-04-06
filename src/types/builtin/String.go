@@ -1,12 +1,12 @@
 package builtin
 
 import (
-	"log"
 	"github.com/zegl/Gus/src/types"
+	"log"
 )
 
 type String struct {
-	Value  string
+	Value string
 }
 
 func (self String) Instance() (types.Lib, string) {

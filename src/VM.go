@@ -3,11 +3,11 @@ package gus
 import (
 	"log"
 
-	ins "github.com/zegl/Gus/src/instructions"
 	"github.com/zegl/Gus/src/environment"
+	ins "github.com/zegl/Gus/src/instructions"
+	lib "github.com/zegl/Gus/src/libraries"
 	"github.com/zegl/Gus/src/types"
 	"github.com/zegl/Gus/src/types/builtin"
-	lib "github.com/zegl/Gus/src/libraries"
 )
 
 type VM struct {
@@ -190,7 +190,7 @@ func (vm *VM) OperationAssign(assign ins.Assign) *types.Type {
 	if t, ok := assign.Right.(*types.Type); ok {
 		value = t
 	} else {
-		value = vm.Operation(assign.Right, types.ON_NOTHING)	
+		value = vm.Operation(assign.Right, types.ON_NOTHING)
 	}
 
 	vm.env.Set(assign.Name, value)
@@ -206,7 +206,7 @@ func (vm *VM) OperationMath(math ins.Math) *types.Type {
 	/*fmt.Println(left)
 	fmt.Println(math.Method)
 	fmt.Println(right)
-*/
+	*/
 	if math.IsComparision {
 		return left.Compare(vm, math.Method, right)
 	}
@@ -447,7 +447,7 @@ func (vm *VM) OperationAccessChildItem(access ins.AccessChildItem) *types.Type {
 		return vm.OperationAccessChildItemMap(access, item)
 	}
 
-	if (item.Type() != "List") {
+	if item.Type() != "List" {
 		log.Panicf("Expected List or Map in [], got %s", item.Type())
 	}
 
@@ -464,7 +464,7 @@ func (vm *VM) OperationAccessChildItem(access ins.AccessChildItem) *types.Type {
 }
 
 func (vm *VM) OperationAccessChildItemMap(access ins.AccessChildItem, item *types.Type) *types.Type {
- 	library, ok := item.Extension.(*builtin.Map)
+	library, ok := item.Extension.(*builtin.Map)
 
 	if !ok {
 		log.Panic("Expected class to be of types.Type *builtin.Map")
@@ -544,14 +544,14 @@ func (vm *VM) OperationForIn(f ins.For) *types.Type {
 
 	// Create variable scope
 	vm.env = vm.env.Push()
- 
+
 	// Convert Before to an assign object
 	assign, assign_ok := f.Before.(ins.Assign)
 
 	// Get iterator object
 	each := vm.Operation(f.Each, types.ON_NOTHING)
 
-	if (each.Type() != "List") {
+	if each.Type() != "List" {
 		log.Panic("Expected List in for ... in, got %s", each.Type())
 	}
 

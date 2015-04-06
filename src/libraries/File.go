@@ -1,10 +1,10 @@
 package libraries
 
 import (
-	"io/ioutil"
-	"log"
 	"github.com/zegl/Gus/src/types"
 	"github.com/zegl/Gus/src/types/builtin"
+	"io/ioutil"
+	"log"
 )
 
 type Library_File struct {
@@ -64,7 +64,7 @@ func (self Library_File) Write(params []*types.Type) *types.Type {
 	data := []byte(content)
 	err := ioutil.WriteFile(path, data, 0644)
 
-    if err != nil {
+	if err != nil {
 		log.Panicf("File.Write(), could not write to file, %s", path)
 	}
 

@@ -1,14 +1,14 @@
 package builtin
 
 import (
+	"github.com/zegl/Gus/src/types"
 	"log"
 	"math"
 	"strconv"
-	"github.com/zegl/Gus/src/types"
 )
 
 type Number struct {
-	Value  float64
+	Value float64
 }
 
 func (self Number) Instance() (types.Lib, string) {

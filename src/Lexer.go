@@ -210,7 +210,7 @@ func (l *Lexer) ParseNext() (string, string) {
 
 		for {
 
-			next := l.CharAtPos(l.I+1)
+			next := l.CharAtPos(l.I + 1)
 
 			if next == "" {
 				break

@@ -1,9 +1,9 @@
 package builtin
 
 import (
+	"github.com/zegl/Gus/src/types"
 	"log"
 	"strings"
-	"github.com/zegl/Gus/src/types"
 )
 
 type Map struct {
@@ -34,7 +34,7 @@ func (self *Map) InitWithParams(params []*types.Type) {
 		if is_key {
 			k := key.ToString()
 			self.order = append(self.order, k)
-			self.items[k] = params[i + 1]
+			self.items[k] = params[i+1]
 		}
 
 		is_key = !is_key
@@ -71,7 +71,7 @@ func (self *Map) Get(params []*types.Type) *types.Type {
 	log.Panicf("Library_Map::Get() no such key %s", key)
 
 	// Will never be reached
-    return self.Null()
+	return self.Null()
 }
 
 func (self *Map) ToString() string {

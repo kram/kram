@@ -4,7 +4,7 @@ import (
 	"github.com/zegl/Gus/src/types"
 )
 
-type Builtin struct {}
+type Builtin struct{}
 
 func (buil Builtin) Null() *types.Type {
 	class := types.Type{}
