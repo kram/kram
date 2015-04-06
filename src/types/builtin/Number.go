@@ -66,10 +66,9 @@ func (self *Number) Math(method string, right *types.Type) *types.Type {
 			val = self.Value
 		case "..", "...":
 
-			/*list := Library_List{}
-			class := Class{}
-			class.Init("List")
-			class.Extension = &list
+			list := List{}
+			class := types.Type{}
+			class.InitWithLib(&list)
 
 			i := self.Value
 
@@ -82,12 +81,15 @@ func (self *Number) Math(method string, right *types.Type) *types.Type {
 				num := Number{}
 				num.Value = i
 
-				list.Items = append(list.Items, &num)
+				n := types.Type{}
+				n.InitWithLib(&num)
+
+				list.Items = append(list.Items, &n)
 
 				i++
 			}
 
-			return &class*/
+			return &class
 		}
 
 		num := Number{}
