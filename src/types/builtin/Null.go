@@ -1,22 +1,27 @@
-package main
+package builtin
 
 import (
-	"log"
+	"github.com/zegl/Gus/src/types"
 )
 
-type Null struct {
-	Null bool
-}
+type Null struct {}
 
-func (self *Null) Init(str string) {}
+func (self Null) Instance() (types.Lib, string) {
+	return &Null{}, self.Type()
+}
 
 func (self Null) Type() string {
 	return "Null"
 }
 
+func (self Null) Init(str string) {
+	// Do nothing.
+	// Null can only be null
+}
+
 func (self *Null) ToString() string {
 	return "null"
-}
+}/*
 
 func (self *Null) Math(method string, right Type) Type {
 
@@ -40,4 +45,4 @@ func (self *Null) Compare(method string, right Type) Type {
 	bl.Init("false")
 
 	return &bl
-}
+}*/

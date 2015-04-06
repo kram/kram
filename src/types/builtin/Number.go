@@ -1,14 +1,22 @@
-package main
+package builtin
 
 import (
 	"log"
 	"math"
 	"strconv"
+	"github.com/zegl/Gus/src/types"
 )
 
 type Number struct {
-	Number bool
 	Value  float64
+}
+
+func (self Number) Instance() (types.Lib, string) {
+	return &Number{}, self.Type()
+}
+
+func (self Number) Type() string {
+	return "Number"
 }
 
 func (self *Number) Init(str string) {
@@ -21,18 +29,14 @@ func (self *Number) Init(str string) {
 	self.Value = value
 }
 
-func (self Number) Type() string {
-	return "Number"
-}
-
 func (self *Number) ToString() string {
 	return strconv.FormatFloat(self.Value, 'f', 6, 64)
 }
 
-func (self *Number) Math(method string, right Type) Type {
+func (self *Number) Math(method string, right *types.Type) *types.Type {
 
-	r, ok := right.(*Number)
-	_, is_null := right.(*Null)
+	r, ok := right.Extension.(*Number)
+	_, is_null := right.Extension.(*Null)
 
 	if !ok && !is_null {
 		log.Panicf("You can not apply %s to a %s() with a %s()", method, self.Type(), right.Type())
@@ -62,10 +66,9 @@ func (self *Number) Math(method string, right Type) Type {
 			val = self.Value
 		case "..", "...":
 
-			list := Library_List{}
-			class := Class{}
-			class.Init("List")
-			class.Extension = &list
+			list := List{}
+			class := types.Type{}
+			class.InitWithLib(&list)
 
 			i := self.Value
 
@@ -78,7 +81,10 @@ func (self *Number) Math(method string, right Type) Type {
 				num := Number{}
 				num.Value = i
 
-				list.Items = append(list.Items, &num)
+				n := types.Type{}
+				n.InitWithLib(&num)
+
+				list.Items = append(list.Items, &n)
 
 				i++
 			}
@@ -88,20 +94,21 @@ func (self *Number) Math(method string, right Type) Type {
 
 		num := Number{}
 		num.Value = val
-		return &num
+
+		res := types.Type{}
+		res.InitWithLib(&num)
+
+		return &res
 	}
 
 	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
-	num := Number{}
-	num.Value = val
-
-	return &num
+	return &types.Type{}
 }
 
-func (self *Number) Compare(method string, right Type) Type {
+func (self *Number) Compare(method string, right *types.Type) *types.Type {
 
-	r, ok := right.(*Number)
+	r, ok := right.Extension.(*Number)
 
 	if !ok {
 		log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
@@ -127,7 +134,10 @@ func (self *Number) Compare(method string, right Type) Type {
 	}
 
 	bl := Bool{}
-	bl.Value = b
+	bl.Set(b)
 
-	return &bl
+	res := types.Type{}
+	res.InitWithLib(&bl)
+
+	return &res
 }

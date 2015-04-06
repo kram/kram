@@ -1,25 +1,33 @@
-package main
+package builtin
 
 import (
 	"log"
+	"github.com/zegl/Gus/src/types"
 )
 
 type String struct {
-	String bool
 	Value  string
 }
 
-func (self *String) Init(str string) {
-	self.Value = str
+func (self String) Instance() (types.Lib, string) {
+	return &String{}, self.Type()
 }
 
 func (self String) Type() string {
 	return "String"
 }
 
-func (self *String) Math(method string, right Type) Type {
+func (self *String) Init(str string) {
+	self.Value = str
+}
 
-	r, ok := right.(*String)
+func (self *String) ToString() string {
+	return self.Value
+}
+
+func (self *String) Math(method string, right *types.Type) *types.Type {
+
+	r, ok := right.Extension.(*String)
 
 	if !ok {
 		log.Panicf("You can not apply %s to a %s() with a %s()", method, self.Type(), right.Type())
@@ -30,22 +38,22 @@ func (self *String) Math(method string, right Type) Type {
 		str := String{}
 		str.Init(self.Value + r.Value)
 
-		return &str
+		res := types.Type{}
+		res.InitWithLib(&str)
+
+		return &res
 	}
 
 	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
 	// This code will never be reached
 
-	res := Bool{}
-	res.Init("false")
-
-	return &res
+	return &types.Type{}
 }
 
-func (self *String) Compare(method string, right Type) Type {
+func (self *String) Compare(method string, right *types.Type) *types.Type {
 
-	r, ok := right.(*String)
+	r, ok := right.Extension.(*String)
 
 	if !ok {
 		log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
@@ -71,11 +79,10 @@ func (self *String) Compare(method string, right Type) Type {
 	}
 
 	bl := Bool{}
-	bl.Value = b
+	bl.Set(b)
 
-	return &bl
-}
+	res := types.Type{}
+	res.InitWithLib(&bl)
 
-func (self *String) ToString() string {
-	return self.Value
+	return &res
 }
