@@ -1,11 +1,12 @@
-package main
+package gus
 
 import (
 	"fmt"
 	"log"
 	"strings"
 	"os"
-	ins "./instructions"
+
+	ins "github.com/zegl/Gus/src/instructions"
 )
 
 // --------------- Symbols

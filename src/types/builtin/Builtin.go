@@ -1,7 +1,7 @@
 package builtin
 
 import (
-	"../"
+	"github.com/zegl/Gus/src/types"
 )
 
 type Builtin struct {}

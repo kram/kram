@@ -1,12 +1,13 @@
-package main
+package gus
 
 import (
 	"log"
-	ins "./instructions"
-	"./environment"
-	"./types"
-	"./types/builtin"
-	lib "./libraries"
+
+	ins "github.com/zegl/Gus/src/instructions"
+	"github.com/zegl/Gus/src/environment"
+	"github.com/zegl/Gus/src/types"
+	"github.com/zegl/Gus/src/types/builtin"
+	lib "github.com/zegl/Gus/src/libraries"
 )
 
 type VM struct {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	ins "../instructions"
+	ins "github.com/zegl/Gus/src/instructions"
 )
 
 type Lib interface {

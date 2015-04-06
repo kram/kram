@@ -3,7 +3,7 @@ package builtin
 import (
 	"log"
 	"strings"
-	"../" // types
+	"github.com/zegl/Gus/src/types"
 )
 
 type Map struct {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"log"
 	"math"
-	"../" // types
+	"github.com/zegl/Gus/src/types"
 )
 
 type List struct {

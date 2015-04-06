@@ -1,9 +1,7 @@
 package builtin
 
 import (
-	//"log"
-	//"fmt"
-	"../" // types
+	"github.com/zegl/Gus/src/types"
 )
 
 type Null struct {}

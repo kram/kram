@@ -1,8 +1,7 @@
 package builtin
 
 import (
-	//"fmt"
-	"../" // types
+	"github.com/zegl/Gus/src/types"
 )
 
 type Bool struct {

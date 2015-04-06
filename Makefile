@@ -1,5 +1,5 @@
 gus:
-	go build -o bin/Gus ./src
+	go build -o bin/Gus
 
 all: gus
 

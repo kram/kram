@@ -3,8 +3,8 @@ package libraries
 import (
 	"io/ioutil"
 	"log"
-	"../types"
-	"../types/builtin"
+	"github.com/zegl/Gus/src/types"
+	"github.com/zegl/Gus/src/types/builtin"
 )
 
 type Library_File struct {

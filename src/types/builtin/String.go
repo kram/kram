@@ -2,7 +2,7 @@ package builtin
 
 import (
 	"log"
-	"../" // types
+	"github.com/zegl/Gus/src/types"
 )
 
 type String struct {

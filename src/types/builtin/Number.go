@@ -4,7 +4,7 @@ import (
 	"log"
 	"math"
 	"strconv"
-	"../" // types
+	"github.com/zegl/Gus/src/types"
 )
 
 type Number struct {

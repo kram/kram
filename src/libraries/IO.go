@@ -2,7 +2,7 @@ package libraries
 
 import (
 	"fmt"
-	"../types"
+	"github.com/zegl/Gus/src/types"
 )
 
 type Library_IO struct {

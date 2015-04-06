@@ -1,7 +1,7 @@
 package environment
 
 import (
-	"../types"
+	"github.com/zegl/Gus/src/types"
 )
 
 type Environment struct {

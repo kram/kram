@@ -2,8 +2,8 @@ package libraries
 
 import (
 	"strings"
-	"../types"
-	"../types/builtin"
+	"github.com/zegl/Gus/src/types"
+	"github.com/zegl/Gus/src/types/builtin"
 )
 
 type Library_String struct {

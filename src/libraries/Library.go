@@ -1,7 +1,7 @@
 package libraries
 
 import (
-	"../types"
+	"github.com/zegl/Gus/src/types"
 )
 
 type Library struct{}

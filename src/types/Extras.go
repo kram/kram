@@ -1,7 +1,7 @@
 package types
 
 import (
-	"../instructions"
+	"github.com/zegl/Gus/src/instructions"
 )
 
 type ON int

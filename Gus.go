@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"github.com/zegl/Gus/src"
 )
 
 func main() {
@@ -22,7 +24,7 @@ func main() {
 			continue
 		}
 
-		var lexer = Lexer{}
+		var lexer = gus.Lexer{}
 		lexer.Init(string(content))
 
 		if *debug {
@@ -38,7 +40,7 @@ func main() {
 			fmt.Println("-------------------")
 		}
 
-		var parse = Parser{}
+		var parse = gus.Parser{}
 		parse.Debug = *debug
 
 		tree := parse.Parse(lexer.Tokens)
@@ -52,7 +54,7 @@ func main() {
 			fmt.Println("-------------------")
 		}
 
-		var vm = VM{}
+		var vm = gus.VM{}
 		vm.Debug = *debug
 
 		vm.Run(tree)
