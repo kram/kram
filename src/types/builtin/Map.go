@@ -9,6 +9,7 @@ import (
 type Map struct {
 	Builtin
 	items map[string]*types.Type
+	order []string // To keep the order
 }
 
 func (self Map) Instance() (types.Lib, string) {
@@ -25,12 +26,15 @@ func (self *Map) Init(str string) {}
 
 func (self *Map) InitWithParams(params []*types.Type) {
 	self.items = make(map[string]*types.Type)
+	self.order = make([]string, 0)
 
 	is_key := true
 
 	for i, key := range params {
 		if is_key {
-			self.items[key.ToString()] = params[i + 1]
+			k := key.ToString()
+			self.order = append(self.order, k)
+			self.items[k] = params[i + 1]
 		}
 
 		is_key = !is_key
@@ -44,6 +48,11 @@ func (self *Map) Set(params []*types.Type) {
 
 	key := params[0].ToString()
 	value := params[1]
+
+	// New item
+	if _, ok := self.items[key]; !ok {
+		self.order = append(self.order, key)
+	}
 
 	self.items[key] = value
 }
@@ -70,10 +79,11 @@ func (self *Map) ToString() string {
 
 	items := make([]string, 0)
 
-	for key, value := range self.items {
+	for _, key := range self.order {
 		s := "    "
 		s += "\"" + key + "\": "
-		s += value.ToString()
+		s += self.items[key].ToString()
+
 		items = append(items, s)
 	}
 
