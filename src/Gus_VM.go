@@ -408,30 +408,32 @@ func (vm *VM) OperationPushClass(pushClass ins.PushClass) *types.Type {
 }
 
 func (vm *VM) OperationMapCreate(m ins.MapCreate) *types.Type {
-	mapinstance := vm.OperationInstance(ins.Instance{
-		Left: "Map",
-	})
+	ma := builtin.Map{}
 
-	/*params := make([]ins.Node, 0)
+	params := make([]*types.Type, 0)
 
 	for i, key := range m.Keys {
-		params = append(params, key)
-		params = append(params, m.Values[i])
+		params = append(params, vm.Operation(key, types.ON_NOTHING))
+		params = append(params, vm.Operation(m.Values[i], types.ON_NOTHING))
 	}
 
-	mapinstance.Invoke(vm, "Init", params)*/
+	ma.InitWithParams(params)
 
-	return mapinstance
+	return vm.CreateType(&ma)
 }
 
 func (vm *VM) OperationListCreate(list ins.ListCreate) *types.Type {
-	l := vm.OperationInstance(ins.Instance{
-		Left: "List",
-	})
+	l := builtin.List{}
 
-	//l.Invoke(vm, "Init", list.Items)
+	params := make([]*types.Type, len(list.Items))
 
-	return l
+	for i, item := range list.Items {
+		params[i] = vm.Operation(item, types.ON_NOTHING)
+	}
+
+	l.InitWithParams(params)
+
+	return vm.CreateType(&l)
 }
 
 func (vm *VM) OperationAccessChildItem(access ins.AccessChildItem) *types.Type {
