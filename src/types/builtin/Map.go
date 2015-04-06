@@ -1,21 +1,30 @@
-package main
+package builtin
 
 import (
 	"log"
 	"strings"
+	"../" // types
 )
 
-type Library_Map struct {
-	*Library
-	items map[string]Type
+type Map struct {
+	Builtin
+	items map[string]*types.Type
 }
 
-func (self *Library_Map) Instance() (Lib, string) {
-	return &Library_Map{}, "Map"
+func (self Map) Instance() (types.Lib, string) {
+	return &Map{}, "Map"
 }
 
-func (self *Library_Map) Init(params []Type) {
-	self.items = make(map[string]Type)
+func (self Map) Type() string {
+	return "Map"
+}
+
+// Map can not be initialized with Init
+// see InitWithParams
+func (self *Map) Init(str string) {}
+
+func (self *Map) InitWithParams(params []*types.Type) {
+	self.items = make(map[string]*types.Type)
 
 	is_key := true
 
@@ -28,7 +37,7 @@ func (self *Library_Map) Init(params []Type) {
 	}
 }
 
-func (self *Library_Map) Set(params []Type) {
+func (self *Map) Set(params []*types.Type) {
 	if len(params) != 2 {
 		log.Panic("Library_Map::Set() expected exactly 2 parameters")
 	}
@@ -39,7 +48,7 @@ func (self *Library_Map) Set(params []Type) {
 	self.items[key] = value
 }
 
-func (self *Library_Map) Get(params []Type) Type {
+func (self *Map) Get(params []*types.Type) *types.Type {
 	if len(params) != 1 {
 		log.Panic("Library_Map::Get() expected exactly 1 parameter")
 	}
@@ -53,10 +62,10 @@ func (self *Library_Map) Get(params []Type) Type {
 	log.Panicf("Library_Map::Get() no such key %s", key)
 
 	// Will never be reached
-    return &Null{}
+    return self.Null()
 }
 
-func (self *Library_Map) ToString() string {
+func (self *Map) ToString() string {
 	str := "{\n"
 
 	items := make([]string, 0)
@@ -75,6 +84,6 @@ func (self *Library_Map) ToString() string {
 	return str
 }
 
-func (self *Library_Map) Length() int {
+func (self *Map) Length() int {
 	return len(self.items)
 }

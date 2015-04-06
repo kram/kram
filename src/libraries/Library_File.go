@@ -1,22 +1,24 @@
-package main
+package libraries
 
 import (
 	"io/ioutil"
 	"log"
+	"../types"
+	"../types/builtin"
 )
 
 type Library_File struct {
 	*Library
 }
 
-func (self *Library_File) Instance() (Lib, string) {
+func (self *Library_File) Instance() (types.Lib, string) {
 	return &Library_File{}, "File"
 }
 
 // File.Read()
 // @param path String
 // @return String
-func (self Library_File) Read(params []Type) Type {
+func (self Library_File) Read(params []*types.Type) *types.Type {
 
 	if len(params) != 1 {
 		log.Panic("File.Read() expects exactly 1 parameter")
@@ -34,16 +36,17 @@ func (self Library_File) Read(params []Type) Type {
 		log.Panicf("File.Read(), the file %s was not found", par.ToString())
 	}
 
-	str := String{}
+	str := &builtin.String{}
 	str.Init(string(dat))
-	return &str
+
+	return self.TypeWithLib(str)
 }
 
 // File.Write()
 // @param path String
 // @param content String
 // @return Bool
-func (self Library_File) Write(params []Type) Type {
+func (self Library_File) Write(params []*types.Type) *types.Type {
 
 	if len(params) != 2 {
 		log.Panic("File.Write() expects exactly 2 parameters")
@@ -64,9 +67,9 @@ func (self Library_File) Write(params []Type) Type {
     if err != nil {
 		log.Panicf("File.Write(), could not write to file, %s", path)
 	}
-    
-    bl := Bool{}
-    bl.Init("true")
 
-    return &bl
+	bl := &builtin.Bool{}
+	bl.Init("true")
+
+	return self.TypeWithLib(bl)
 }

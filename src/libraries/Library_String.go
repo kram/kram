@@ -1,35 +1,37 @@
-package main
+package libraries
 
 import (
 	"strings"
+	"../types"
+	"../types/builtin"
 )
 
 type Library_String struct {
 	*Library
 }
 
-func (self *Library_String) Instance() (Lib, string) {
+func (self *Library_String) Instance() (types.Lib, string) {
 	return &Library_String{}, "String"
 }
 
-func (self Library_String) ToLower(params []Type) Type {
-	str := String{}
+func (self Library_String) ToLower(params []*types.Type) *types.Type {
+	str := builtin.String{}
 
 	for _, param := range params {
 		str.Init(strings.ToLower(param.ToString()))
-		return &str
+		break
 	}
 
-	return &str
+	return self.TypeWithLib(&str)
 }
 
-func (self Library_String) ToUpper(params []Type) Type {
-	str := String{}
+func (self Library_String) ToUpper(params []*types.Type) *types.Type {
+	str := builtin.String{}
 
 	for _, param := range params {
 		str.Init(strings.ToUpper(param.ToString()))
-		return &str
+		break
 	}
 
-	return &str
+	return self.TypeWithLib(&str)
 }

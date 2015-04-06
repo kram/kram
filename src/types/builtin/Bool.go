@@ -25,6 +25,10 @@ func (self *Bool) Init(str string) {
 	}
 }
 
+func (self *Bool) Set(bl bool) {
+	self.value = bl
+}
+
 func (self *Bool) ToString() string {
 	if self.value {
 		return "true"

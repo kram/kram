@@ -14,6 +14,11 @@ type Lib interface {
 	ToString() string
 }
 
+type MathLib interface {
+	Math(string, *Type) *Type
+	Compare(string, *Type) *Type
+}
+
 type Method struct {
 	Method     bool
 	Parameters []ins.Parameter
@@ -48,7 +53,7 @@ func (self *Type) SetVariable(name string, value *Type) {
 	self.Variables[name] = value
 }
 
-func (self *Type) Invoke(vm VM, name string, params []ins.Node) *Type {
+func (self *Type) Invoke(vm VM, name string, params []*Type) *Type {
 
 	res, ok := self.InvokeNative(vm, name, params)
 
@@ -56,31 +61,41 @@ func (self *Type) Invoke(vm VM, name string, params []ins.Node) *Type {
 		return res
 	}
 
-	return self.InvokeExtension(vm, name, params)
-}
+	res, ok = self.InvokeExtension(vm, name, params)
 
-func (self *Type) InvokeExtension(vm VM, method string, params []ins.Node) *Type {
-
-	inputs := make([]reflect.Value, 1)
-
-	param_type := make([]*Type, len(params))
-
-	for i, param := range params {
-		param_type[i] = vm.Operation(param, ON_NOTHING)
+	if ok {
+		return res
 	}
 
-	inputs[0] = reflect.ValueOf(param_type)
-
-	res := reflect.ValueOf(self.Extension).MethodByName(method).Call(inputs)
-
-	if len(res) > 0 {
-		return res[0].Interface().(*Type)
-	}
+	log.Panicf("%s::%s, no such method", self.Type(), name)
 
 	return &Type{}
 }
 
-func (self *Type) InvokeNative(vm VM, name string, params []ins.Node) (*Type, bool) {
+func (self *Type) InvokeExtension(vm VM, method string, params []*Type) (*Type, bool) {
+
+	inputs := make([]reflect.Value, 1)
+
+	inputs[0] = reflect.ValueOf(params)
+
+	value := reflect.ValueOf(self.Extension).MethodByName(method)
+
+	if !value.IsValid() {
+		log.Panic("No such method, ", method)
+		return &Type{}, false
+	}
+
+	res := value.Call(inputs)
+
+	if len(res) > 0 {
+		return res[0].Interface().(*Type), true
+	}
+
+	// Nothing was returned, but still valid
+	return &Type{}, true
+}
+
+func (self *Type) InvokeNative(vm VM, name string, params []*Type) (*Type, bool) {
 
 	method, ok := self.Methods[name]
 
@@ -125,24 +140,38 @@ func (self *Type) ToString() string {
 	return self.Class
 }
 
-func (self *Type) Math(method string, right *Type) *Type {
+func (self *Type) Math(vm VM, method string, right *Type) *Type {
+
+	if lib, ok := self.Extension.(MathLib); ok {
+		return lib.Math(method, right)
+	}
+
+	res, ok := self.InvokeNative(vm, method, []*Type{right})
+
+	if ok {
+		return res
+	}
 
 	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
 	// This code will never be reached
-
 	return &Type{}
 }
 
-func (self *Type) Compare(method string, right *Type) *Type {
+func (self *Type) Compare(vm VM, method string, right *Type) *Type {
 
-	log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
+	if lib, ok := self.Extension.(MathLib); ok {
+		return lib.Compare(method, right)
+	}
 
-	// Will never be reached
+	res, ok := self.InvokeNative(vm, method, []*Type{right})
+
+	if ok {
+		return res
+	}
 
 	log.Panicf("%s() is not implementing %s", self.Type(), method)
 
-	// Will never be reached
-
+	// This code will never be reached
 	return &Type{}
 }

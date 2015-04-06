@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	ins "./instructions"
 	"./environment"
 	"./types"
 	"./types/builtin"
+	lib "./libraries"
 )
-
-type Library_List struct {}
-type Library_Map struct {}
 
 type VM struct {
 	// Contains variables
@@ -51,15 +48,13 @@ func (vm *VM) Libraries() {
 
 	libs := make([]types.Lib, 0)
 
-	/*libs = append(libs, &Library_IO{})
-	libs = append(libs, &Library_List{})
-	libs = append(libs, &Library_String{})
-	libs = append(libs, &Library_File{})
-	libs = append(libs, &Library_Map{})*/
+	libs = append(libs, &lib.Library_IO{})
+	libs = append(libs, &lib.Library_String{})
+	libs = append(libs, &lib.Library_File{})
 
-	for _, lib := range libs {
+	for _, li := range libs {
 
-		instance, name := lib.Instance()
+		instance, name := li.Instance()
 
 		class := types.Type{}
 		class.Init(name)
@@ -207,11 +202,15 @@ func (vm *VM) OperationMath(math ins.Math) *types.Type {
 	left := vm.Operation(math.Left, types.ON_NOTHING)
 	right := vm.Operation(math.Right, types.ON_NOTHING)
 
+	/*fmt.Println(left)
+	fmt.Println(math.Method)
+	fmt.Println(right)
+*/
 	if math.IsComparision {
-		return left.Compare(math.Method, right)
+		return left.Compare(vm, math.Method, right)
 	}
 
-	return left.Math(math.Method, right)
+	return left.Math(vm, math.Method, right)
 }
 
 func (vm *VM) OperationLiteral(literal ins.Literal) *types.Type {
@@ -327,14 +326,13 @@ func (vm *VM) OperationIf(i ins.If) *types.Type {
 
 func (vm *VM) OperationCall(call ins.Call) *types.Type {
 
-	// Calling a method
-	if len(vm.Classes) >= 0 {
-		return vm.Classes[len(vm.Classes)-1].Invoke(vm, vm.Operation(call.Left, types.ON_NOTHING).ToString(), call.Parameters)
+	params := make([]*types.Type, len(call.Parameters))
+
+	for i, param := range call.Parameters {
+		params[i] = vm.Operation(param, types.ON_NOTHING)
 	}
 
-	fmt.Printf("Call to undefined function %s\n", call.Left)
-
-	return vm.CreateType(&builtin.Bool{})
+	return vm.Classes[len(vm.Classes)-1].Invoke(vm, vm.Operation(call.Left, types.ON_NOTHING).ToString(), params)
 }
 
 func (vm *VM) OperationDefineClass(def ins.DefineClass) *types.Type {
@@ -414,14 +412,14 @@ func (vm *VM) OperationMapCreate(m ins.MapCreate) *types.Type {
 		Left: "Map",
 	})
 
-	params := make([]ins.Node, 0)
+	/*params := make([]ins.Node, 0)
 
 	for i, key := range m.Keys {
 		params = append(params, key)
 		params = append(params, m.Values[i])
 	}
 
-	mapinstance.Invoke(vm, "Init", params)
+	mapinstance.Invoke(vm, "Init", params)*/
 
 	return mapinstance
 }
@@ -431,7 +429,7 @@ func (vm *VM) OperationListCreate(list ins.ListCreate) *types.Type {
 		Left: "List",
 	})
 
-	l.Invoke(vm, "Init", list.Items)
+	//l.Invoke(vm, "Init", list.Items)
 
 	return l
 }
@@ -450,35 +448,29 @@ func (vm *VM) OperationAccessChildItem(access ins.AccessChildItem) *types.Type {
 		log.Panicf("Expected List or Map in [], got %s", item.Type())
 	}
 
-	// TODO
-	// library, ok := item.Extension.(*Library_List)
+	library, ok := item.Extension.(*builtin.List)
 
-	/*if !ok {
-		log.Panic("Expected class to be of types.Type *Library_List")
-	}*/
+	if !ok {
+		log.Panic("Expected class to be of types.Type *builtin.List")
+	}
 
 	// Get position to access from the list
 	position := vm.Operation(access.Right, types.ON_NOTHING)
 
-	return &types.Type{}
-
-//	return library.ItemAt([]Type{position})
+	return library.ItemAt([]*types.Type{position})
 }
 
 func (vm *VM) OperationAccessChildItemMap(access ins.AccessChildItem, item *types.Type) *types.Type {
- 
- 	// TODO
-	// library, ok := class.Extension.(*Library_Map)
+ 	library, ok := item.Extension.(*builtin.Map)
 
-	/*if !ok {
-		log.Panic("Expected class to be of types.Type *Library_List")
-	}*/
+	if !ok {
+		log.Panic("Expected class to be of types.Type *builtin.Map")
+	}
 
 	// Get position to access from the list
 	position := vm.Operation(access.Right, types.ON_NOTHING)
 
-	//return library.Get([]Type{position})
-	return &types.Type{}
+	return library.Get([]*types.Type{position})
 }
 
 func (vm *VM) OperationReturn(ret ins.Return) *types.Type {
@@ -560,10 +552,10 @@ func (vm *VM) OperationForIn(f ins.For) *types.Type {
 		log.Panic("Expected List in for ... in, got %s", each.Type())
 	}
 
-	list, ok := each.Extension.(*Library_List)
+	list, ok := each.Extension.(*builtin.List)
 
 	if !ok {
-		log.Panic("Expected class to be of types.Type *Library_List")
+		log.Panic("Expected class to be of types.Type *builtin.List")
 	}
 
 	length := list.Length()

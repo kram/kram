@@ -1,28 +1,18 @@
-package main
+package libraries
 
-type Lib interface {
-	Init([]Type)
-	Setup()
-	Instance() (Lib, string)
-	ToString() string
-}
+import (
+	"../types"
+)
 
 type Library struct{}
+func (lib *Library) Init(str string) {}
+func (lib *Library) Instance() (types.Lib, string) { return &Library{}, lib.Type() }
+func (lib *Library) Type() string { return "Library" }
+func (lib *Library) ToString() string { return lib.Type() }
 
-func (lib *Library) Init(params []Type) {}
-func (lib *Library) Setup() {}
+func (lib *Library) TypeWithLib(l types.Lib) *types.Type {
+	class := types.Type{}
+	class.InitWithLib(l)
 
-func (lib *Library) ToString() string {
-	return "DEFAULT_LIBRARY"
-}
-
-func (lib *Library) Instance() (Lib, string) {
-	return &Library{}, "DEFAULT_LIBRARY"
-}
-
-func DefaultReturn() Type {
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
+	return &class
 }
