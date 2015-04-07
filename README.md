@@ -9,9 +9,9 @@
 ```dart
 IO.Print("Hello World!")
 
-var Age = 100
+var age = 100
 
-if Age > 90 {
+if age > 90 {
     IO.Print("You're old! :)")
 }
 
@@ -21,24 +21,26 @@ class Magic {
     }
 }
 
-var yolo = 1 + 2 * 3 - 4 // 3
+var three = 1 + 2 * 3 - 16.Sqrt() // 3
 ```
+
+Are you interested? Make a visit to the [Getting Started](https://github.com/zegl/Gus/wiki) page!
 
 ## Features
 
 ### Variables
 
 ```dart
-var Str = "Hi, there!"
+var str = "Hi, there!"
 ```
 
 ### If-cases
 
 ```dart
-if A > B {
-    IO.Println("A is bigger than B")
+if first > second {
+    IO.Println("first is bigger than second")
 } else {
-    IO.Println("A is tiny!")
+    IO.Println("first is tiny!")
 }
 ```
 
@@ -80,10 +82,18 @@ You can seperate numbers by spaces (as many or as few as you like) to increase r
 IO.Println(20 000) // Prints "20000"
 ```
 
+### Everything is a class
+
+In Gus, everything is a class, that means that you can do stuff like
+
+```dart
+150.Sqrt()
+```
+
 ## The future of Gus
 
 There is a lot of [stuff](https://github.com/zegl/Gus/labels/Feature) that needs to be implemented before Gus is complete. And **you** are very welcome to help! :ok_hand:
 
 # License
 
-`Gus` is released under a modified 3-clause BSD-license. See [LICENSE](https://github.com/zegl/Gus/blob/master/LICENSE) for details.
+*Gus* is released under a modified 3-clause BSD-license. See [LICENSE](https://github.com/zegl/Gus/blob/master/LICENSE) for details.
