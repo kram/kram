@@ -145,3 +145,17 @@ func (self *Number) Compare(method string, right *types.Type) *types.Type {
 
 	return &res
 }
+
+func (self *Number) Sqrt(input []*types.Type) *types.Type {
+	return self.getNumber(math.Sqrt(self.Value))
+}
+
+func (self Number) getNumber(val float64) *types.Type {
+	nb := Number{}
+	nb.Value = val
+
+	res := types.Type{}
+	res.InitWithLib(&nb)
+
+	return &res
+}

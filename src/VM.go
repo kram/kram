@@ -388,7 +388,8 @@ func (vm *VM) OperationDefineMethod(def ins.DefineMethod) *types.Type {
 
 func (vm *VM) OperationPushClass(pushClass ins.PushClass) *types.Type {
 
-	name := vm.Operation(pushClass.Left, types.ON_NOTHING).ToString()
+	left := vm.Operation(pushClass.Left, types.ON_NOTHING)
+	name := left.ToString()
 
 	class, ok := vm.env.Get(name)
 
@@ -397,8 +398,9 @@ func (vm *VM) OperationPushClass(pushClass ins.PushClass) *types.Type {
 		ok = true
 	}
 
+	// There is no such class, use left
 	if !ok {
-		log.Panicf("No such class, %s", name)
+		class = left
 	}
 
 	// Push
