@@ -1,6 +1,6 @@
 # Gus - A class based scripting language
 
-[![Join the chat at https://gitter.im/zegl/Gus](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/zegl/Gus?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.org/zegl/Gus.svg?branch=master)](https://travis-ci.org/zegl/Gus)
+[![Build Status](https://travis-ci.org/zegl/Gus.svg?branch=master)](https://travis-ci.org/zegl/Gus)
 
 **Clarification**, this project is currently just a prototype. Don't actually use it anywhere. Things will break.
 
