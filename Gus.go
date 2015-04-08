@@ -1,8 +1,7 @@
-//
-// Copyright 2015 Gustav Westling <hej@gustav.tv. All rights reserved.
-// Use of this source code is governed by a BSD-style license that
-// can be found in the LICENSE file.
-//
+// Copyright (c) 2015 The Gus Project Developers. All rights reserved.
+// See the LICENSE file at the top-level directory of this distribution. 
+// This file may not be copied, modified, or distributed except according to those terms.
+
 package main
 
 import (
