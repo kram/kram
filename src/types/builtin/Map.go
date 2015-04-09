@@ -61,7 +61,7 @@ func (self *Map) ToString() string {
 	return str
 }
 
-func (self *Map) Set(params []*types.Type) {
+func (self *Map) M_Set(params []*types.Type) {
 	if len(params) != 2 {
 		log.Panic("Library_Map::Set() expected exactly 2 parameters")
 	}
@@ -77,7 +77,12 @@ func (self *Map) Set(params []*types.Type) {
 	self.items[key] = value
 }
 
+// Adressable from VM
 func (self *Map) Get(params []*types.Type) *types.Type {
+	return self.Get(params)
+}
+
+func (self *Map) M_Get(params []*types.Type) *types.Type {
 	if len(params) != 1 {
 		log.Panic("Library_Map::Get() expected exactly 1 parameter")
 	}

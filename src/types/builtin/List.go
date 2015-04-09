@@ -38,23 +38,28 @@ func (list *List) Init(str string) {
 
 func (list *List) InitWithParams(params []*types.Type) {
 	list.Items = make([]*types.Type, 0)
-	list.Push(params)
+	list.M_Push(params)
 }
 
-func (list *List) Push(params []*types.Type) {
+func (list *List) M_Push(params []*types.Type) {
 	for _, param := range params {
 		list.Items = append(list.Items, param)
 	}
 }
 
-func (list *List) Pop(params []*types.Type) *types.Type {
+func (list *List) M_Pop(params []*types.Type) *types.Type {
 	res := list.Items[len(list.Items)-1]
 	list.Items = list.Items[:len(list.Items)-1]
 
 	return res
 }
 
+// Adressable from VM
 func (list *List) ItemAt(params []*types.Type) *types.Type {
+	return list.M_ItemAt(params)
+}
+
+func (list *List) M_ItemAt(params []*types.Type) *types.Type {
 	if len(params) != 1 {
 		log.Panic("List::ItemAt() expected only 1 parameter")
 	}
