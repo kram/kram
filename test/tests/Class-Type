@@ -1,0 +1,2 @@
+// Number
+IO.Println(123.Type())
