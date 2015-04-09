@@ -79,7 +79,7 @@ func (self *Map) M_Set(params []*types.Type) {
 
 // Adressable from VM
 func (self *Map) Get(params []*types.Type) *types.Type {
-	return self.Get(params)
+	return self.M_Get(params)
 }
 
 func (self *Map) M_Get(params []*types.Type) *types.Type {
