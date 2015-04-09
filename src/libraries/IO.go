@@ -10,20 +10,20 @@ import (
 )
 
 type Library_IO struct {
-	*Library
+	Library
 }
 
-func (io *Library_IO) Instance() (types.Lib, string) {
-	return &Library_IO{}, "IO"
-}
+func (self Library_IO) Instance() (types.Lib, string) { return &Library_IO{}, self.Type() }
+func (self Library_IO) Type() string { return "IO" }
+func (self Library_IO) M_Type() *types.Type { return self.String(self.Type()) }
 
-func (io Library_IO) Print(params []*types.Type) {
+func (io Library_IO) M_Print(params []*types.Type) {
 	for _, param := range params {
 		fmt.Print(param.ToString())
 	}
 }
 
-func (io Library_IO) Println(params []*types.Type) {
+func (io Library_IO) M_Println(params []*types.Type) {
 	for _, param := range params {
 		fmt.Println(param.ToString())
 	}

@@ -78,18 +78,26 @@ func (self *Type) Invoke(vm VM, name string, params []*Type) *Type {
 
 func (self *Type) InvokeExtension(vm VM, method string, params []*Type) (*Type, bool) {
 
-	inputs := make([]reflect.Value, 1)
-
-	inputs[0] = reflect.ValueOf(params)
-
-	value := reflect.ValueOf(self.Extension).MethodByName(method)
+	value := reflect.ValueOf(self.Extension).MethodByName("M_" + method)
 
 	if !value.IsValid() {
 		log.Panic("No such method, ", method)
 		return &Type{}, false
 	}
 
-	res := value.Call(inputs)
+	var res []reflect.Value
+
+	// The list as a parameter
+	// This should probaby be rewritten so that we can use parameters properly...
+	// Eg. a parameter in Gus => a parameter in Go
+	if value.Type().NumIn() == 1 {
+		inputs := make([]reflect.Value, 1)
+		inputs[0] = reflect.ValueOf(params)
+		res = value.Call(inputs)
+	} else {
+		inputs := make([]reflect.Value, 0)
+		res = value.Call(inputs)
+	}
 
 	if len(res) > 0 {
 		return res[0].Interface().(*Type), true

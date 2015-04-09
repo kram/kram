@@ -6,18 +6,40 @@ package libraries
 
 import (
 	"github.com/zegl/Gus/src/types"
+	"github.com/zegl/Gus/src/types/builtin"
 )
 
 type Library struct{}
 
-func (lib *Library) Init(str string)               {}
-func (lib *Library) Instance() (types.Lib, string) { return &Library{}, lib.Type() }
-func (lib *Library) Type() string                  { return "Library" }
-func (lib *Library) ToString() string              { return lib.Type() }
+func (self Library) Init(str string) {
+	// Do nothing
+}
 
-func (lib *Library) TypeWithLib(l types.Lib) *types.Type {
+func (self Library) ToString() string {
+	return "<nil>"
+}
+
+func (self Library) Bool(value bool) *types.Type {
+
+	bl := builtin.Bool{}
+	bl.Set(value)
+
+	return self.fromLib(&bl)
+}
+
+func (self Library) Null() *types.Type {
+	return self.fromLib(&builtin.Null{})
+}
+
+func (self Library) String(str string) *types.Type {
+	return self.fromLib(&builtin.String{
+		Value: str,
+	})
+}
+
+func (self Library) fromLib(lib types.Lib) *types.Type {
 	class := types.Type{}
-	class.InitWithLib(l)
+	class.InitWithLib(lib)
 
 	return &class
 }

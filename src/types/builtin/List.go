@@ -12,17 +12,13 @@ import (
 )
 
 type List struct {
-	*Builtin
+	Builtin
 	Items []*types.Type
 }
 
-func (list *List) Instance() (types.Lib, string) {
-	return &List{}, list.Type()
-}
-
-func (list *List) Type() string {
-	return "List"
-}
+func (self List) Instance() (types.Lib, string) { return &List{}, self.Type() }
+func (self List) Type() string { return "List" }
+func (self List) M_Type() *types.Type { return self.String(self.Type()) }
 
 func (list *List) ToString() string {
 	out := make([]string, len(list.Items))

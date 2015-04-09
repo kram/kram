@@ -8,11 +8,21 @@ import (
 	"github.com/zegl/Gus/src/types"
 )
 
-type Builtin struct{}
+type Builtin struct {}
 
-func (buil Builtin) Null() *types.Type {
+func (self Builtin) Null() *types.Type {
+	return self.fromLib(&Null{})
+}
+
+func (self Builtin) String(str string) *types.Type {
+	return self.fromLib(&String{
+		Value: str,
+	})
+}
+
+func (self Builtin) fromLib(lib types.Lib) *types.Type {
 	class := types.Type{}
-	class.InitWithLib(&Null{})
+	class.InitWithLib(lib)
 
 	return &class
 }

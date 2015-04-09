@@ -9,16 +9,13 @@ import (
 )
 
 type Bool struct {
+	Builtin
 	value bool
 }
 
-func (self Bool) Instance() (types.Lib, string) {
-	return &Bool{}, self.Type()
-}
-
-func (self Bool) Type() string {
-	return "Bool"
-}
+func (self Bool) Instance() (types.Lib, string) { return &Bool{}, self.Type() }
+func (self Bool) Type() string { return "Bool" }
+func (self Bool) M_Type() *types.Type { return self.String(self.Type()) }
 
 func (self *Bool) Init(str string) {
 	if str == "true" {
@@ -28,16 +25,16 @@ func (self *Bool) Init(str string) {
 	}
 }
 
-func (self *Bool) Set(bl bool) {
-	self.value = bl
-}
-
 func (self *Bool) ToString() string {
 	if self.value {
 		return "true"
 	}
 
 	return "false"
+}
+
+func (self *Bool) Set(bl bool) {
+	self.value = bl
 }
 
 func (self *Bool) IsTrue() bool {

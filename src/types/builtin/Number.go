@@ -12,16 +12,13 @@ import (
 )
 
 type Number struct {
+	Builtin
 	Value float64
 }
 
-func (self Number) Instance() (types.Lib, string) {
-	return &Number{}, self.Type()
-}
-
-func (self Number) Type() string {
-	return "Number"
-}
+func (self Number) Instance() (types.Lib, string) { return &Number{}, self.Type() }
+func (self Number) Type() string { return "Number" }
+func (self Number) M_Type() *types.Type { return self.String(self.Type()) }
 
 func (self *Number) Init(str string) {
 	value, err := strconv.ParseFloat(str, 64)
@@ -146,7 +143,7 @@ func (self *Number) Compare(method string, right *types.Type) *types.Type {
 	return &res
 }
 
-func (self *Number) Sqrt(input []*types.Type) *types.Type {
+func (self *Number) M_Sqrt(input []*types.Type) *types.Type {
 	return self.getNumber(math.Sqrt(self.Value))
 }
 

@@ -16,13 +16,9 @@ type Map struct {
 	order []string // To keep the order
 }
 
-func (self Map) Instance() (types.Lib, string) {
-	return &Map{}, "Map"
-}
-
-func (self Map) Type() string {
-	return "Map"
-}
+func (self Map) Instance() (types.Lib, string) { return &Map{}, self.Type() }
+func (self Map) Type() string { return "Map" }
+func (self Map) M_Type() *types.Type { return self.String(self.Type()) }
 
 // Map can not be initialized with Init
 // see InitWithParams
@@ -43,6 +39,26 @@ func (self *Map) InitWithParams(params []*types.Type) {
 
 		is_key = !is_key
 	}
+}
+
+func (self *Map) ToString() string {
+	str := "{\n"
+
+	items := make([]string, 0)
+
+	for _, key := range self.order {
+		s := "    "
+		s += "\"" + key + "\": "
+		s += self.items[key].ToString()
+
+		items = append(items, s)
+	}
+
+	str += strings.Join(items, ",\n")
+
+	str += "\n}"
+
+	return str
 }
 
 func (self *Map) Set(params []*types.Type) {
@@ -76,26 +92,6 @@ func (self *Map) Get(params []*types.Type) *types.Type {
 
 	// Will never be reached
 	return self.Null()
-}
-
-func (self *Map) ToString() string {
-	str := "{\n"
-
-	items := make([]string, 0)
-
-	for _, key := range self.order {
-		s := "    "
-		s += "\"" + key + "\": "
-		s += self.items[key].ToString()
-
-		items = append(items, s)
-	}
-
-	str += strings.Join(items, ",\n")
-
-	str += "\n}"
-
-	return str
 }
 
 func (self *Map) Length() int {

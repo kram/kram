@@ -6,23 +6,22 @@ package libraries
 
 import (
 	"github.com/zegl/Gus/src/types"
-	"github.com/zegl/Gus/src/types/builtin"
 	"io/ioutil"
 	"log"
 )
 
 type Library_File struct {
-	*Library
+	Library
 }
 
-func (self *Library_File) Instance() (types.Lib, string) {
-	return &Library_File{}, "File"
-}
+func (self Library_File) Instance() (types.Lib, string) { return &Library_File{}, self.Type() }
+func (self Library_File) Type() string { return "File" }
+func (self Library_File) M_Type() *types.Type { return self.String(self.Type()) }
 
 // File.Read()
 // @param path String
 // @return String
-func (self Library_File) Read(params []*types.Type) *types.Type {
+func (self Library_File) M_Read(params []*types.Type) *types.Type {
 
 	if len(params) != 1 {
 		log.Panic("File.Read() expects exactly 1 parameter")
@@ -40,17 +39,14 @@ func (self Library_File) Read(params []*types.Type) *types.Type {
 		log.Panicf("File.Read(), the file %s was not found", par.ToString())
 	}
 
-	str := &builtin.String{}
-	str.Init(string(dat))
-
-	return self.TypeWithLib(str)
+	return self.String(string(dat))
 }
 
 // File.Write()
 // @param path String
 // @param content String
 // @return Bool
-func (self Library_File) Write(params []*types.Type) *types.Type {
+func (self Library_File) M_Write(params []*types.Type) *types.Type {
 
 	if len(params) != 2 {
 		log.Panic("File.Write() expects exactly 2 parameters")
@@ -72,8 +68,5 @@ func (self Library_File) Write(params []*types.Type) *types.Type {
 		log.Panicf("File.Write(), could not write to file, %s", path)
 	}
 
-	bl := &builtin.Bool{}
-	bl.Init("true")
-
-	return self.TypeWithLib(bl)
+	return self.Bool(true)
 }

@@ -11,14 +11,14 @@ import (
 )
 
 type Library_String struct {
-	*Library
+	Library
 }
 
-func (self *Library_String) Instance() (types.Lib, string) {
-	return &Library_String{}, "String"
-}
+func (self Library_String) Instance() (types.Lib, string) { return &Library_String{}, self.Type() }
+func (self Library_String) Type() string { return "Strings" }
+func (self Library_String) M_Type() *types.Type { return self.String(self.Type()) }
 
-func (self Library_String) ToLower(params []*types.Type) *types.Type {
+func (self Library_String) M_ToLower(params []*types.Type) *types.Type {
 	str := builtin.String{}
 
 	for _, param := range params {
@@ -26,10 +26,10 @@ func (self Library_String) ToLower(params []*types.Type) *types.Type {
 		break
 	}
 
-	return self.TypeWithLib(&str)
+	return self.fromLib(&str)
 }
 
-func (self Library_String) ToUpper(params []*types.Type) *types.Type {
+func (self Library_String) M_ToUpper(params []*types.Type) *types.Type {
 	str := builtin.String{}
 
 	for _, param := range params {
@@ -37,5 +37,5 @@ func (self Library_String) ToUpper(params []*types.Type) *types.Type {
 		break
 	}
 
-	return self.TypeWithLib(&str)
+	return self.fromLib(&str)
 }

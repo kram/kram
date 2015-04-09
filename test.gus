@@ -1,14 +1,1 @@
-var array = {
-	"key": "value",
-	"key2": "value2",
-}
-
-IO.Println(array)
-
-array.Set("swag", "yolo")
-
-IO.Println(array)
-
-array.Set("aList", ["one", "two", "three"])
-
-IO.Println(array)
+IO.Println(123.Type())

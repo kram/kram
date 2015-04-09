@@ -10,16 +10,13 @@ import (
 )
 
 type String struct {
+	Builtin
 	Value string
 }
 
-func (self String) Instance() (types.Lib, string) {
-	return &String{}, self.Type()
-}
-
-func (self String) Type() string {
-	return "String"
-}
+func (self String) Instance() (types.Lib, string) { return &String{}, self.Type() }
+func (self String) Type() string { return "String" }
+func (self String) M_Type() *types.Type { return self.String(self.Type()) }
 
 func (self *String) Init(str string) {
 	self.Value = str
