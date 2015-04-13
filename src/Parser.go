@@ -80,6 +80,7 @@ type Parser struct {
 
 	Comparisions  map[string]bool
 	LeftOnlyInfix map[string]bool
+	RightOnlyInfix map[string]bool
 
 	// The current stack (used by Expression)
 	Stack Stack
@@ -155,9 +156,14 @@ func (p *Parser) Parse(tokens []Token) ins.Block {
 	p.Comparisions["&&"] = true
 	p.Comparisions["||"] = true
 
+	// 123++
 	p.LeftOnlyInfix = make(map[string]bool)
 	p.LeftOnlyInfix["++"] = true
 	p.LeftOnlyInfix["--"] = true
+
+	// -123
+	p.RightOnlyInfix = make(map[string]bool)
+	p.RightOnlyInfix["-"] = true
 
 	// Math
 	p.Infix("+", 50)
@@ -493,11 +499,7 @@ func (p *Parser) ParseStatementPart() ins.Node {
 			math.IsComparision = false
 		}
 
-		_, isLeftOnly := p.LeftOnlyInfix[math.Method]
-
-		prev, ok := previous.(ins.Math)
-
-		if ok {
+		if prev, ok := previous.(ins.Math); ok {
 			if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
 				math.Left = prev.Left
 				math.Method = prev.Method
@@ -510,10 +512,14 @@ func (p *Parser) ParseStatementPart() ins.Node {
 				math.Left = previous
 				math.Right = p.ParseNext(true)
 			}
+
+			return math
 		}
 
-		_, ok = previous.(ins.Literal)
-		if ok {
+		_, isLeftOnly := p.LeftOnlyInfix[math.Method]
+		_, isRightOnly := p.RightOnlyInfix[math.Method]
+
+		if _, ok := previous.(ins.Literal); ok {
 			math.Left = previous
 
 			if !isLeftOnly {
@@ -521,13 +527,17 @@ func (p *Parser) ParseStatementPart() ins.Node {
 			}
 		}
 
-		_, ok = previous.(ins.Variable)
-		if ok {
+		
+		if _, ok := previous.(ins.Variable); ok {
 			math.Left = previous
 
 			if !isLeftOnly {
 				math.Right = p.ParseNext(true)
 			}
+		}
+
+		if isRightOnly {
+			math.Left = p.ParseNext(true)
 		}
 
 		p.Log(-1, "ParseStatementPart()")

@@ -50,7 +50,11 @@ func (self *Number) Math(method string, right *types.Type) *types.Type {
 		case "+":
 			val = self.Value + r.Value
 		case "-":
-			val = self.Value - r.Value
+			if is_null {
+				val = -self.Value
+			} else {
+				val = self.Value - r.Value
+			}
 		case "*":
 			val = self.Value * r.Value
 		case "/":
