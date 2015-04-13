@@ -1,6 +1,6 @@
-// 123.000000
+// 123
 // Number
-// 123.000000
+// 123
 // String
 var num = 123
 IO.Println(num, num.Type())

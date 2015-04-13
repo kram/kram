@@ -178,6 +178,14 @@ func (l *Lexer) ParseNext() (string, string) {
 				break
 			}
 
+			// A dot needs to be followed by another digit to be valid
+			if c == "." {
+				cc := l.CharAtPos(l.I + 2)
+				if (cc < "0" || cc > "9") {
+					break
+				}
+			}
+
 			l.I++
 			str += c
 		}

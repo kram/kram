@@ -42,7 +42,7 @@ func Test(path string) bool {
 
 	expect := ""
 
-	re, _ := regexp.Compile(`(?m)^// (.*?)$`)
+	re, _ := regexp.Compile(`(?m)// (.*?)$`)
 	for _, str := range re.FindAllString(string(content), -1) {
 		expect += strings.Replace(str, "// ", "", -1) + "\n"
 	}

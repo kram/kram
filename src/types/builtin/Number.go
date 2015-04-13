@@ -31,7 +31,7 @@ func (self *Number) Init(str string) {
 }
 
 func (self *Number) ToString() string {
-	return strconv.FormatFloat(self.Value, 'f', 6, 64)
+	return strconv.FormatFloat(self.Value, 'f', -1, 64)
 }
 
 func (self *Number) Math(method string, right *types.Type) *types.Type {

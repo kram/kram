@@ -1,6 +1,6 @@
-// 1.000000
-// 2.000000
-// 3.000000
+// 1
+// 2
+// 3
 // sista
 for var item in [1, 2, 3, "sista"] {
 	IO.Println(item)
