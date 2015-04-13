@@ -131,7 +131,7 @@ func (l *Lexer) ParseNext() (string, string) {
 			l.C = l.CharAtPos(l.I)
 
 			if l.C == "\n" || l.C == "\r" || l.C == "" {
-				return "", ""
+				return "EOL", ""
 			}
 		}
 
