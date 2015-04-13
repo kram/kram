@@ -1,0 +1,8 @@
+// 123.000000
+// Number
+// 123.000000
+// String
+var num = 123
+IO.Println(num, num.Type())
+var str = new String(num)
+IO.Println(str, str.Type())

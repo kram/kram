@@ -13,6 +13,7 @@ import (
 
 type Lib interface {
 	Init(string)
+	InitWithParams([]*Type)
 	Instance() (Lib, string)
 	Type() string
 	ToString() string

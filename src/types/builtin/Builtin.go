@@ -6,9 +6,14 @@ package builtin
 
 import (
 	"github.com/zegl/Gus/src/types"
+	"log"
 )
 
 type Builtin struct {}
+
+func (self Builtin) InitWithParams(params []*types.Type) {
+	log.Panic("This Type does not support InitWithParams()")
+}
 
 func (self Builtin) Null() *types.Type {
 	return self.fromLib(&Null{})

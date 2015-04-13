@@ -7,12 +7,17 @@ package libraries
 import (
 	"github.com/zegl/Gus/src/types"
 	"github.com/zegl/Gus/src/types/builtin"
+	"log"
 )
 
 type Library struct{}
 
 func (self Library) Init(str string) {
 	// Do nothing
+}
+
+func (self Library) InitWithParams(params []*types.Type) {
+	log.Panic("This Type does not support InitWithParams()")
 }
 
 func (self Library) ToString() string {

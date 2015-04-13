@@ -449,20 +449,7 @@ func (p *Parser) ParseStatementPart() ins.Node {
 		// The default case
 		// We are now defining a method call
 		call := ins.Call{}
-		call.Parameters = make([]ins.Node, 0)
-
-		for {
-			next := p.NextToken(0)
-
-			// We're done here
-			if (next.Type == "operator" && next.Value == ")") || next.Type == "EOL" || next.Type == "EOF" {
-				break
-			}
-
-			param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}})
-
-			call.Parameters = append(call.Parameters, param)
-		}
+		call.Parameters = p.ParseParameters()
 
 		// Put Call{} into the a previous PushClass if neeccesary
 		if push, ok := previous.(ins.PushClass); ok {
@@ -551,6 +538,25 @@ func (p *Parser) ParseStatementPart() ins.Node {
 	p.Log(-1, "ParseStatementPart()")
 
 	return ins.Nil{}
+}
+
+func (p *Parser) ParseParameters() []ins.Node {
+	params := make([]ins.Node, 0)
+
+	for {
+		next := p.NextToken(0)
+
+		// We're done here
+		if (next.Type == "operator" && next.Value == ")") || next.Type == "EOL" || next.Type == "EOF" {
+			break
+		}
+
+		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}})
+
+		params = append(params, param)
+	}
+
+	return params
 }
 
 func (p *Parser) Symbol_var() ins.Node {
@@ -688,7 +694,9 @@ func (p *Parser) Symbol_new() ins.Node {
 		log.Panicf("Expected ( after new, got %s (%s)", name.Type, name.Value)
 	}
 
-	next = p.Advance()
+	inst.Parameters = p.ParseParameters()
+
+	// next = p.Advance()
 
 	if next.Type != "operator" && next.Value != ")" {
 		log.Panicf("Expected ) after new, got %s (%s)", name.Type, name.Value)

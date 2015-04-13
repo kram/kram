@@ -22,6 +22,16 @@ func (self *String) Init(str string) {
 	self.Value = str
 }
 
+func (self *String) InitWithParams(params []*types.Type) {
+	i := params[0]
+
+	if i.Type() == "Number" {
+		self.Init(i.ToString())
+	} else {
+		log.Panicf("Can not init String with %s", i.Type())
+	}
+}
+
 func (self *String) ToString() string {
 	return self.Value
 }

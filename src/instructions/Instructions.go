@@ -88,6 +88,7 @@ type Parameter struct {
 type Instance struct {
 	Instance bool
 	Left     string
+	Parameters []Node
 }
 
 type MapCreate struct {

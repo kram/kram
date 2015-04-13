@@ -53,6 +53,15 @@ func (vm *VM) Libraries() {
 
 	libs := make([]types.Lib, 0)
 
+	// Builtin
+	libs = append(libs, &builtin.Bool{})
+	libs = append(libs, &builtin.List{})
+	libs = append(libs, &builtin.Map{})
+	libs = append(libs, &builtin.Null{})
+	libs = append(libs, &builtin.Number{})
+	libs = append(libs, &builtin.String{})
+
+	// Libraries
 	libs = append(libs, &lib.Library_IO{})
 	libs = append(libs, &lib.Library_String{})
 	libs = append(libs, &lib.Library_File{})
@@ -497,7 +506,19 @@ func (vm *VM) OperationInstance(instance ins.Instance) *types.Type {
 		log.Panicf("No such class, %s", instance.Left)
 	}
 
-	return vm.Clone(in)
+	inst := vm.Clone(in)
+
+	if len(instance.Parameters) > 0 {
+		params := make([]*types.Type, 0)
+
+		for _, node := range instance.Parameters {
+			params = append(params, vm.Operation(node, types.ON_NOTHING))
+		}
+
+		inst.Extension.InitWithParams(params)
+	}
+
+	return inst
 }
 
 //
