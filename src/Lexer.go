@@ -174,7 +174,7 @@ func (l *Lexer) ParseNext() (string, string) {
 		for {
 			c := l.CharAtPos(l.I + 1)
 
-			if c < "0" || c > "9" {
+			if (c < "0" || c > "9") && c != "." {
 				break
 			}
 
