@@ -25,6 +25,13 @@ func (self Builtin) String(str string) *types.Type {
 	})
 }
 
+func (self Builtin) Bool(value bool) *types.Type {
+	b := Bool{}
+	b.Set(value)
+
+	return self.fromLib(&b)
+}
+
 func (self Builtin) fromLib(lib types.Lib) *types.Type {
 	class := types.Type{}
 	class.InitWithLib(lib)

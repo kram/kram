@@ -1,0 +1,10 @@
+var friends = {
+	"Rachel": "Green",
+	"Monica": "Geller",
+	"Phoebe": "Buffay",
+	"Joey": "Tribbiani",
+	"Chandler": "Bing",
+	"Ross": "Geller"
+}
+
+IO.Println(friends.Get("Chandler")) // Bing

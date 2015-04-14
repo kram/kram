@@ -63,7 +63,7 @@ func (self *Map) ToString() string {
 
 func (self *Map) M_Set(params []*types.Type) {
 	if len(params) != 2 {
-		log.Panic("Library_Map::Set() expected exactly 2 parameters")
+		log.Panic("Map::Set() expected exactly 2 parameters")
 	}
 
 	key := params[0].ToString()
@@ -84,7 +84,7 @@ func (self *Map) Get(params []*types.Type) *types.Type {
 
 func (self *Map) M_Get(params []*types.Type) *types.Type {
 	if len(params) != 1 {
-		log.Panic("Library_Map::Get() expected exactly 1 parameter")
+		log.Panic("Map::Get() expected exactly 1 parameter")
 	}
 
 	key := params[0].ToString()
@@ -93,10 +93,21 @@ func (self *Map) M_Get(params []*types.Type) *types.Type {
 		return res
 	}
 
-	log.Panicf("Library_Map::Get() no such key %s", key)
+	log.Panicf("Map::Get() no such key %s", key)
 
 	// Will never be reached
 	return self.Null()
+}
+
+func (self *Map) M_Has(params []*types.Type) *types.Type {
+		if len(params) != 1 {
+		log.Panic("Map::Has() expected exactly 1 parameter")
+	}
+
+	key := params[0].ToString()
+	_, has := self.items[key]
+
+	return self.Bool(has)
 }
 
 func (self *Map) Length() int {

@@ -1,0 +1,11 @@
+var friends = {
+	"Rachel": "Green",
+	"Monica": "Geller",
+	"Phoebe": "Buffay",
+	"Joey": "Tribbiani",
+	"Chandler": "Bing",
+	"Ross": "Geller"
+}
+
+IO.Println(friends.Has("Chandler")) // true
+IO.Println(friends.Has("Barney")) // false
