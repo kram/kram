@@ -56,12 +56,12 @@ func (list *List) M_Pop(params []*types.Type) *types.Type {
 
 // Adressable from VM
 func (list *List) ItemAt(params []*types.Type) *types.Type {
-	return list.M_ItemAt(params)
+	return list.M_Get(params)
 }
 
-func (list *List) M_ItemAt(params []*types.Type) *types.Type {
+func (list *List) M_Get(params []*types.Type) *types.Type {
 	if len(params) != 1 {
-		log.Panic("List::ItemAt() expected only 1 parameter")
+		log.Panic("List::Get() expected only 1 parameter")
 	}
 
 	param := params[0]
@@ -74,7 +74,7 @@ func (list *List) M_ItemAt(params []*types.Type) *types.Type {
 		return list.ItemAtList(li)
 	}
 
-	log.Panic("List::ItemAt() expected parameter 1 to be of type Number or List")
+	log.Panic("List::Get() expected parameter 1 to be of type Number or List")
 
 	// Will never be reached
 	return list.Null()
@@ -86,14 +86,14 @@ func (list *List) ItemAtNumber(num *Number) *types.Type {
 	key_float := math.Trunc(num.Value)
 
 	if key_float != num.Value {
-		log.Panic("List::ItemAt() can only be used together with whole numbers")
+		log.Panic("List::Get() can only be used together with whole numbers")
 	}
 
 	if len(list.Items) > int(key_float) {
 		return list.Items[int(key_float)]
 	}
 
-	log.Panic("List::ItemAt() out of range!")
+	log.Panic("List::Get() out of range!")
 
 	// Will never be reached
 	return list.Null()

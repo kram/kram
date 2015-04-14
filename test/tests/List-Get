@@ -1,0 +1,10 @@
+var friends = ["Rachel Green", "Monica Geller", "Phoebe Buffay-Hannigan", "Joey Tribbiani", "Chandler Bing", "Ross Geller"]
+
+IO.Println(friends.Get(3)) // Joey Tribbiani
+IO.Println(friends[3]) // Joey Tribbiani
+
+IO.Println(friends.Get([1,3,5])) // [Monica Geller, Joey Tribbiani, Ross Geller]
+IO.Println(friends[[1,3,5]]) // [Monica Geller, Joey Tribbiani, Ross Geller]
+
+IO.Println(friends.Get(1..3)) // [Monica Geller, Phoebe Buffay-Hannigan]
+IO.Println(friends[1..3]) // [Monica Geller, Phoebe Buffay-Hannigan]
