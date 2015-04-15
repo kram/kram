@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"encoding/json"
-	_ "os"
 
 	ins "github.com/zegl/Gus/src/instructions"
 )
@@ -30,6 +28,7 @@ type ON int
 const (
 	ON_DEFAULT     ON = 1 << iota // 1
 	ON_CLASS_BODY                 // 2
+	ON_PUSH_CLASS                 // 4
 )
 
 // --------------- Stack
@@ -176,7 +175,14 @@ func (p *Parser) Parse(tokens []Token) ins.Block {
 
 	// List of all operators starting a new sub-expression
 	// Starting off with a clonse of p.Comparisions
-	p.StartOperators = p.Comparisions
+	p.StartOperators = make(map[string]bool)
+	p.StartOperators["=="] = true
+	p.StartOperators[">"] = true
+	p.StartOperators[">="] = true
+	p.StartOperators["<"] = true
+	p.StartOperators["<="] = true
+	p.StartOperators["&&"] = true
+	p.StartOperators["||"] = true
 	p.StartOperators["++"] = true
 	p.StartOperators["--"] = true
 	p.StartOperators["-"] = true
@@ -222,7 +228,6 @@ func (p *Parser) Symbol(str string, function SymbolFunction, importance int) {
 //
 func (p *Parser) Infix(str string, importance int) {
 	p.Symbol(str, func(on ON) ins.Node {
-		fmt.Println("Infix()", on)
 		return p.ParseStatementPart(on)
 	}, importance)
 }
@@ -332,7 +337,6 @@ func (p *Parser) ReadUntilWithON(until []Token, on ON) (res ins.Node) {
 	res = &ins.Nil{}
 
 	p.Stack.Push()
-
 	first := true
 
 	for {
@@ -349,7 +353,6 @@ func (p *Parser) ReadUntilWithON(until []Token, on ON) (res ins.Node) {
 		}
 
 		first = false
-
 		p.Advance()
 
 		for _, t := range until {
@@ -372,7 +375,6 @@ func (p *Parser) ReadUntilWithON(until []Token, on ON) (res ins.Node) {
 	}
 
 	p.Stack.Pop()
-
 	p.Log(-1, "ReadUntil() (End)", until)
 
 	return
@@ -443,8 +445,6 @@ func (p *Parser) LookAhead(in ins.Node) ins.Node {
 func (p *Parser) LookAheadWithON(in ins.Node, on ON) ins.Node {
 	next := p.NextToken(0)
 
-	fmt.Println("LookAhead()", in, on)
-
 	// PushClass
 	// IO.Println("123")
 	//   ^
@@ -488,35 +488,17 @@ func (p *Parser) SymbolPushClass(in ins.Node) ins.Node {
 		}
 	}
 
-	b, _ := json.MarshalIndent(push, "", "  ")
-	fmt.Println(string(b))
-
-	push.Right = p.ParseNext(true)
+	push.Right = p.ParseNextWithON(true, ON_PUSH_CLASS)
 
 	p.Log(-1, "SymbolPushClass()")
-
-	b, _ = json.MarshalIndent(push, "", "  ")
-	fmt.Println(string(b))
 
 	return p.LookAhead(push)
 }
 
 func (p *Parser) SymbolCall(in ins.Node, on ON) ins.Node {
-
 	p.Log(1, "SymbolCall()")
 
-	b, _ := json.MarshalIndent(in, "", "  ")
-	fmt.Println(string(b))
-
 	p.AdvanceAndExpect("operator", "(")
-
-	fmt.Println("SymbolCall() ", on)
-
-	/*if variable, ok := in.(ins.Variable); ok {
-		if variable.Name == "Calculate" {
-			os.Exit(1)
-		}
-	}*/
 
 	// Method definitions
 	if on == ON_CLASS_BODY {
@@ -527,47 +509,28 @@ func (p *Parser) SymbolCall(in ins.Node, on ON) ins.Node {
 		log.Panic("Encountered unknown in ON_CLASS_BODY")
 	}
 
-	// The default case
-	// We are now defining a method call
-	call := ins.Call{}
-	call.Parameters = p.ParseParameters()
-
-	// Put Call{} into the a previous PushClass if neeccesary
-	if push, ok := in.(ins.PushClass); ok {
-		call.Left = push.Right
+	// Calling a method
+	if on == ON_PUSH_CLASS {
+		call := ins.Call{}
+		call.Parameters = p.ParseParameters()
 
 		// Convert Variable to literal
-		if v, ok := call.Left.(ins.Variable); ok {
+		if v, ok := in.(ins.Variable); ok {
 			call.Left = ins.Literal{
 				Type:  "string",
 				Value: v.Name,
 			}
 		}
 
-		push.Right = call
-
-		p.Log(-1, "SymbolCall() PushClass")
-
-		return p.LookAhead(push)
+		return p.LookAhead(call)
 	}
 
-	fmt.Println(in)
+	log.Panic("SymbolCall() on", on)
 
-	b, _ = json.MarshalIndent(in, "", "  ")
-	fmt.Println(string(b))
-
-	fmt.Println("Is this real life?")
-	//os.Exit(1)
-
-	call.Left = in
-
-	p.Log(-1, "SymbolCall()")
-
-	return call
+	return in
 }
 
 func (p *Parser) SymbolMath(previous ins.Node) ins.Node {
-
 	p.Log(1, "SymbolMath()")
 
 	current := p.NextToken(0)
@@ -643,8 +606,6 @@ func (p *Parser) ParseStatementPart(on ON) ins.Node {
 	previous := p.TopOfStack()
 	current := p.Token
 
-	fmt.Println("PSP Current", on, current)
-
 	p.Log(1, "ParseStatementPart()", current, previous)
 
 	// Number or string
@@ -683,9 +644,7 @@ func (p *Parser) ParseParameters() []ins.Node {
 	params := make([]ins.Node, 0)
 
 	for {
-		next := p.NextToken(0)
-
-		log.Println(next)
+		next := p.NextToken(-1)
 
 		// We're done here
 		if (next.Type == "operator" && next.Value == ")") || next.Type == "EOL" || next.Type == "EOF" {
@@ -756,10 +715,10 @@ func (p *Parser) Symbol_name(on ON) ins.Node {
 			return set
 		}
 
-		if next.Type == "EOL" || next.Type == "EOF" {
+		/*if next.Type == "EOL" || next.Type == "EOF" {
 			fmt.Println("Should we really end up here? 81238nadouas8u")
 			return &ins.Nil{}
-		}
+		}*/
 
 		return p.ParseStatementPart(on)
 	}
@@ -803,9 +762,6 @@ func (p *Parser) Symbol_class(on ON) ins.Node {
 	}
 
 	class.Name = name.Value
-
-	fmt.Println("ParseBlockWithON", "ON_CLASS_BODY")
-
 	class.Body = p.ParseBlockWithON(ON_CLASS_BODY)
 	class.Body.Scope = true
 
@@ -841,12 +797,6 @@ func (p *Parser) Symbol_new(on ON) ins.Node {
 	}
 
 	inst.Parameters = p.ParseParameters()
-
-	/*next = p.NextToken(1)
-
-	if next.Type != "operator" && next.Value != ")" {
-		log.Panicf("Expected ) after new, got %s (%s)", name.Type, name.Value)
-	}*/
 
 	return inst
 }
@@ -958,8 +908,6 @@ func (p *Parser) Symbol_for_in(f ins.For) ins.For {
 }
 
 func (p *Parser) Symbol_MethodWithName(name string) ins.DefineMethod {
-
-	// Initialize
 	method := ins.DefineMethod{}
 	method.Parameters = make([]ins.Parameter, 0)
 
