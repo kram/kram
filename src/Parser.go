@@ -312,14 +312,14 @@ func (p *Parser) ParseNextWithON(advance bool, on ON) ins.Node {
 
 	p.Log(1, "ParseNext() (Start) ", on, tok)
 
-	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" || tok.Type == "name" {
-		a := p.Symbols[tok.Type].Function(on)
+	if _, ok := p.Symbols[tok.Value]; ok {
+		a := p.Symbols[tok.Value].Function(on)
 		p.Log(-1, "ParseNext() (End) ", tok)
 		return p.LookAheadWithON(a, on)
 	}
 
-	if _, ok := p.Symbols[tok.Value]; ok {
-		a := p.Symbols[tok.Value].Function(on)
+	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" || tok.Type == "name" {
+		a := p.Symbols[tok.Type].Function(on)
 		p.Log(-1, "ParseNext() (End) ", tok)
 		return p.LookAheadWithON(a, on)
 	}
@@ -527,9 +527,11 @@ func (p *Parser) SymbolCall(in ins.Node, on ON) ins.Node {
 		return p.LookAhead(call)
 	}
 
-	log.Panic("SymbolCall() on", on)
+	call := ins.Call{}
+	call.Parameters = p.ParseParameters()
+	call.Left = in
 
-	return in
+	return p.LookAhead(call)
 }
 
 func (p *Parser) SymbolMath(previous ins.Node) ins.Node {
@@ -638,7 +640,7 @@ func (p *Parser) ParseStatementPart(on ON) ins.Node {
 			p.Reverse(1)
 
 			p.Log(-1, "ParseStatementPart()")
-			
+
 			return p.SymbolMath(ins.Nil{})
 		}
 	}
