@@ -1,1 +1,1 @@
-IO.Println(123.Type())
+A.Method(Param + B.OtherMethod(LastParam))

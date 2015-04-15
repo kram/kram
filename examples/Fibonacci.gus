@@ -1,0 +1,11 @@
+class Fib {
+	Calculate(num) {
+		if num < 2 {
+			return num
+		}
+
+		return Fib.Calculate(num - 1) + Fib.Calculate(num - 2)
+	}
+}
+
+IO.Println(Fib.Calculate(10))
