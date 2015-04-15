@@ -224,6 +224,20 @@ func (p *Parser) Advance() Token {
 	return token
 }
 
+func (p *Parser) AdvanceAndExpect(t, v string) Token {
+	next := p.Advance()
+
+	if next.Type != t {
+		log.Panicf("Expected %s %s got %s %s", t, v, next.Type, next.Value)
+	}
+
+	if v != "" && next.Value != v {
+		log.Panicf("Expected %s %s got %s %s", t, v, next.Type, next.Value)	
+	}
+
+	return next
+}
+
 //
 // Reverse progress made by p.Advance()
 //
@@ -645,8 +659,8 @@ func (p *Parser) Symbol_if() ins.Node {
 	next := p.NextToken(0)
 
 	if next.Type == "keyword" && next.Value == "else" {
-		p.Advance() // TODO (expect else)
-		p.Advance() // TODO (expect {)
+		p.AdvanceAndExpect("keyword", "else")
+		p.AdvanceAndExpect("operator", "{")
 		i.False = p.ParseBlock()
 		i.False.Scope = true // Create new scope
 	}
