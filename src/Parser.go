@@ -632,11 +632,20 @@ func (p *Parser) ParseStatementPart(on ON) ins.Node {
 		return p.LookAheadWithON(variable, on)
 	}
 
+	// Math exceptions
+	if current.Type == "operator" && current.Value == "-" {
+		if _, ok := p.RightOnlyInfix[current.Value]; ok {
+			p.Reverse(1)
+
+			p.Log(-1, "ParseStatementPart()")
+			
+			return p.SymbolMath(ins.Nil{})
+		}
+	}
+
 	p.Log(-1, "ParseStatementPart()")
 
 	return p.LookAhead(previous)
-
-	return ins.Nil{}
 }
 
 func (p *Parser) ParseParameters() []ins.Node {
