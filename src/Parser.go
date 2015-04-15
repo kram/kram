@@ -191,6 +191,8 @@ func (p *Parser) Parse(tokens []Token) ins.Block {
 	p.StartOperators["/"] = true
 	p.StartOperators["("] = true
 	p.StartOperators["="] = true
+	p.StartOperators[".."] = true
+	p.StartOperators["..."] = true
 
 	// Math
 	p.Infix("+", 50)
