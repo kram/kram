@@ -653,7 +653,9 @@ func (p *Parser) ParseParameters() []ins.Node {
 
 		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}})
 
-		params = append(params, param)
+		if _, ok := param.(*ins.Nil); !ok {
+			params = append(params, param)
+		}
 	}
 
 	p.Log(-1, "ParseStatementPart()")
