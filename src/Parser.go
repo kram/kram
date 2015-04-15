@@ -7,8 +7,9 @@ package gus
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
+	"encoding/json"
+	_ "os"
 
 	ins "github.com/zegl/Gus/src/instructions"
 )
@@ -20,9 +21,16 @@ type Symbol struct {
 	Importance int
 }
 
-type SymbolFunction func() ins.Node
+type SymbolFunction func(ON) ins.Node
 
 // --------------- Symbols
+
+type ON int
+
+const (
+	ON_DEFAULT     ON = 1 << iota // 1
+	ON_CLASS_BODY                 // 2
+)
 
 // --------------- Stack
 
@@ -79,6 +87,7 @@ type Parser struct {
 	Symbols map[string]Symbol
 
 	Comparisions  map[string]bool
+	StartOperators  map[string]bool
 	LeftOnlyInfix map[string]bool
 	RightOnlyInfix map[string]bool
 
@@ -165,6 +174,18 @@ func (p *Parser) Parse(tokens []Token) ins.Block {
 	p.RightOnlyInfix = make(map[string]bool)
 	p.RightOnlyInfix["-"] = true
 
+	// List of all operators starting a new sub-expression
+	// Starting off with a clonse of p.Comparisions
+	p.StartOperators = p.Comparisions
+	p.StartOperators["++"] = true
+	p.StartOperators["--"] = true
+	p.StartOperators["-"] = true
+	p.StartOperators["+"] = true
+	p.StartOperators["*"] = true
+	p.StartOperators["/"] = true
+	p.StartOperators["("] = true
+	p.StartOperators["="] = true
+
 	// Math
 	p.Infix("+", 50)
 	p.Infix("-", 50)
@@ -200,8 +221,9 @@ func (p *Parser) Symbol(str string, function SymbolFunction, importance int) {
 // Shortcut for adding Infix's to the symbol table
 //
 func (p *Parser) Infix(str string, importance int) {
-	p.Symbol(str, func() ins.Node {
-		return p.ParseStatementPart()
+	p.Symbol(str, func(on ON) ins.Node {
+		fmt.Println("Infix()", on)
+		return p.ParseStatementPart(on)
 	}, importance)
 }
 
@@ -271,25 +293,28 @@ func (p *Parser) GetOperatorImportance(str string) int {
 }
 
 func (p *Parser) ParseNext(advance bool) ins.Node {
+	return p.ParseNextWithON(advance, ON_DEFAULT)
+}
 
+func (p *Parser) ParseNextWithON(advance bool, on ON) ins.Node {
 	if advance {
 		p.Advance()
 	}
 
 	tok := p.Token
 
-	p.Log(1, "ParseNext() (Start) ", tok)
-
-	if _, ok := p.Symbols[tok.Value]; ok {
-		a := p.Symbols[tok.Value].Function()
-		p.Log(-1, "ParseNext() (End) ", tok)
-		return a
-	}
+	p.Log(1, "ParseNext() (Start) ", on, tok)
 
 	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" || tok.Type == "name" {
-		a := p.Symbols[tok.Type].Function()
+		a := p.Symbols[tok.Type].Function(on)
 		p.Log(-1, "ParseNext() (End) ", tok)
-		return a
+		return p.LookAheadWithON(a, on)
+	}
+
+	if _, ok := p.Symbols[tok.Value]; ok {
+		a := p.Symbols[tok.Value].Function(on)
+		p.Log(-1, "ParseNext() (End) ", tok)
+		return p.LookAheadWithON(a, on)
 	}
 
 	p.Log(-1, "ParseNext() (Nil) ", tok)
@@ -297,8 +322,12 @@ func (p *Parser) ParseNext(advance bool) ins.Node {
 	return &ins.Nil{}
 }
 
-func (p *Parser) ReadUntil(until []Token) (res ins.Node) {
-	p.Log(1, "ReadUntil() (Start)", until)
+func (p *Parser) ReadUntil(until []Token) ins.Node {
+	return p.ReadUntilWithON(until, ON_DEFAULT)
+}
+
+func (p *Parser) ReadUntilWithON(until []Token, on ON) (res ins.Node) {
+	p.Log(1, "ReadUntil() (Start)", on, until)
 
 	res = &ins.Nil{}
 
@@ -331,7 +360,7 @@ func (p *Parser) ReadUntil(until []Token) (res ins.Node) {
 			}
 		}
 
-		r := p.ParseNext(false)
+		r := p.ParseNextWithON(false, on)
 
 		if _, ok := r.(*ins.Nil); ok {
 			p.Log(0, "ReadUntil()", "Was nil, not overwriting...")
@@ -350,13 +379,16 @@ func (p *Parser) ReadUntil(until []Token) (res ins.Node) {
 }
 
 func (p *Parser) ParseBlock() ins.Block {
+	return p.ParseBlockWithON(ON_DEFAULT)
+}
 
+func (p *Parser) ParseBlockWithON(on ON) ins.Block {
 	p.Log(1, "ParseBlock()")
 
 	block := ins.Block{}
 
 	for {
-		i := p.ReadUntil([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}})
+		i := p.ReadUntilWithON([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}}, on)
 
 		if _, ok := i.(*ins.Nil); !ok {
 			block.Body = append(block.Body, i)
@@ -404,10 +436,214 @@ func (p *Parser) TopOfStack() ins.Node {
 	return ins.Nil{}
 }
 
-func (p *Parser) ParseStatementPart() ins.Node {
+func (p *Parser) LookAhead(in ins.Node) ins.Node {
+	return p.LookAheadWithON(in, ON_DEFAULT)
+}
+
+func (p *Parser) LookAheadWithON(in ins.Node, on ON) ins.Node {
+	next := p.NextToken(0)
+
+	fmt.Println("LookAhead()", in, on)
+
+	// PushClass
+	// IO.Println("123")
+	//   ^
+	if next.Type == "operator" && next.Value == "." {
+		return p.SymbolPushClass(in)
+	} 
+
+	// Call
+	// IO.Println("123")
+	//           ^
+	if next.Type == "operator" && next.Value == "(" {
+		return p.SymbolCall(in, on)
+	}
+
+	// We encountered an operator, check the type of the previous expression
+	if next.Type == "operator" {
+		if _, ok := p.StartOperators[next.Value]; ok  {
+			return p.SymbolMath(in)
+		}
+
+		return in
+	}
+
+	// Default is to do nothing
+	return in
+}
+
+func (p *Parser) SymbolPushClass(in ins.Node) ins.Node {
+	p.Log(1, "SymbolPushClass()")
+
+	p.AdvanceAndExpect("operator", ".")
+
+	push := ins.PushClass{}
+	push.Left = in
+
+	// Convert Variable to literal
+	if v, ok := push.Left.(ins.Variable); ok {
+		push.Left = ins.Literal{
+			Type:  "string",
+			Value: v.Name,
+		}
+	}
+
+	b, _ := json.MarshalIndent(push, "", "  ")
+	fmt.Println(string(b))
+
+	push.Right = p.ParseNext(true)
+
+	p.Log(-1, "SymbolPushClass()")
+
+	b, _ = json.MarshalIndent(push, "", "  ")
+	fmt.Println(string(b))
+
+	return p.LookAhead(push)
+}
+
+func (p *Parser) SymbolCall(in ins.Node, on ON) ins.Node {
+
+	p.Log(1, "SymbolCall()")
+
+	b, _ := json.MarshalIndent(in, "", "  ")
+	fmt.Println(string(b))
+
+	p.AdvanceAndExpect("operator", "(")
+
+	fmt.Println("SymbolCall() ", on)
+
+	/*if variable, ok := in.(ins.Variable); ok {
+		if variable.Name == "Calculate" {
+			os.Exit(1)
+		}
+	}*/
+
+	// Method definitions
+	if on == ON_CLASS_BODY {
+		if variable, ok := in.(ins.Variable); ok {
+			return p.Symbol_MethodWithName(variable.Name)
+		}
+
+		log.Panic("Encountered unknown in ON_CLASS_BODY")
+	}
+
+	// The default case
+	// We are now defining a method call
+	call := ins.Call{}
+	call.Parameters = p.ParseParameters()
+
+	// Put Call{} into the a previous PushClass if neeccesary
+	if push, ok := in.(ins.PushClass); ok {
+		call.Left = push.Right
+
+		// Convert Variable to literal
+		if v, ok := call.Left.(ins.Variable); ok {
+			call.Left = ins.Literal{
+				Type:  "string",
+				Value: v.Name,
+			}
+		}
+
+		push.Right = call
+
+		p.Log(-1, "SymbolCall() PushClass")
+
+		return p.LookAhead(push)
+	}
+
+	fmt.Println(in)
+
+	b, _ = json.MarshalIndent(in, "", "  ")
+	fmt.Println(string(b))
+
+	fmt.Println("Is this real life?")
+	//os.Exit(1)
+
+	call.Left = in
+
+	p.Log(-1, "SymbolCall()")
+
+	return call
+}
+
+func (p *Parser) SymbolMath(previous ins.Node) ins.Node {
+
+	p.Log(1, "SymbolMath()")
+
+	current := p.NextToken(0)
+
+	p.Advance()
+
+	math := ins.Math{}
+	math.Method = current.Value // + - * /
+
+	// Differentiate between comparisions and arithmetic operators
+	if _, ok := p.Comparisions[math.Method]; ok {
+		math.IsComparision = true
+	} else {
+		math.IsComparision = false
+	}
+
+	if prev, ok := previous.(ins.Math); ok {
+		if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
+			math.Left = prev.Left
+			math.Method = prev.Method
+			math.Right = ins.Math{
+				Method: current.Value,
+				Left:   prev.Right,
+				Right:  p.ParseNext(true),
+			}
+		} else {
+			math.Left = previous
+			math.Right = p.ParseNext(true)
+		}
+
+		return p.LookAhead(math)
+	}
+
+	_, isLeftOnly := p.LeftOnlyInfix[math.Method]
+	_, isRightOnly := p.RightOnlyInfix[math.Method]
+
+	if _, ok := previous.(ins.Literal); ok {
+		math.Left = previous
+
+		if !isLeftOnly {
+			math.Right = p.ParseNext(true)
+		}
+
+		return p.LookAhead(math)
+	}
+
+	if _, ok := previous.(ins.Variable); ok {
+		math.Left = previous
+
+		if !isLeftOnly {
+			math.Right = p.ParseNext(true)
+		}
+
+		return p.LookAhead(math)
+	}
+
+	if isRightOnly {
+		math.Left = p.ParseNext(true)
+
+		return p.LookAhead(math)
+	}
+
+	math.Left = previous
+	math.Right = p.ParseNext(true)
+
+	p.Log(-1, "SymbolMath()")
+
+	return p.LookAhead(math)
+}
+
+func (p *Parser) ParseStatementPart(on ON) ins.Node {
 
 	previous := p.TopOfStack()
 	current := p.Token
+
+	fmt.Println("PSP Current", on, current)
 
 	p.Log(1, "ParseStatementPart()", current, previous)
 
@@ -420,7 +656,7 @@ func (p *Parser) ParseStatementPart() ins.Node {
 
 		p.Log(-1, "ParseStatementPart()")
 
-		return literal
+		return p.LookAhead(literal)
 	}
 
 	// Variables
@@ -430,145 +666,26 @@ func (p *Parser) ParseStatementPart() ins.Node {
 
 		p.Log(-1, "ParseStatementPart()")
 
-		return variable
-	}
-
-	// PushClass
-	// IO.Println("123")
-	//   ^
-	if current.Type == "operator" && current.Value == "." {
-		push := ins.PushClass{}
-		push.Left = previous
-
-		// Convert Variable to literal
-		if v, ok := push.Left.(ins.Variable); ok {
-			push.Left = ins.Literal{
-				Type:  "string",
-				Value: v.Name,
-			}
-		}
-
-		push.Right = p.ParseNext(true)
-
-		p.Log(-1, "ParseStatementPart()")
-
-		return push
-	}
-
-	// Call
-	// IO.Println("123")
-	//           ^
-	if current.Type == "operator" && current.Value == "(" {
-
-		// When the previous was a name
-		// This is now a method definition
-		if variable, ok := previous.(ins.Variable); ok {
-			return p.Symbol_MethodWithName(variable.Name)
-		}
-
-		// The default case
-		// We are now defining a method call
-		call := ins.Call{}
-		call.Parameters = p.ParseParameters()
-
-		// Put Call{} into the a previous PushClass if neeccesary
-		if push, ok := previous.(ins.PushClass); ok {
-			call.Left = push.Right
-
-			// Convert Variable to literal
-			if v, ok := call.Left.(ins.Variable); ok {
-				call.Left = ins.Literal{
-					Type:  "string",
-					Value: v.Name,
-				}
-			}
-
-			push.Right = call
-
-			p.Log(-1, "ParseStatementPart() PushClass")
-
-			return push
-		}
-
-		// Leave this to see if it actually can happen
-		call.Left = previous
-		fmt.Println("This happened, 918238yyhaUSHDHASD")
-		os.Exit(1)
-
-		p.Log(-1, "ParseStatementPart()")
-
-		return call
-	}
-
-	// We encountered an operator, check the type of the previous expression
-	if current.Type == "operator" {
-
-		math := ins.Math{}
-		math.Method = current.Value // + - * /
-
-		// Differentiate between comparisions and arithmetic operators
-		if _, ok := p.Comparisions[math.Method]; ok {
-			math.IsComparision = true
-		} else {
-			math.IsComparision = false
-		}
-
-		if prev, ok := previous.(ins.Math); ok {
-			if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
-				math.Left = prev.Left
-				math.Method = prev.Method
-				math.Right = ins.Math{
-					Method: current.Value,
-					Left:   prev.Right,
-					Right:  p.ParseNext(true),
-				}
-			} else {
-				math.Left = previous
-				math.Right = p.ParseNext(true)
-			}
-
-			return math
-		}
-
-		_, isLeftOnly := p.LeftOnlyInfix[math.Method]
-		_, isRightOnly := p.RightOnlyInfix[math.Method]
-
-		if _, ok := previous.(ins.Literal); ok {
-			math.Left = previous
-
-			if !isLeftOnly {
-				math.Right = p.ParseNext(true)
-			}
-		}
-
-		
-		if _, ok := previous.(ins.Variable); ok {
-			math.Left = previous
-
-			if !isLeftOnly {
-				math.Right = p.ParseNext(true)
-			}
-		}
-
-		if isRightOnly {
-			math.Left = p.ParseNext(true)
-		}
-
-		p.Log(-1, "ParseStatementPart()")
-
-		return math
+		return p.LookAheadWithON(variable, on)
 	}
 
 	p.Log(-1, "ParseStatementPart()")
+
+	return p.LookAhead(previous)
 
 	return ins.Nil{}
 }
 
 func (p *Parser) ParseParameters() []ins.Node {
+
+	p.Log(1, "ParseParameters()")
+
 	params := make([]ins.Node, 0)
 
 	for {
 		next := p.NextToken(0)
+
+		log.Println(next)
 
 		// We're done here
 		if (next.Type == "operator" && next.Value == ")") || next.Type == "EOL" || next.Type == "EOF" {
@@ -580,10 +697,12 @@ func (p *Parser) ParseParameters() []ins.Node {
 		params = append(params, param)
 	}
 
+	p.Log(-1, "ParseStatementPart()")
+
 	return params
 }
 
-func (p *Parser) Symbol_var() ins.Node {
+func (p *Parser) Symbol_var(on ON) ins.Node {
 	n := ins.Assign{}
 
 	name := p.Advance()
@@ -613,7 +732,7 @@ func (p *Parser) Symbol_var() ins.Node {
 	return n
 }
 
-func (p *Parser) Symbol_name() ins.Node {
+func (p *Parser) Symbol_name(on ON) ins.Node {
 	// Var as assignment
 	if len(*p.Stack.Items) == 0 {
 		name := p.Token
@@ -642,13 +761,13 @@ func (p *Parser) Symbol_name() ins.Node {
 			return &ins.Nil{}
 		}
 
-		return p.ParseStatementPart()
+		return p.ParseStatementPart(on)
 	}
 
-	return p.ParseStatementPart()
+	return p.ParseStatementPart(on)
 }
 
-func (p *Parser) Symbol_if() ins.Node {
+func (p *Parser) Symbol_if(on ON) ins.Node {
 	i := ins.If{}
 
 	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
@@ -668,7 +787,7 @@ func (p *Parser) Symbol_if() ins.Node {
 	return i
 }
 
-func (p *Parser) Symbol_class() ins.Node {
+func (p *Parser) Symbol_class(on ON) ins.Node {
 	class := ins.DefineClass{}
 
 	name := p.Advance()
@@ -684,7 +803,10 @@ func (p *Parser) Symbol_class() ins.Node {
 	}
 
 	class.Name = name.Value
-	class.Body = p.ParseBlock()
+
+	fmt.Println("ParseBlockWithON", "ON_CLASS_BODY")
+
+	class.Body = p.ParseBlockWithON(ON_CLASS_BODY)
 	class.Body.Scope = true
 
 	return class
@@ -701,7 +823,7 @@ func (p *Parser) Symbol_static() ins.Node {
 }
 */
 
-func (p *Parser) Symbol_new() ins.Node {
+func (p *Parser) Symbol_new(on ON) ins.Node {
 	inst := ins.Instance{}
 
 	name := p.Advance()
@@ -720,16 +842,16 @@ func (p *Parser) Symbol_new() ins.Node {
 
 	inst.Parameters = p.ParseParameters()
 
-	// next = p.Advance()
+	/*next = p.NextToken(1)
 
 	if next.Type != "operator" && next.Value != ")" {
 		log.Panicf("Expected ) after new, got %s (%s)", name.Type, name.Value)
-	}
+	}*/
 
 	return inst
 }
 
-func (p *Parser) Symbol_list() ins.Node {
+func (p *Parser) Symbol_list(on ON) ins.Node {
 	if len(*p.Stack.Items) == 0 {
 		return p.Symbol_ListCreate()
 	}
@@ -762,14 +884,14 @@ func (p *Parser) Symbol_ListAccess() ins.Node {
 	return access
 }
 
-func (p *Parser) Symbol_return() ins.Node {
+func (p *Parser) Symbol_return(on ON) ins.Node {
 	res := ins.Return{}
 	res.Statement = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
 
 	return res
 }
 
-func (p *Parser) Symbol_map() ins.Node {
+func (p *Parser) Symbol_map(on ON) ins.Node {
 	m := ins.MapCreate{}
 	m.Keys = make([]ins.Node, 0)
 	m.Values = make([]ins.Node, 0)
@@ -801,7 +923,7 @@ func (p *Parser) Symbol_map() ins.Node {
 	return m
 }
 
-func (p *Parser) Symbol_for() ins.Node {
+func (p *Parser) Symbol_for(on ON) ins.Node {
 	f := ins.For{}
 
 	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}, Token{"keyword", "in"}})
