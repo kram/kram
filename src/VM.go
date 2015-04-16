@@ -400,12 +400,11 @@ func (vm *VM) OperationPushClass(pushClass ins.PushClass) *types.Type {
 	left := vm.Operation(pushClass.Left, types.ON_NOTHING)
 	name := left.ToString()
 
-	class, ok := vm.env.Get(name)
-
 	if name == "self" {
-		class = vm.Classes[len(vm.Classes)-1]
-		ok = true
+		return vm.Operation(pushClass.Right, types.ON_CLASS)
 	}
+
+	class, ok := vm.env.Get(name)
 
 	// There is no such class, use left
 	if !ok {
