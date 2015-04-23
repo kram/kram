@@ -11,29 +11,29 @@ import (
 
 type Builtin struct {}
 
-func (self Builtin) InitWithParams(params []*types.Type) {
+func (self Builtin) InitWithParams(params []*types.Class) {
 	log.Panic("This Type does not support InitWithParams()")
 }
 
-func (self Builtin) Null() *types.Type {
+func (self Builtin) Null() *types.Class {
 	return self.fromLib(&Null{})
 }
 
-func (self Builtin) String(str string) *types.Type {
+func (self Builtin) String(str string) *types.Class {
 	return self.fromLib(&String{
 		Value: str,
 	})
 }
 
-func (self Builtin) Bool(value bool) *types.Type {
+func (self Builtin) Bool(value bool) *types.Class {
 	b := Bool{}
 	b.Set(value)
 
 	return self.fromLib(&b)
 }
 
-func (self Builtin) fromLib(lib types.Lib) *types.Type {
-	class := types.Type{}
+func (self Builtin) fromLib(lib types.Lib) *types.Class {
+	class := types.Class{}
 	class.InitWithLib(lib)
 
 	return &class

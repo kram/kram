@@ -12,20 +12,20 @@ import (
 
 type Map struct {
 	Builtin
-	items map[string]*types.Type
+	items map[string]*types.Class
 	order []string // To keep the order
 }
 
 func (self Map) Instance() (types.Lib, string) { return &Map{}, self.Type() }
 func (self Map) Type() string { return "Map" }
-func (self Map) M_Type() *types.Type { return self.String(self.Type()) }
+func (self Map) M_Type() *types.Class { return self.String(self.Type()) }
 
 // Map can not be initialized with Init
 // see InitWithParams
 func (self *Map) Init(str string) {}
 
-func (self *Map) InitWithParams(params []*types.Type) {
-	self.items = make(map[string]*types.Type)
+func (self *Map) InitWithParams(params []*types.Class) {
+	self.items = make(map[string]*types.Class)
 	self.order = make([]string, 0)
 
 	is_key := true
@@ -61,7 +61,7 @@ func (self *Map) ToString() string {
 	return str
 }
 
-func (self *Map) M_Set(params []*types.Type) {
+func (self *Map) M_Set(params []*types.Class) {
 	if len(params) != 2 {
 		log.Panic("Map::Set() expected exactly 2 parameters")
 	}
@@ -78,11 +78,11 @@ func (self *Map) M_Set(params []*types.Type) {
 }
 
 // Adressable from VM
-func (self *Map) Get(params []*types.Type) *types.Type {
+func (self *Map) Get(params []*types.Class) *types.Class {
 	return self.M_Get(params)
 }
 
-func (self *Map) M_Get(params []*types.Type) *types.Type {
+func (self *Map) M_Get(params []*types.Class) *types.Class {
 	if len(params) != 1 {
 		log.Panic("Map::Get() expected exactly 1 parameter")
 	}
@@ -99,7 +99,7 @@ func (self *Map) M_Get(params []*types.Type) *types.Type {
 	return self.Null()
 }
 
-func (self *Map) M_Has(params []*types.Type) *types.Type {
+func (self *Map) M_Has(params []*types.Class) *types.Class {
 		if len(params) != 1 {
 		log.Panic("Map::Has() expected exactly 1 parameter")
 	}

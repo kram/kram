@@ -16,12 +16,12 @@ type Library_File struct {
 
 func (self Library_File) Instance() (types.Lib, string) { return &Library_File{}, self.Type() }
 func (self Library_File) Type() string { return "File" }
-func (self Library_File) M_Type() *types.Type { return self.String(self.Type()) }
+func (self Library_File) M_Type() *types.Class { return self.String(self.Type()) }
 
 // File.Read()
 // @param path String
 // @return String
-func (self Library_File) M_Read(params []*types.Type) *types.Type {
+func (self Library_File) M_Read(params []*types.Class) *types.Class {
 
 	if len(params) != 1 {
 		log.Panic("File.Read() expects exactly 1 parameter")
@@ -46,7 +46,7 @@ func (self Library_File) M_Read(params []*types.Type) *types.Type {
 // @param path String
 // @param content String
 // @return Bool
-func (self Library_File) M_Write(params []*types.Type) *types.Type {
+func (self Library_File) M_Write(params []*types.Class) *types.Class {
 
 	if len(params) != 2 {
 		log.Panic("File.Write() expects exactly 2 parameters")
