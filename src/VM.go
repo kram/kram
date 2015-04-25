@@ -432,6 +432,16 @@ func (vm *VM) OperationIf(i ins.If) types.Type {
 
 	con := vm.Operation(i.Condition, types.ON_NOTHING)
 
+	// Literal bool
+	if bl, ok := con.(*types.LiteralBool); ok {
+		if bl.Bool {
+			return vm.Operation(i.True, types.ON_NOTHING)
+		} else {
+			return vm.Operation(i.False, types.ON_NOTHING)
+		}
+	}
+
+	// Value of the class Bool
 	if vm.GetType(con) != "Bool" {
 		log.Panicf("Expecing bool in condition, %s (%s)", vm.GetAsClass(con).ToString(), vm.GetType(con))
 	}
