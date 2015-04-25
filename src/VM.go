@@ -85,15 +85,15 @@ func (vm *VM) Libraries() {
 func (vm *VM) Operation(node ins.Node, on types.ON) types.Type {
 
 	if assign, ok := node.(ins.Assign); ok {
-		return vm.OperationAssign(assign)
+		return vm.Assign(assign)
 	}
 
 	if math, ok := node.(ins.Math); ok {
-		return vm.OperationMath(math)
+		return vm.Math(math)
 	}
 
 	if literal, ok := node.(ins.Literal); ok {
-		return vm.OperationLiteral(literal)
+		return vm.Literal(literal)
 	}
 
 	if variable, ok := node.(ins.Variable); ok {
@@ -102,7 +102,7 @@ func (vm *VM) Operation(node ins.Node, on types.ON) types.Type {
 			return vm.ClassOperationVariable(variable)
 		}
 
-		return vm.OperationVariable(variable)
+		return vm.Variable(variable)
 	}
 
 	if set, ok := node.(ins.Set); ok {
@@ -111,61 +111,61 @@ func (vm *VM) Operation(node ins.Node, on types.ON) types.Type {
 			return vm.ClassOperationSet(set)
 		}
 
-		return vm.OperationSet(set)
+		return vm.Set(set)
 	}
 
 	if i, ok := node.(ins.If); ok {
-		return vm.OperationIf(i)
+		return vm.If(i)
 	}
 
 	if block, ok := node.(ins.Block); ok {
-		return vm.OperationBlock(block, on)
+		return vm.Block(block, on)
 	}
 
 	if call, ok := node.(ins.Call); ok {
-		return vm.OperationCall(call)
+		return vm.Call(call)
 	}
 
 	if pushClass, ok := node.(ins.PushClass); ok {
-		return vm.OperationPushClass(pushClass)
+		return vm.PushClass(pushClass)
 	}
 
 	if defineClass, ok := node.(ins.DefineClass); ok {
-		return vm.OperationDefineClass(defineClass)
+		return vm.DefineClass(defineClass)
 	}
 
 	if defineMethod, ok := node.(ins.DefineMethod); ok {
-		return vm.OperationDefineMethod(defineMethod)
+		return vm.DefineMethod(defineMethod)
 	}
 
 	if instance, ok := node.(ins.Instance); ok {
-		return vm.OperationInstance(instance)
+		return vm.Instance(instance)
 	}
 
 	if list, ok := node.(ins.ListCreate); ok {
-		return vm.OperationListCreate(list)
+		return vm.ListCreate(list)
 	}
 
 	if access, ok := node.(ins.AccessChildItem); ok {
-		return vm.OperationAccessChildItem(access)
+		return vm.AccessChildItem(access)
 	}
 
 	if m, ok := node.(ins.MapCreate); ok {
-		return vm.OperationMapCreate(m)
+		return vm.MapCreate(m)
 	}
 
 	if ret, ok := node.(ins.Return); ok {
-		return vm.OperationReturn(ret)
+		return vm.Return(ret)
 	}
 
 	if f, ok := node.(ins.For); ok {
-		return vm.OperationFor(f)
+		return vm.For(f)
 	}
 
 	return vm.CreateType(&builtin.Null{})
 }
 
-func (vm *VM) OperationBlock(block ins.Block, on types.ON) types.Type {
+func (vm *VM) Block(block ins.Block, on types.ON) types.Type {
 
 	// Create new scope
 	if on != types.ON_FOR_PART && block.Scope == true {
@@ -200,7 +200,7 @@ func (vm *VM) OperationBlock(block ins.Block, on types.ON) types.Type {
 	return last
 }
 
-func (vm *VM) OperationAssign(assign ins.Assign) types.Type {
+func (vm *VM) Assign(assign ins.Assign) types.Type {
 
 	var value types.Type
 
@@ -217,23 +217,23 @@ func (vm *VM) OperationAssign(assign ins.Assign) types.Type {
 	return value
 }
 
-func (vm *VM) OperationMath(math ins.Math) types.Type {
+func (vm *VM) Math(math ins.Math) types.Type {
 
 	left := vm.Operation(math.Left, types.ON_NOTHING)
 	right := vm.Operation(math.Right, types.ON_NOTHING)
 
 	if math.IsComparision {
-		return vm.OperationMathCompare(left, right, math.Method)
+		return vm.MathCompare(left, right, math.Method)
 	}
 
-	return vm.OperationMathOperation(left, right, math.Method)
+	return vm.MathOperation(left, right, math.Method)
 }
 
-func (vm *VM) OperationMathCompare(left, right types.Type, method string) types.Type {
+func (vm *VM) MathCompare(left, right types.Type, method string) types.Type {
 
 	if left_n, ok := left.(*types.LiteralNumber); ok {
 		if right_n, ok := right.(*types.LiteralNumber); ok {
-			return vm.OperationMathCompareNumbers(left_n, right_n, method)
+			return vm.MathCompareNumbers(left_n, right_n, method)
 		}
 	}
 
@@ -244,11 +244,11 @@ func (vm *VM) OperationMathCompare(left, right types.Type, method string) types.
 	return l.Compare(vm, method, r)
 }
 
-func (vm *VM) OperationMathOperation(left, right types.Type, method string) types.Type {
+func (vm *VM) MathOperation(left, right types.Type, method string) types.Type {
 
 	if left_n, ok := left.(*types.LiteralNumber); ok {
 		if right_n, ok := right.(*types.LiteralNumber); ok {
-			if res, ok := vm.OperationMathOperationNumbers(left_n, right_n, method); ok {
+			if res, ok := vm.MathOperationNumbers(left_n, right_n, method); ok {
 				return res
 			}
 		}
@@ -261,7 +261,7 @@ func (vm *VM) OperationMathOperation(left, right types.Type, method string) type
 	return l.Math(vm, method, r)
 }
 
-func (vm *VM) OperationMathCompareNumbers(left, right *types.LiteralNumber, method string) types.Type {
+func (vm *VM) MathCompareNumbers(left, right *types.LiteralNumber, method string) types.Type {
 
 	b := false
 
@@ -288,7 +288,7 @@ func (vm *VM) OperationMathCompareNumbers(left, right *types.LiteralNumber, meth
 	return &res
 }
 
-func (vm *VM) OperationMathOperationNumbers(left, right *types.LiteralNumber, method string) (types.Type, bool) {
+func (vm *VM) MathOperationNumbers(left, right *types.LiteralNumber, method string) (types.Type, bool) {
 	val := float64(0)
 	found := true
 
@@ -322,7 +322,7 @@ func (vm *VM) OperationMathOperationNumbers(left, right *types.LiteralNumber, me
 	return &res, found
 }
 
-func (vm *VM) OperationLiteral(literal ins.Literal) types.Type {
+func (vm *VM) Literal(literal ins.Literal) types.Type {
 
 	if literal.Type == "number" {
 		value, err := strconv.ParseFloat(literal.Value, 64)
@@ -364,7 +364,7 @@ func (vm *VM) OperationLiteral(literal ins.Literal) types.Type {
 	return &types.LiteralNull{}
 }
 
-func (vm *VM) OperationVariable(variable ins.Variable) types.Type {
+func (vm *VM) Variable(variable ins.Variable) types.Type {
 
 	if res, ok := vm.env.Get(variable.Name); ok {
 		return res
@@ -388,7 +388,7 @@ func (vm *VM) ClassOperationVariable(variable ins.Variable) types.Type {
 	return vm.CreateType(&builtin.Null{})
 }
 
-func (vm *VM) OperationSet(set ins.Set) types.Type {
+func (vm *VM) Set(set ins.Set) types.Type {
 
 	left, ok := vm.env.Get(set.Name)
 
@@ -428,7 +428,7 @@ func (vm *VM) ClassOperationSet(set ins.Set) types.Type {
 	return value
 }
 
-func (vm *VM) OperationIf(i ins.If) types.Type {
+func (vm *VM) If(i ins.If) types.Type {
 
 	con := vm.Operation(i.Condition, types.ON_NOTHING)
 
@@ -453,7 +453,7 @@ func (vm *VM) OperationIf(i ins.If) types.Type {
 	return vm.Operation(i.False, types.ON_NOTHING)
 }
 
-func (vm *VM) OperationCall(call ins.Call) types.Type {
+func (vm *VM) Call(call ins.Call) types.Type {
 
 	params := make([]types.Type, len(call.Parameters))
 
@@ -477,7 +477,7 @@ func (vm *VM) OperationCall(call ins.Call) types.Type {
 	return vm.Classes[len(vm.Classes)-1].Invoke(vm, method, params)
 }
 
-func (vm *VM) OperationDefineClass(def ins.DefineClass) types.Type {
+func (vm *VM) DefineClass(def ins.DefineClass) types.Type {
 
 	class := types.Class{}
 	class.Init(def.Name)
@@ -506,7 +506,7 @@ func (vm *VM) OperationDefineClass(def ins.DefineClass) types.Type {
 	return vm.CreateType(&builtin.Null{})
 }
 
-func (vm *VM) OperationDefineMethod(def ins.DefineMethod) types.Type {
+func (vm *VM) DefineMethod(def ins.DefineMethod) types.Type {
 
 	if len(vm.Classes) == 0 {
 		log.Panic("Unable to define method, not in class")
@@ -523,7 +523,7 @@ func (vm *VM) OperationDefineMethod(def ins.DefineMethod) types.Type {
 	return vm.CreateType(&builtin.Null{})
 }
 
-func (vm *VM) OperationPushClass(pushClass ins.PushClass) types.Type {
+func (vm *VM) PushClass(pushClass ins.PushClass) types.Type {
 
 	left := vm.Operation(pushClass.Left, types.ON_NOTHING)
 
@@ -564,7 +564,7 @@ func (vm *VM) OperationPushClass(pushClass ins.PushClass) types.Type {
 	return res
 }
 
-func (vm *VM) OperationMapCreate(m ins.MapCreate) types.Type {
+func (vm *VM) MapCreate(m ins.MapCreate) types.Type {
 	ma := builtin.Map{}
 
 	params := make([]*types.Class, 0)
@@ -579,7 +579,7 @@ func (vm *VM) OperationMapCreate(m ins.MapCreate) types.Type {
 	return vm.CreateType(&ma)
 }
 
-func (vm *VM) OperationListCreate(list ins.ListCreate) types.Type {
+func (vm *VM) ListCreate(list ins.ListCreate) types.Type {
 	l := builtin.List{}
 
 	params := make([]*types.Class, len(list.Items))
@@ -593,14 +593,14 @@ func (vm *VM) OperationListCreate(list ins.ListCreate) types.Type {
 	return vm.CreateType(&l)
 }
 
-func (vm *VM) OperationAccessChildItem(access ins.AccessChildItem) types.Type {
+func (vm *VM) AccessChildItem(access ins.AccessChildItem) types.Type {
 
 	// Extract the List or Map
 	item := vm.Operation(access.Item, types.ON_NOTHING)
 
 	// Is Map
 	if vm.GetType(item) == "Map" {
-		return vm.OperationAccessChildItemMap(access, item)
+		return vm.AccessChildItemMap(access, item)
 	}
 
 	if vm.GetType(item) != "List" {
@@ -619,7 +619,7 @@ func (vm *VM) OperationAccessChildItem(access ins.AccessChildItem) types.Type {
 	return library.ItemAt([]*types.Class{position})
 }
 
-func (vm *VM) OperationAccessChildItemMap(access ins.AccessChildItem, item types.Type) types.Type {
+func (vm *VM) AccessChildItemMap(access ins.AccessChildItem, item types.Type) types.Type {
 	library, ok := vm.GetAsClass(item).Extension.(*builtin.Map)
 
 	if !ok {
@@ -632,14 +632,14 @@ func (vm *VM) OperationAccessChildItemMap(access ins.AccessChildItem, item types
 	return library.Get([]*types.Class{position})
 }
 
-func (vm *VM) OperationReturn(ret ins.Return) types.Type {
+func (vm *VM) Return(ret ins.Return) types.Type {
 
 	vm.ShouldReturn[len(vm.ShouldReturn)-1] = true
 
 	return vm.Operation(ret.Statement, types.ON_NOTHING)
 }
 
-func (vm *VM) OperationInstance(instance ins.Instance) types.Type {
+func (vm *VM) Instance(instance ins.Instance) types.Type {
 
 	in, ok := vm.env.Get(instance.Left)
 
@@ -665,10 +665,10 @@ func (vm *VM) OperationInstance(instance ins.Instance) types.Type {
 //
 // for before; condition; each { body }
 //
-func (vm *VM) OperationFor(f ins.For) types.Type {
+func (vm *VM) For(f ins.For) types.Type {
 
 	if f.IsForIn {
-		return vm.OperationForIn(f)
+		return vm.ForIn(f)
 	}
 
 	// Create variable scope
@@ -708,7 +708,7 @@ func (vm *VM) OperationFor(f ins.For) types.Type {
 // for var item in 1..2
 // for var item in ["first", "second"]
 // for var item in list
-func (vm *VM) OperationForIn(f ins.For) types.Type {
+func (vm *VM) ForIn(f ins.For) types.Type {
 
 	// Create variable scope
 	vm.env = vm.env.Push()

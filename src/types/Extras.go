@@ -21,7 +21,7 @@ type VM interface {
 	EnvironmentPush()
 	EnvironmentPop()
 	Operation(instructions.Node, ON) Type
-	OperationAssign(instructions.Assign) Type
-	OperationBlock(instructions.Block, ON) Type
+	Assign(instructions.Assign) Type
+	Block(instructions.Block, ON) Type
 	GetAsClass(Type) *Class
 }

@@ -142,10 +142,10 @@ func (self *Class) InvokeNative(vm VM, name string, params []Type) (Type, bool) 
 		ass.Name = param.Name
 		ass.Right = params[i]
 
-		vm.OperationAssign(ass)
+		vm.Assign(ass)
 	}
 
-	body := vm.OperationBlock(method.Body, ON_METHOD_BODY)
+	body := vm.Block(method.Body, ON_METHOD_BODY)
 
 	vm.EnvironmentPop()
 
