@@ -40,31 +40,3 @@ func (self *Bool) Set(bl bool) {
 func (self *Bool) IsTrue() bool {
 	return self.Value
 }
-
-/*
-
-func (self *Bool) Compare(method string, right Type) Type {
-
-	r, ok := right.(*Bool)
-
-	if !ok {
-		log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
-	}
-
-	if self.Value == r.Value {
-		bl := Bool{}
-		bl.Init("true")
-
-		return &bl
-	}
-
-	log.Panicf("%s() is not implementing %s", self.Type(), method)
-
-	// Will never be reached
-
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
-}
-*/

@@ -7,6 +7,8 @@ package gus
 import (
 	"log"
 	"strconv"
+	"reflect"
+	"fmt"
 
 	"github.com/zegl/Gus/src/environment"
 	ins "github.com/zegl/Gus/src/instructions"
@@ -219,10 +221,6 @@ func (vm *VM) OperationMath(math ins.Math) types.Type {
 	left := vm.GetAsClass(vm.Operation(math.Left, types.ON_NOTHING))
 	right := vm.GetAsClass(vm.Operation(math.Right, types.ON_NOTHING))
 
-	/*fmt.Println(left)
-	fmt.Println(math.Method)
-	fmt.Println(right)
-	*/
 	if math.IsComparision {
 		return left.Compare(vm, math.Method, right)
 	}
@@ -353,18 +351,15 @@ func (vm *VM) OperationIf(i ins.If) types.Type {
 
 func (vm *VM) OperationCall(call ins.Call) types.Type {
 
-	params := make([]types.Type, len(call.Parameters))
+	params := make([]*types.Class, len(call.Parameters))
 
 	for i, param := range call.Parameters {
-		params[i] = vm.Operation(param, types.ON_NOTHING)
+		params[i] = vm.GetAsClass(vm.Operation(param, types.ON_NOTHING))
 	}
 
 	left := vm.Operation(call.Left, types.ON_NOTHING)
-	log.Println(left)
 	class := vm.GetAsClass(left)
-	log.Println(class)
 	method := class.ToString()
-	log.Println(method)
 
 	return vm.Classes[len(vm.Classes)-1].Invoke(vm, method, params)
 }
@@ -660,54 +655,65 @@ func (vm *VM) CreateType(lib types.Lib) types.Type {
 }
 
 func (vm VM) GetAsClass(in types.Type) *types.Class {
-	if in.IsClass() {
-		return in.(*types.Class)
+
+	if class, ok := in.(*types.Class); ok {
+		return class
 	}
 
-	if lit, ok := in.(types.LiteralNumber); ok {
+	if lit, ok := in.(*types.LiteralNumber); ok {
 		number := builtin.Number{}
 		number.Value = lit.Number
-
 		return vm.CreateType(&number).(*types.Class)
 	}
 
-	if lit, ok := in.(types.LiteralString); ok {
+	if lit, ok := in.(*types.LiteralString); ok {
 		str := builtin.String{}
 		str.Value = lit.String
 
 		return vm.CreateType(&str).(*types.Class)
 	}
 
-	if lit, ok := in.(types.LiteralBool); ok {
+	if lit, ok := in.(*types.LiteralBool); ok {
 		bl := builtin.Bool{}
 		bl.Value = lit.Bool
 
 		return vm.CreateType(&bl).(*types.Class)
 	}
 
-	if _, ok := in.(types.LiteralNull); ok {
+	if _, ok := in.(*types.LiteralNull); ok {
 		return vm.CreateType(&builtin.Null{}).(*types.Class)
 	}
+
+	log.Println("GetAsClass() defaulted to null")
+	log.Println(in)
+	fmt.Println(reflect.ValueOf(in).Type().String())
 
 	return vm.CreateType(&builtin.Null{}).(*types.Class)
 }
 
 func (vm VM) GetType(in types.Type) string {
-	if in.IsClass() {
-		return in.(*types.Class).Type()
+	
+	if class, ok := in.(*types.Class); ok {
+		return class.Type()
 	}
 
-	if _, ok := in.(types.LiteralNumber); ok {
+	if _, ok := in.(*types.LiteralNumber); ok {
 		return "Number"
 	}
 
-	if _, ok := in.(types.LiteralString); ok {
+	if _, ok := in.(*types.LiteralString); ok {
 		return "String"
 	}
 
-	if _, ok := in.(types.LiteralBool); ok {
+	if _, ok := in.(*types.LiteralBool); ok {
 		return "Bool"
 	}
+
+	if _, ok := in.(*types.LiteralNull); ok {
+		return "Null"
+	}
+
+	log.Println("GetType() could not detect type")
 
 	return "Null"
 }

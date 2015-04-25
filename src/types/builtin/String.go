@@ -36,7 +36,7 @@ func (self *String) ToString() string {
 	return self.Value
 }
 
-func (self *String) Math(method string, right *types.Class) *types.Class {
+func (self *String) Math(method string, right *types.Class) types.Type {
 
 	r, ok := right.Extension.(*String)
 
@@ -62,7 +62,7 @@ func (self *String) Math(method string, right *types.Class) *types.Class {
 	return &types.Class{}
 }
 
-func (self *String) Compare(method string, right *types.Class) *types.Class {
+func (self *String) Compare(method string, right *types.Class) types.Type {
 
 	r, ok := right.Extension.(*String)
 

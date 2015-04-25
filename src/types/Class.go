@@ -51,7 +51,7 @@ func (self *Class) Init(str string) {
 
 func (self *Class) InitWithLib(lib Lib) {
 	self.Init(lib.Type())
-	self.Extension = lib
+	self.Extension = lib	
 }
 
 func (self *Class) AddMethod(name string, method Method) {
@@ -62,7 +62,7 @@ func (self *Class) SetVariable(name string, value Type) {
 	self.Variables[name] = value
 }
 
-func (self *Class) Invoke(vm VM, name string, params []Type) Type {
+func (self *Class) Invoke(vm VM, name string, params []*Class) Type {
 
 	res, ok := self.InvokeNative(vm, name, params)
 
@@ -78,10 +78,10 @@ func (self *Class) Invoke(vm VM, name string, params []Type) Type {
 
 	log.Panicf("%s::%s, no such method", self.Type(), name)
 
-	return &Class{}
+	return &LiteralNull{}
 }
 
-func (self *Class) InvokeExtension(vm VM, method string, params []Type) (Type, bool) {
+func (self *Class) InvokeExtension(vm VM, method string, params []*Class) (Type, bool) {
 
 	value := reflect.ValueOf(self.Extension).MethodByName("M_" + method)
 
@@ -112,7 +112,7 @@ func (self *Class) InvokeExtension(vm VM, method string, params []Type) (Type, b
 	return &LiteralNull{}, true
 }
 
-func (self *Class) InvokeNative(vm VM, name string, params []Type) (Type, bool) {
+func (self *Class) InvokeNative(vm VM, name string, params []*Class) (Type, bool) {
 
 	method, ok := self.Methods[name]
 
@@ -163,13 +163,13 @@ func (self *Class) Math(vm VM, method string, right Type) Type {
 		return lib.Math(method, vm.GetAsClass(right))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []Type{right})
+	res, ok := self.InvokeNative(vm, method, []*Class{vm.GetAsClass(right)})
 
 	if ok {
 		return res
 	}
 
-	log.Panicf("%s() is not implementing %s", self.Type(), method)
+	log.Panicf("%s() is not implementing %s (general)", self.Type(), method)
 
 	// This code will never be reached
 	return &LiteralNull{}
@@ -181,13 +181,13 @@ func (self *Class) Compare(vm VM, method string, right Type) Type {
 		return lib.Compare(method, vm.GetAsClass(right))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []Type{right})
+	res, ok := self.InvokeNative(vm, method, []*Class{vm.GetAsClass(right)})
 
 	if ok {
 		return res
 	}
 
-	log.Panicf("%s() is not implementing %s", self.Type(), method)
+	log.Panicf("%s() is not implementing %s (general)", self.Type(), method)
 
 	// This code will never be reached
 	return &LiteralNull{}
