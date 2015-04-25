@@ -62,7 +62,7 @@ func (self *Class) SetVariable(name string, value Type) {
 	self.Variables[name] = value
 }
 
-func (self *Class) Invoke(vm VM, name string, params []*Class) Type {
+func (self *Class) Invoke(vm VM, name string, params []Type) Type {
 
 	res, ok := self.InvokeNative(vm, name, params)
 
@@ -81,7 +81,7 @@ func (self *Class) Invoke(vm VM, name string, params []*Class) Type {
 	return &LiteralNull{}
 }
 
-func (self *Class) InvokeExtension(vm VM, method string, params []*Class) (Type, bool) {
+func (self *Class) InvokeExtension(vm VM, method string, params []Type) (Type, bool) {
 
 	value := reflect.ValueOf(self.Extension).MethodByName("M_" + method)
 
@@ -96,8 +96,16 @@ func (self *Class) InvokeExtension(vm VM, method string, params []*Class) (Type,
 	// This should probaby be rewritten so that we can use parameters properly...
 	// Eg. a parameter in Gus => a parameter in Go
 	if value.Type().NumIn() == 1 {
+
+		// Convert params to []*Class
+		par := make([]*Class, len(params))
+
+		for k, v := range params {
+			par[k] = vm.GetAsClass(v)
+		}
+
 		inputs := make([]reflect.Value, 1)
-		inputs[0] = reflect.ValueOf(params)
+		inputs[0] = reflect.ValueOf(par)
 		res = value.Call(inputs)
 	} else {
 		inputs := make([]reflect.Value, 0)
@@ -112,7 +120,7 @@ func (self *Class) InvokeExtension(vm VM, method string, params []*Class) (Type,
 	return &LiteralNull{}, true
 }
 
-func (self *Class) InvokeNative(vm VM, name string, params []*Class) (Type, bool) {
+func (self *Class) InvokeNative(vm VM, name string, params []Type) (Type, bool) {
 
 	method, ok := self.Methods[name]
 
@@ -163,7 +171,7 @@ func (self *Class) Math(vm VM, method string, right Type) Type {
 		return lib.Math(method, vm.GetAsClass(right))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []*Class{vm.GetAsClass(right)})
+	res, ok := self.InvokeNative(vm, method, []Type{right})
 
 	if ok {
 		return res
@@ -181,7 +189,7 @@ func (self *Class) Compare(vm VM, method string, right Type) Type {
 		return lib.Compare(method, vm.GetAsClass(right))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []*Class{vm.GetAsClass(right)})
+	res, ok := self.InvokeNative(vm, method, []Type{right})
 
 	if ok {
 		return res

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"reflect"
 	"fmt"
+	"math"
 
 	"github.com/zegl/Gus/src/environment"
 	ins "github.com/zegl/Gus/src/instructions"
@@ -218,14 +219,107 @@ func (vm *VM) OperationAssign(assign ins.Assign) types.Type {
 
 func (vm *VM) OperationMath(math ins.Math) types.Type {
 
-	left := vm.GetAsClass(vm.Operation(math.Left, types.ON_NOTHING))
-	right := vm.GetAsClass(vm.Operation(math.Right, types.ON_NOTHING))
+	left := vm.Operation(math.Left, types.ON_NOTHING)
+	right := vm.Operation(math.Right, types.ON_NOTHING)
 
 	if math.IsComparision {
-		return left.Compare(vm, math.Method, right)
+		return vm.OperationMathCompare(left, right, math.Method)
 	}
 
-	return left.Math(vm, math.Method, right)
+	return vm.OperationMathOperation(left, right, math.Method)
+}
+
+func (vm *VM) OperationMathCompare(left, right types.Type, method string) types.Type {
+
+	if left_n, ok := left.(*types.LiteralNumber); ok {
+		if right_n, ok := right.(*types.LiteralNumber); ok {
+			return vm.OperationMathCompareNumbers(left_n, right_n, method)
+		}
+	}
+
+	// Fallback to Class behaviour
+	l := vm.GetAsClass(left)
+	r := vm.GetAsClass(right)
+
+	return l.Compare(vm, method, r)
+}
+
+func (vm *VM) OperationMathOperation(left, right types.Type, method string) types.Type {
+
+	if left_n, ok := left.(*types.LiteralNumber); ok {
+		if right_n, ok := right.(*types.LiteralNumber); ok {
+			if res, ok := vm.OperationMathOperationNumbers(left_n, right_n, method); ok {
+				return res
+			}
+		}
+	}
+
+	// Fallback to Class behaviour
+	l := vm.GetAsClass(left)
+	r := vm.GetAsClass(right)
+
+	return l.Math(vm, method, r)
+}
+
+func (vm *VM) OperationMathCompareNumbers(left, right *types.LiteralNumber, method string) types.Type {
+
+	b := false
+
+	switch method {
+	case ">":
+		b = left.Number > right.Number
+	case "<":
+		b = left.Number < right.Number
+	case ">=":
+		b = left.Number >= right.Number
+	case "<=":
+		b = left.Number <= right.Number
+	case "==":
+		b = left.Number == right.Number
+	case "!=":
+		b = left.Number != right.Number
+	default:
+		log.Panicf("OperationMathCompareNumbers() is not implementing %s", method)
+	}
+
+	res := types.LiteralBool{}
+	res.Bool = b
+
+	return &res
+}
+
+func (vm *VM) OperationMathOperationNumbers(left, right *types.LiteralNumber, method string) (types.Type, bool) {
+	val := float64(0)
+	found := true
+
+	switch method {
+	case "+":
+		val = left.Number + right.Number
+	case "-":
+		val = left.Number - right.Number
+	case "*":
+		val = left.Number * right.Number
+	case "/":
+		val = left.Number / right.Number
+	case "%":
+		val = math.Mod(left.Number, right.Number)
+	case "**":
+		val = math.Pow(left.Number, right.Number)
+	case "++":
+		left.Number++
+		val = left.Number
+	case "--":
+		left.Number--
+		val = left.Number
+	default:
+		found = false
+	}
+
+	res := types.LiteralNumber{
+		Number: val,
+	}
+
+	return &res, found
 }
 
 func (vm *VM) OperationLiteral(literal ins.Literal) types.Type {
@@ -351,10 +445,10 @@ func (vm *VM) OperationIf(i ins.If) types.Type {
 
 func (vm *VM) OperationCall(call ins.Call) types.Type {
 
-	params := make([]*types.Class, len(call.Parameters))
+	params := make([]types.Type, len(call.Parameters))
 
 	for i, param := range call.Parameters {
-		params[i] = vm.GetAsClass(vm.Operation(param, types.ON_NOTHING))
+		params[i] = vm.Operation(param, types.ON_NOTHING)
 	}
 
 	left := vm.Operation(call.Left, types.ON_NOTHING)
