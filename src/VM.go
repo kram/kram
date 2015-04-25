@@ -462,8 +462,17 @@ func (vm *VM) OperationCall(call ins.Call) types.Type {
 	}
 
 	left := vm.Operation(call.Left, types.ON_NOTHING)
-	class := vm.GetAsClass(left)
-	method := class.ToString()
+
+	var method string
+
+	// Optimized string
+	if str, ok := left.(*types.LiteralString); ok {
+		method = str.String
+
+	// Fallbacked string behaviour
+	} else {
+		method = vm.GetAsClass(left).ToString()
+	}
 
 	return vm.Classes[len(vm.Classes)-1].Invoke(vm, method, params)
 }
@@ -517,8 +526,18 @@ func (vm *VM) OperationDefineMethod(def ins.DefineMethod) types.Type {
 func (vm *VM) OperationPushClass(pushClass ins.PushClass) types.Type {
 
 	left := vm.Operation(pushClass.Left, types.ON_NOTHING)
-	name := vm.GetAsClass(left).ToString()
 
+	var name string
+
+	// Optimize for strings
+	if str, ok := left.(*types.LiteralString); ok {
+		name = str.String
+	} else {
+		name = vm.GetAsClass(left).ToString()
+	}
+
+	// Do not change the current pushed class
+	// Continue imediately
 	if name == "self" {
 		return vm.Operation(pushClass.Right, types.ON_CLASS)
 	}
