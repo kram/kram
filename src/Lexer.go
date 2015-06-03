@@ -17,7 +17,7 @@ type Lexer struct {
 	C      string // The current character
 	I      int    // Index of the current character
 	Length int    // Length of the source
-	Source string
+	Source []rune
 
 	Operators map[string]bool
 	Keywords  map[string]bool
@@ -25,7 +25,7 @@ type Lexer struct {
 	Tokens []Token // The result goes here
 }
 
-func (l *Lexer) Init(source string) {
+func (l *Lexer) Init(source []byte) {
 
 	l.Operators = make(map[string]bool)
 	l.Operators["+"] = true
@@ -63,8 +63,8 @@ func (l *Lexer) Init(source string) {
 	l.Keywords["for"] = true
 	l.Keywords["in"] = true
 
-	l.Length = len(source)
-	l.Source = source
+	l.Source = []rune(string(source))
+	l.Length = len(l.Source)
 
 	l.Parse()
 }

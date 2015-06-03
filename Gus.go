@@ -29,7 +29,7 @@ func main() {
 		}
 
 		var lexer = gus.Lexer{}
-		lexer.Init(string(content))
+		lexer.Init(content)
 
 		if *debug {
 			fmt.Println("-------------------")

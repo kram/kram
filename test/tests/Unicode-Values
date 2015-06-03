@@ -1,0 +1,4 @@
+// 📙
+var hej = "📙"
+
+IO.Println(hej)
