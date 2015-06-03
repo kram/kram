@@ -1,0 +1,23 @@
+// Name
+// 15
+// Pink
+// Fniss
+// 1337
+// Pink
+// Gregor
+// 15
+// Pink
+// Gregor
+// 15
+// Red
+
+class Custom {
+	Method(name = "Gregor", age = 15, color = "Pink") {
+		IO.Println(name, age, color)
+	}
+}
+
+Custom.Method("Name")
+Custom.Method(age = 1337, name = "Fniss")
+Custom.Method()
+Custom.Method(color = "Red")

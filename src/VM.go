@@ -473,10 +473,18 @@ func (vm *VM) If(i ins.If) *types.Value {
 
 func (vm *VM) Call(call ins.Call) *types.Value {
 
-	params := make([]*types.Value, len(call.Parameters))
+	arguments := make([]types.Argument, len(call.Arguments))
 
-	for i, param := range call.Parameters {
-		params[i] = vm.Operation(param, types.ON_NOTHING)
+	for i, argument := range call.Arguments {
+		arg := types.Argument{}
+		arg.Val = vm.Operation(argument.Value, types.ON_NOTHING)
+
+		if argument.IsNamed {
+			arg.IsNamed = true
+			arg.Name = argument.Name
+		}
+
+		arguments[i] = arg
 	}
 
 	left := vm.Operation(call.Left, types.ON_NOTHING)
@@ -492,7 +500,7 @@ func (vm *VM) Call(call ins.Call) *types.Value {
 		method = vm.GetAsClass(left).ToString()
 	}
 
-	return vm.Classes[len(vm.Classes)-1].Invoke(vm, method, params)
+	return vm.Classes[len(vm.Classes)-1].Invoke(vm, method, arguments)
 }
 
 func (vm *VM) DefineClass(def ins.DefineClass) *types.Value {
@@ -672,14 +680,14 @@ func (vm *VM) Instance(instance ins.Instance) *types.Value {
 
 	inst := vm.Clone(in)
 
-	if len(instance.Parameters) > 0 {
-		params := make([]*types.Class, 0)
+	if len(instance.Arguments) > 0 {
+		arguments := make([]*types.Class, 0)
 
-		for _, node := range instance.Parameters {
-			params = append(params, vm.GetAsClass(vm.Operation(node, types.ON_NOTHING)))
+		for _, node := range instance.Arguments {
+			arguments = append(arguments, vm.GetAsClass(vm.Operation(node, types.ON_NOTHING)))
 		}
 
-		vm.GetAsClass(inst).Extension.InitWithParams(params)
+		vm.GetAsClass(inst).Extension.InitWithParams(arguments)
 	}
 
 	return inst
