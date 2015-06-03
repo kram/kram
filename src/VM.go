@@ -16,6 +16,9 @@ import (
 	lib "github.com/zegl/Gus/src/libraries"
 	"github.com/zegl/Gus/src/types"
 	"github.com/zegl/Gus/src/types/builtin"
+
+	// Debug tools
+	"encoding/json"
 )
 
 type VM struct {
@@ -683,8 +686,8 @@ func (vm *VM) Instance(instance ins.Instance) *types.Value {
 	if len(instance.Arguments) > 0 {
 		arguments := make([]*types.Class, 0)
 
-		for _, node := range instance.Arguments {
-			arguments = append(arguments, vm.GetAsClass(vm.Operation(node, types.ON_NOTHING)))
+		for _, arg := range instance.Arguments {
+			arguments = append(arguments, vm.GetAsClass(vm.Operation(arg.Value, types.ON_NOTHING)))
 		}
 
 		vm.GetAsClass(inst).Extension.InitWithParams(arguments)
@@ -893,4 +896,9 @@ func (vm VM) CreateNull() *types.Value {
 	return &types.Value{
 		Type: types.NULL,
 	}
+}
+
+func Dump(in interface{}) {
+	json, _ := json.MarshalIndent(in, "", "  ")
+	fmt.Println(string(json))
 }
