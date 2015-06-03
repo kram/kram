@@ -113,7 +113,7 @@ func (self *Class) InvokeExtension(vm VM, method string, params []*Value) (*Valu
 	}
 
 	if len(res) > 0 {
-		return res[0].Interface().(*Value), true
+		return vm.ConvertClassToValue(res[0].Interface().(*Class)), true
 	}
 
 	// Nothing was returned, but still valid
