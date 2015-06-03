@@ -7,6 +7,7 @@ package builtin
 import (
 	"github.com/zegl/Gus/src/types"
 	"log"
+	"strings"
 )
 
 type String struct {
@@ -96,4 +97,12 @@ func (self *String) Compare(method string, right *types.Class) *types.Class {
 	res.InitWithLib(&bl)
 
 	return &res
+}
+
+func (self *String) M_Lower(params []*types.Class) *types.Class {
+	return self.String(strings.ToLower(self.Value))
+}
+
+func (self *String) M_Upper(params []*types.Class) *types.Class {
+	return self.String(strings.ToUpper(self.Value))
 }

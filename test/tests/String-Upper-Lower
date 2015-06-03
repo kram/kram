@@ -1,0 +1,4 @@
+// LOREM IPSUM
+// lorem ipsum
+IO.Println("lorem ipsum".Upper())
+IO.Println("lorem ipsum".Lower())
