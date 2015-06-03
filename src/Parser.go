@@ -634,6 +634,11 @@ func (p *Parser) ParseStatementPart(on ON) ins.Node {
 		return p.LookAheadWithON(variable, on)
 	}
 
+	// Operator overloading
+	if current.Type == "operator" && on == ON_CLASS_BODY {
+		return p.Symbol_MethodWithName(current.Value)
+	}
+
 	// Math exceptions
 	if current.Type == "operator" && current.Value == "-" {
 		if _, ok := p.RightOnlyInfix[current.Value]; ok {

@@ -74,8 +74,7 @@ func (vm *VM) Libraries() {
 		instance, name := li.Instance()
 
 		class := types.Class{}
-		class.Init(name)
-		class.Extension = instance
+		class.InitWithLib(instance)
 
 		val := types.Value{
 			Type: types.CLASS,
@@ -784,7 +783,12 @@ func (vm *VM) Clone(input *types.Value) (out *types.Value) {
 	res := types.Class{}
 	res.Class = in.Class
 	res.Methods = in.Methods
-	res.Extension, _ = in.Extension.Instance()
+
+	if in.HasExtension {
+		res.Extension, _ = in.Extension.Instance()
+		res.HasExtension = true
+	}
+
 	res.Variables = make(map[string]*types.Value)
 
 	for name, def := range in.Variables {

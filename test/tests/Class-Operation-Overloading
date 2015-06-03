@@ -1,0 +1,15 @@
+// Dog and Cat
+class Dog {
+	+(right) {
+		if right.Type() == "Cat" {
+			return "Dog and Cat"
+		}
+	}
+}
+
+class Cat {}
+
+var dog = new Dog()
+var cat = new Cat()
+
+IO.Println(dog + cat)

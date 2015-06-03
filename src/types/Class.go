@@ -37,6 +37,7 @@ type Class struct {
 	Methods   map[string]Method
 	Variables map[string]*Value
 	Extension Lib
+	HasExtension bool
 }
 
 func (self Class) IsClass() bool {
@@ -52,6 +53,7 @@ func (self *Class) Init(str string) {
 func (self *Class) InitWithLib(lib Lib) {
 	self.Init(lib.Type())
 	self.Extension = lib	
+	self.HasExtension = true
 }
 
 func (self *Class) AddMethod(name string, method Method) {
@@ -63,6 +65,10 @@ func (self *Class) SetVariable(name string, value *Value) {
 }
 
 func (self *Class) Invoke(vm VM, name string, params []*Value) *Value {
+
+	if name == "Type" {
+		return self.M_Type()
+	}
 
 	res, ok := self.InvokeNative(vm, name, params)
 
@@ -83,10 +89,13 @@ func (self *Class) Invoke(vm VM, name string, params []*Value) *Value {
 
 func (self *Class) InvokeExtension(vm VM, method string, params []*Value) (*Value, bool) {
 
+	if !self.HasExtension {
+		return self.CreateNull(), false
+	}
+
 	value := reflect.ValueOf(self.Extension).MethodByName("M_" + method)
 
 	if !value.IsValid() {
-		log.Panic("No such method, ", method)
 		return self.CreateNull(), false
 	}
 
@@ -204,5 +213,12 @@ func (self *Class) Compare(vm VM, method string, right *Value) *Value {
 func (self Class) CreateNull() *Value {
 	return &Value{
 		Type: NULL,
+	}
+}
+
+func (self *Class) M_Type() *Value {
+	return &Value{
+		Type: STRING,
+		String: self.Type(),
 	}
 }
