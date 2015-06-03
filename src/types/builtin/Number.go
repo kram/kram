@@ -34,7 +34,7 @@ func (self *Number) ToString() string {
 	return strconv.FormatFloat(self.Value, 'f', -1, 64)
 }
 
-func (self *Number) Math(method string, right *types.Class) types.Type {
+func (self *Number) Math(method string, right *types.Class) *types.Class {
 
 	r, ok := right.Extension.(*Number)
 	_, is_null := right.Extension.(*Null)
@@ -111,7 +111,7 @@ func (self *Number) Math(method string, right *types.Class) types.Type {
 	return &types.Class{}
 }
 
-func (self *Number) Compare(method string, right *types.Class) types.Type {
+func (self *Number) Compare(method string, right *types.Class) *types.Class {
 
 	r, ok := right.Extension.(*Number)
 

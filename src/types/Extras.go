@@ -20,8 +20,9 @@ const (
 type VM interface {
 	EnvironmentPush()
 	EnvironmentPop()
-	Operation(instructions.Node, ON) Type
-	Assign(instructions.Assign) Type
-	Block(instructions.Block, ON) Type
-	GetAsClass(Type) *Class
+	Operation(instructions.Node, ON) *Value
+	Assign(instructions.Assign) *Value
+	Block(instructions.Block, ON) *Value
+	GetAsClass(*Value) *Class
+	ConvertClassToValue(*Class) *Value
 }

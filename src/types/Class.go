@@ -20,8 +20,8 @@ type Lib interface {
 }
 
 type MathLib interface {
-	Math(string, *Class) Type
-	Compare(string, *Class) Type
+	Math(string, *Class) *Class
+	Compare(string, *Class) *Class
 }
 
 type Method struct {
@@ -35,7 +35,7 @@ type Method struct {
 type Class struct {
 	Class     string
 	Methods   map[string]Method
-	Variables map[string]Type
+	Variables map[string]*Value
 	Extension Lib
 }
 
@@ -46,7 +46,7 @@ func (self Class) IsClass() bool {
 func (self *Class) Init(str string) {
 	self.Class = str
 	self.Methods = make(map[string]Method)
-	self.Variables = make(map[string]Type)
+	self.Variables = make(map[string]*Value)
 }
 
 func (self *Class) InitWithLib(lib Lib) {
@@ -58,11 +58,11 @@ func (self *Class) AddMethod(name string, method Method) {
 	self.Methods[name] = method
 }
 
-func (self *Class) SetVariable(name string, value Type) {
+func (self *Class) SetVariable(name string, value *Value) {
 	self.Variables[name] = value
 }
 
-func (self *Class) Invoke(vm VM, name string, params []Type) Type {
+func (self *Class) Invoke(vm VM, name string, params []*Value) *Value {
 
 	res, ok := self.InvokeNative(vm, name, params)
 
@@ -78,16 +78,16 @@ func (self *Class) Invoke(vm VM, name string, params []Type) Type {
 
 	log.Panicf("%s::%s, no such method", self.Type(), name)
 
-	return &LiteralNull{}
+	return self.CreateNull()
 }
 
-func (self *Class) InvokeExtension(vm VM, method string, params []Type) (Type, bool) {
+func (self *Class) InvokeExtension(vm VM, method string, params []*Value) (*Value, bool) {
 
 	value := reflect.ValueOf(self.Extension).MethodByName("M_" + method)
 
 	if !value.IsValid() {
 		log.Panic("No such method, ", method)
-		return &Class{}, false
+		return self.CreateNull(), false
 	}
 
 	var res []reflect.Value
@@ -113,25 +113,25 @@ func (self *Class) InvokeExtension(vm VM, method string, params []Type) (Type, b
 	}
 
 	if len(res) > 0 {
-		return res[0].Interface().(Type), true
+		return res[0].Interface().(*Value), true
 	}
 
 	// Nothing was returned, but still valid
-	return &LiteralNull{}, true
+	return self.CreateNull(), true
 }
 
-func (self *Class) InvokeNative(vm VM, name string, params []Type) (Type, bool) {
+func (self *Class) InvokeNative(vm VM, name string, params []*Value) (*Value, bool) {
 
 	method, ok := self.Methods[name]
 
 	if !ok {
-		return &LiteralNull{}, false
+		return self.CreateNull(), false
 	}
 
 	if len(method.Parameters) != len(params) {
 		fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", self.ToString(), name, len(method.Parameters), len(params))
 
-		return &LiteralNull{}, true
+		return self.CreateNull(), true
 	}
 
 	vm.EnvironmentPush()
@@ -165,38 +165,46 @@ func (self *Class) ToString() string {
 	return self.Class
 }
 
-func (self *Class) Math(vm VM, method string, right Type) Type {
+func (self *Class) Math(vm VM, method string, right *Value) *Value {
 
 	if lib, ok := self.Extension.(MathLib); ok {
-		return lib.Math(method, vm.GetAsClass(right))
+		return vm.ConvertClassToValue(lib.Math(method, vm.GetAsClass(right)))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []Type{right})
+	res, ok := self.InvokeNative(vm, method, []*Value{right})
 
 	if ok {
 		return res
 	}
 
-	log.Panicf("%s() is not implementing %s (general)", self.Type(), method)
+	log.Println(self.Extension)
+
+	log.Panicf("%s() is not implementing %s (General Math)", self.Type(), method)
 
 	// This code will never be reached
-	return &LiteralNull{}
+	return self.CreateNull()
 }
 
-func (self *Class) Compare(vm VM, method string, right Type) Type {
+func (self *Class) Compare(vm VM, method string, right *Value) *Value {
 
 	if lib, ok := self.Extension.(MathLib); ok {
-		return lib.Compare(method, vm.GetAsClass(right))
+		return vm.ConvertClassToValue(lib.Compare(method, vm.GetAsClass(right)))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []Type{right})
+	res, ok := self.InvokeNative(vm, method, []*Value{right})
 
 	if ok {
 		return res
 	}
 
-	log.Panicf("%s() is not implementing %s (general)", self.Type(), method)
+	log.Panicf("%s() is not implementing %s (General Compare)", self.Type(), method)
 
 	// This code will never be reached
-	return &LiteralNull{}
+	return self.CreateNull()
+}
+
+func (self Class) CreateNull() *Value {
+	return &Value{
+		Type: NULL,
+	}
 }

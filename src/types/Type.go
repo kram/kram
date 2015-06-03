@@ -4,6 +4,19 @@
 
 package types
 
-type Type interface {
-	IsClass() bool
+type Value struct {
+	Type Value_Type
+	Number float64
+	String string
+	Reference *Class
 }
+
+type Value_Type uint8
+
+const (
+	NULL     Value_Type = 1 << iota // No value needed
+	BOOL // Stored as 1 or 0 in value_number
+	NUMBER // Stored in value_number
+	STRING // Stored in value_string
+	CLASS // A reference / pointer? to the class in value_class
+)
