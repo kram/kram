@@ -29,6 +29,7 @@ const (
 	ON_DEFAULT     ON = 1 << iota // 1
 	ON_CLASS_BODY                 // 2
 	ON_PUSH_CLASS                 // 4
+	ON_METHOD_PARAMETERS          // 8
 )
 
 // --------------- Stack
@@ -725,6 +726,12 @@ func (p *Parser) Symbol_name(on ON) ins.Node {
 		// Set
 		// abc = 123
 		if next.Type == "operator" && next.Value == "=" {
+
+			// Hijack and return early when dealing with method parameters
+			if on == ON_METHOD_PARAMETERS {
+				return p.ParseStatementPart(on)
+			}
+
 			set := ins.Set{}
 			set.Name = name.Value
 
@@ -734,11 +741,6 @@ func (p *Parser) Symbol_name(on ON) ins.Node {
 
 			return set
 		}
-
-		/*if next.Type == "EOL" || next.Type == "EOF" {
-			fmt.Println("Should we really end up here? 81238nadouas8u")
-			return &ins.Nil{}
-		}*/
 
 		return p.ParseStatementPart(on)
 	}
@@ -946,15 +948,32 @@ func (p *Parser) Symbol_MethodWithName(name string) ins.DefineMethod {
 			break
 		}
 
-		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"operator", "{"}, Token{"EOF", ""}})
+		param := p.ReadUntilWithON([]Token{Token{"operator", "="}, Token{"operator", ")"}, Token{"operator", ","}, Token{"operator", "{"}, Token{"EOF", ""}}, ON_METHOD_PARAMETERS)
+
+		// Test if has default value
+		// Will be returned as a Math{a = b}
+		if math, ok := param.(ins.Math); ok {
+			par := ins.Parameter{}
+
+			if l, ok := math.Left.(ins.Variable); ok {
+				par.Name = l.Name
+			} else {
+				log.Panic("Parameters with default value, could not find valid name")
+			}
+
+			par.Default = math.Right
+			par.HasDefault = true
+			method.Parameters = append(method.Parameters, par)
+			continue
+		}
 
 		// Convert Variable{} to a Parameter{}
 		// They are basically the same, but not really
 		if v, ok := param.(ins.Variable); ok {
 			par := ins.Parameter{}
 			par.Name = v.Name
-
 			method.Parameters = append(method.Parameters, par)
+			continue
 		}
 	}
 

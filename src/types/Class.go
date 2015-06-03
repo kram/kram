@@ -137,7 +137,17 @@ func (self *Class) InvokeNative(vm VM, name string, params []*Value) (*Value, bo
 		return self.CreateNull(), false
 	}
 
-	if len(method.Parameters) != len(params) {
+	//param_count := len(method.Parameters)
+	// optional_parameters := 0
+	required_params := 0
+
+	for _, par := range method.Parameters {
+		if !par.HasDefault {
+			required_params++
+		}
+	}
+
+	if required_params > len(params) {
 		fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", self.ToString(), name, len(method.Parameters), len(params))
 
 		return self.CreateNull(), true
@@ -149,7 +159,12 @@ func (self *Class) InvokeNative(vm VM, name string, params []*Value) (*Value, bo
 	for i, param := range method.Parameters {
 		ass := ins.Assign{}
 		ass.Name = param.Name
-		ass.Right = params[i]
+
+		if len(params) > i {
+			ass.Right = params[i]
+		} else {
+			ass.Right = param.Default
+		}
 
 		vm.Assign(ass)
 	}

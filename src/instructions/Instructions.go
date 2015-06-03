@@ -82,7 +82,9 @@ type DefineMethod struct {
 }
 
 type Parameter struct {
-	Name string
+	Name       string
+	Default    Node
+	HasDefault bool
 }
 
 type Instance struct {
