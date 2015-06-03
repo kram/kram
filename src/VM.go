@@ -238,8 +238,14 @@ func (vm *VM) MathCompare(left, right types.Type, method string) types.Type {
 	}
 
 	// Fallback to Class behaviour
-	l := vm.GetAsClass(left)
-	r := vm.GetAsClass(right)
+
+	// Override old pointers
+	left = vm.GetAsClass(left)
+	right = vm.GetAsClass(right)
+
+	// Cast to class
+	l := left.(*types.Class)
+	r := right.(*types.Class)
 
 	return l.Compare(vm, method, r)
 }
@@ -254,11 +260,32 @@ func (vm *VM) MathOperation(left, right types.Type, method string) types.Type {
 		}
 	}
 
-	// Fallback to Class behaviour
-	l := vm.GetAsClass(left)
-	r := vm.GetAsClass(right)
+	fmt.Println(left)
 
-	return l.Math(vm, method, r)
+	// Fallback to Class behaviour
+
+	// Override old pointers
+	left = vm.GetAsClass(left)
+	right = vm.GetAsClass(right)
+
+	// Cast to class
+	l := left.(*types.Class)
+	r := right.(*types.Class)
+
+	log.Println(l.ToString())
+
+	log.Println(l, method, r)
+
+	res := l.Math(vm, method, r)
+
+	log.Println(l.ToString())
+	log.Println(res)
+
+	left = l
+
+	fmt.Println(left)
+
+	return res
 }
 
 func (vm *VM) MathCompareNumbers(left, right *types.LiteralNumber, method string) types.Type {
