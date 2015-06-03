@@ -242,7 +242,6 @@ func (vm *VM) MathCompare(left, right *types.Value, method string) *types.Value 
 		}
 	}
 
-	log.Println("Compare, Could not use VM")
 
 	l := vm.GetAsClass(left)
 
@@ -259,7 +258,6 @@ func (vm *VM) MathOperation(left, right *types.Value, method string) *types.Valu
 		}
 	}
 
-	log.Println("Operation, Could not use VM")
 
 	// Fallback to Class behaviour
 	l := vm.GetAsClass(left)
@@ -557,11 +555,11 @@ func (vm *VM) PushClass(pushClass ins.PushClass) *types.Value {
 	var name string
 
 	// Optimize for strings
-	//if str, ok := left.(*types.LiteralString); ok {
-	//	name = str.String
-	//} else {
+	if left.Type == types.STRING {
+		name = left.String
+	} else {
 		name = vm.GetAsClass(left).ToString()
-	//}
+	}
 
 	// Do not change the current pushed class
 	// Continue imediately
@@ -837,17 +835,12 @@ func (vm VM) GetAsClass(in *types.Value) *types.Class {
 		return in.Reference
 	}
 
-	log.Println("GetAsClass() defaulted to null")
-	log.Println(in)
 	fmt.Println(reflect.ValueOf(in).Type().String())
 
 	return vm.CreateClassWithLib(&builtin.Null{})
 }
 
 func (vm VM) ConvertClassToValue(in *types.Class) *types.Value {
-
-	log.Println("ConvertClassToValue()")
-
 	return &types.Value{
 		Type: types.CLASS,
 		Reference: in,
@@ -881,7 +874,6 @@ func (vm VM) GetType(in *types.Value) string {
 		return in.Reference.Type()
 	}
 
-	log.Println("GetType() could not detect type")
 
 	return "Null"
 }
