@@ -759,7 +759,7 @@ func (vm *VM) ForIn(f ins.For) *types.Value {
 		// Update variable
 		if assign_ok {
 			item := list.ItemAtPosition(key)
-			assign.Right = item
+			assign.Right = vm.ConvertClassToValue(item)
 			vm.Operation(assign, types.ON_NOTHING)
 		}
 
