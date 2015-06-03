@@ -14,7 +14,7 @@ type Null struct {
 
 func (self Null) Instance() (types.Lib, string) { return &Null{}, self.Type() }
 func (self Null) Type() string { return "Null" }
-func (self Null) M_Type() *types.Type { return self.String(self.Type()) }
+func (self Null) M_Type() *types.Class { return self.String(self.Type()) }
 
 func (self Null) Init(str string) {}
 func (self *Null) ToString() string { return "null" }

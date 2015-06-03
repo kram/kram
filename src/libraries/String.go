@@ -16,9 +16,9 @@ type Library_String struct {
 
 func (self Library_String) Instance() (types.Lib, string) { return &Library_String{}, self.Type() }
 func (self Library_String) Type() string { return "Strings" }
-func (self Library_String) M_Type() *types.Type { return self.String(self.Type()) }
+func (self Library_String) M_Type() *types.Class { return self.String(self.Type()) }
 
-func (self Library_String) M_ToLower(params []*types.Type) *types.Type {
+func (self Library_String) M_ToLower(params []*types.Class) *types.Class {
 	str := builtin.String{}
 
 	for _, param := range params {
@@ -29,7 +29,7 @@ func (self Library_String) M_ToLower(params []*types.Type) *types.Type {
 	return self.fromLib(&str)
 }
 
-func (self Library_String) M_ToUpper(params []*types.Type) *types.Type {
+func (self Library_String) M_ToUpper(params []*types.Class) *types.Class {
 	str := builtin.String{}
 
 	for _, param := range params {

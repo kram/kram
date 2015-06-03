@@ -15,15 +15,15 @@ type Library_IO struct {
 
 func (self Library_IO) Instance() (types.Lib, string) { return &Library_IO{}, self.Type() }
 func (self Library_IO) Type() string { return "IO" }
-func (self Library_IO) M_Type() *types.Type { return self.String(self.Type()) }
+func (self Library_IO) M_Type() *types.Class { return self.String(self.Type()) }
 
-func (io Library_IO) M_Print(params []*types.Type) {
+func (io Library_IO) M_Print(params []*types.Class) {
 	for _, param := range params {
 		fmt.Print(param.ToString())
 	}
 }
 
-func (io Library_IO) M_Println(params []*types.Type) {
+func (io Library_IO) M_Println(params []*types.Class) {
 	for _, param := range params {
 		fmt.Println(param.ToString())
 	}

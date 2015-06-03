@@ -13,12 +13,12 @@ import (
 
 type List struct {
 	Builtin
-	Items []*types.Type
+	Items []*types.Class
 }
 
 func (self List) Instance() (types.Lib, string) { return &List{}, self.Type() }
 func (self List) Type() string { return "List" }
-func (self List) M_Type() *types.Type { return self.String(self.Type()) }
+func (self List) M_Type() *types.Class { return self.String(self.Type()) }
 
 func (list *List) ToString() string {
 	out := make([]string, len(list.Items))
@@ -33,21 +33,21 @@ func (list *List) ToString() string {
 // List can not be initialized with Init
 // see InitWithParams
 func (list *List) Init(str string) {
-	list.Items = make([]*types.Type, 0)
+	list.Items = make([]*types.Class, 0)
 }
 
-func (list *List) InitWithParams(params []*types.Type) {
-	list.Items = make([]*types.Type, 0)
+func (list *List) InitWithParams(params []*types.Class) {
+	list.Items = make([]*types.Class, 0)
 	list.M_Push(params)
 }
 
-func (list *List) M_Push(params []*types.Type) {
+func (list *List) M_Push(params []*types.Class) {
 	for _, param := range params {
 		list.Items = append(list.Items, param)
 	}
 }
 
-func (list *List) M_Pop(params []*types.Type) *types.Type {
+func (list *List) M_Pop(params []*types.Class) *types.Class {
 	res := list.Items[len(list.Items)-1]
 	list.Items = list.Items[:len(list.Items)-1]
 
@@ -55,11 +55,11 @@ func (list *List) M_Pop(params []*types.Type) *types.Type {
 }
 
 // Adressable from VM
-func (list *List) ItemAt(params []*types.Type) *types.Type {
+func (list *List) ItemAt(params []*types.Class) *types.Class {
 	return list.M_Get(params)
 }
 
-func (list *List) M_Get(params []*types.Type) *types.Type {
+func (list *List) M_Get(params []*types.Class) *types.Class {
 	if len(params) != 1 {
 		log.Panic("List::Get() expected only 1 parameter")
 	}
@@ -80,7 +80,7 @@ func (list *List) M_Get(params []*types.Type) *types.Type {
 	return list.Null()
 }
 
-func (list *List) ItemAtNumber(num *Number) *types.Type {
+func (list *List) ItemAtNumber(num *Number) *types.Class {
 	// Use https://golang.org/pkg/math/#Trunc to make sure that the float
 	// is a whole number
 	key_float := math.Trunc(num.Value)
@@ -99,10 +99,10 @@ func (list *List) ItemAtNumber(num *Number) *types.Type {
 	return list.Null()
 }
 
-func (list *List) ItemAtList(li *List) *types.Type {
+func (list *List) ItemAtList(li *List) *types.Class {
 
 	res := List{}
-	res.Items = make([]*types.Type, 0)
+	res.Items = make([]*types.Class, 0)
 
 	for _, item := range li.Items {
 		if num, ok := item.Extension.(*Number); ok {
@@ -110,7 +110,7 @@ func (list *List) ItemAtList(li *List) *types.Type {
 		}
 	}
 
-	class := types.Type{}
+	class := types.Class{}
 	class.Init("List")
 	class.Extension = &res
 
@@ -123,6 +123,6 @@ func (list *List) Length() int {
 }
 
 // Used when iterating over each object in the list
-func (list *List) ItemAtPosition(pos int) *types.Type {
+func (list *List) ItemAtPosition(pos int) *types.Class {
 	return list.Items[pos]
 }

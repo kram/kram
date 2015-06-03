@@ -6,6 +6,10 @@ package gus
 
 import (
 	"log"
+	"strconv"
+	"reflect"
+	"fmt"
+	"math"
 
 	"github.com/zegl/Gus/src/environment"
 	ins "github.com/zegl/Gus/src/instructions"
@@ -19,7 +23,7 @@ type VM struct {
 	env *environment.Environment
 
 	// The current stack of methods, used to know where to define a method
-	Classes []*types.Type
+	Classes []*types.Class
 
 	Debug bool
 
@@ -34,7 +38,7 @@ func (vm *VM) Run(tree ins.Block) {
 
 	// Create empty lists
 	vm.ShouldReturn = make([]bool, 0)
-	vm.Classes = make([]*types.Type, 0)
+	vm.Classes = make([]*types.Class, 0)
 
 	vm.Libraries()
 
@@ -70,26 +74,31 @@ func (vm *VM) Libraries() {
 
 		instance, name := li.Instance()
 
-		class := types.Type{}
+		class := types.Class{}
 		class.Init(name)
 		class.Extension = instance
 
-		vm.env.Set(name, &class)
+		val := types.Value{
+			Type: types.CLASS,
+			Reference: &class,
+		}
+
+		vm.env.Set(name, &val)
 	}
 }
 
-func (vm *VM) Operation(node ins.Node, on types.ON) *types.Type {
+func (vm *VM) Operation(node ins.Node, on types.ON) *types.Value {
 
 	if assign, ok := node.(ins.Assign); ok {
-		return vm.OperationAssign(assign)
+		return vm.Assign(assign)
 	}
 
 	if math, ok := node.(ins.Math); ok {
-		return vm.OperationMath(math)
+		return vm.Math(math)
 	}
 
 	if literal, ok := node.(ins.Literal); ok {
-		return vm.OperationLiteral(literal)
+		return vm.Literal(literal)
 	}
 
 	if variable, ok := node.(ins.Variable); ok {
@@ -98,7 +107,7 @@ func (vm *VM) Operation(node ins.Node, on types.ON) *types.Type {
 			return vm.ClassOperationVariable(variable)
 		}
 
-		return vm.OperationVariable(variable)
+		return vm.Variable(variable)
 	}
 
 	if set, ok := node.(ins.Set); ok {
@@ -107,61 +116,61 @@ func (vm *VM) Operation(node ins.Node, on types.ON) *types.Type {
 			return vm.ClassOperationSet(set)
 		}
 
-		return vm.OperationSet(set)
+		return vm.Set(set)
 	}
 
 	if i, ok := node.(ins.If); ok {
-		return vm.OperationIf(i)
+		return vm.If(i)
 	}
 
 	if block, ok := node.(ins.Block); ok {
-		return vm.OperationBlock(block, on)
+		return vm.Block(block, on)
 	}
 
 	if call, ok := node.(ins.Call); ok {
-		return vm.OperationCall(call)
+		return vm.Call(call)
 	}
 
 	if pushClass, ok := node.(ins.PushClass); ok {
-		return vm.OperationPushClass(pushClass)
+		return vm.PushClass(pushClass)
 	}
 
 	if defineClass, ok := node.(ins.DefineClass); ok {
-		return vm.OperationDefineClass(defineClass)
+		return vm.DefineClass(defineClass)
 	}
 
 	if defineMethod, ok := node.(ins.DefineMethod); ok {
-		return vm.OperationDefineMethod(defineMethod)
+		return vm.DefineMethod(defineMethod)
 	}
 
 	if instance, ok := node.(ins.Instance); ok {
-		return vm.OperationInstance(instance)
+		return vm.Instance(instance)
 	}
 
 	if list, ok := node.(ins.ListCreate); ok {
-		return vm.OperationListCreate(list)
+		return vm.ListCreate(list)
 	}
 
 	if access, ok := node.(ins.AccessChildItem); ok {
-		return vm.OperationAccessChildItem(access)
+		return vm.AccessChildItem(access)
 	}
 
 	if m, ok := node.(ins.MapCreate); ok {
-		return vm.OperationMapCreate(m)
+		return vm.MapCreate(m)
 	}
 
 	if ret, ok := node.(ins.Return); ok {
-		return vm.OperationReturn(ret)
+		return vm.Return(ret)
 	}
 
 	if f, ok := node.(ins.For); ok {
-		return vm.OperationFor(f)
+		return vm.For(f)
 	}
 
-	return vm.CreateType(&builtin.Null{})
+	return vm.CreateNull()
 }
 
-func (vm *VM) OperationBlock(block ins.Block, on types.ON) (last *types.Type) {
+func (vm *VM) Block(block ins.Block, on types.ON) *types.Value {
 
 	// Create new scope
 	if on != types.ON_FOR_PART && block.Scope == true {
@@ -171,6 +180,8 @@ func (vm *VM) OperationBlock(block ins.Block, on types.ON) (last *types.Type) {
 	if on == types.ON_METHOD_BODY {
 		vm.ShouldReturn = append(vm.ShouldReturn, false)
 	}
+
+	var last *types.Value
 
 	for _, body := range block.Body {
 		last = vm.Operation(body, types.ON_NOTHING)
@@ -194,13 +205,13 @@ func (vm *VM) OperationBlock(block ins.Block, on types.ON) (last *types.Type) {
 	return last
 }
 
-func (vm *VM) OperationAssign(assign ins.Assign) *types.Type {
+func (vm *VM) Assign(assign ins.Assign) *types.Value {
 
-	var value *types.Type
+	var value *types.Value
 
 	// Assign.Right is already a Type{}
 	// Used in a ForIn for example
-	if t, ok := assign.Right.(*types.Type); ok {
+	if t, ok := assign.Right.(*types.Value); ok {
 		value = t
 	} else {
 		value = vm.Operation(assign.Right, types.ON_NOTHING)
@@ -211,55 +222,169 @@ func (vm *VM) OperationAssign(assign ins.Assign) *types.Type {
 	return value
 }
 
-func (vm *VM) OperationMath(math ins.Math) *types.Type {
+func (vm *VM) Math(math ins.Math) *types.Value {
 
 	left := vm.Operation(math.Left, types.ON_NOTHING)
 	right := vm.Operation(math.Right, types.ON_NOTHING)
 
-	/*fmt.Println(left)
-	fmt.Println(math.Method)
-	fmt.Println(right)
-	*/
 	if math.IsComparision {
-		return left.Compare(vm, math.Method, right)
+		return vm.MathCompare(left, right, math.Method)
 	}
 
-	return left.Math(vm, math.Method, right)
+	return vm.MathOperation(left, right, math.Method)
 }
 
-func (vm *VM) OperationLiteral(literal ins.Literal) *types.Type {
+func (vm *VM) MathCompare(left, right *types.Value, method string) *types.Value {
+
+	if left.Type == types.NUMBER {
+		if right.Type == types.NUMBER {
+			return vm.MathCompareNumbers(left, right, method)
+		}
+	}
+
+
+	l := vm.GetAsClass(left)
+
+	return l.Compare(vm, method, right)
+}
+
+func (vm *VM) MathOperation(left, right *types.Value, method string) *types.Value {
+
+	if left.Type == types.NUMBER {
+		if right.Type == types.NUMBER || right.Type == types.NULL {
+			if res, ok := vm.MathOperationNumbers(left, right, method); ok {
+				return res
+			}
+		}
+	}
+
+
+	// Fallback to Class behaviour
+	l := vm.GetAsClass(left)
+
+	return l.Math(vm, method, right)
+}
+
+func (vm *VM) MathCompareNumbers(left, right *types.Value, method string) *types.Value {
+
+	b := false
+
+	switch method {
+	case ">":
+		b = left.Number > right.Number
+	case "<":
+		b = left.Number < right.Number
+	case ">=":
+		b = left.Number >= right.Number
+	case "<=":
+		b = left.Number <= right.Number
+	case "==":
+		b = left.Number == right.Number
+	case "!=":
+		b = left.Number != right.Number
+	default:
+		log.Panicf("OperationMathCompareNumbers() is not implementing %s", method)
+	}
+
+	val := 0.0
+
+	if b {
+		val = 1.0
+	}
+
+	return &types.Value{
+		Type: types.BOOL,
+		Number: val,
+	}
+}
+
+func (vm *VM) MathOperationNumbers(left, right *types.Value, method string) (*types.Value, bool) {
+	val := float64(0)
+	found := true
+
+	switch method {
+	case "+":
+		val = left.Number + right.Number
+	case "-":
+
+		if right.Type == types.NULL {
+			val = -left.Number
+		} else {
+			val = left.Number - right.Number
+		}
+
+	case "*":
+		val = left.Number * right.Number
+	case "/":
+		val = left.Number / right.Number
+	case "%":
+		val = math.Mod(left.Number, right.Number)
+	case "**":
+		val = math.Pow(left.Number, right.Number)
+	case "++":
+		left.Number++
+		val = left.Number
+	case "--":
+		left.Number--
+		val = left.Number
+	default:
+		found = false
+	}
+
+	res := types.Value{
+		Type: types.NUMBER,
+		Number: val,
+	}
+
+	return &res, found
+}
+
+func (vm *VM) Literal(literal ins.Literal) *types.Value {
 
 	if literal.Type == "number" {
-		number := builtin.Number{}
-		number.Init(literal.Value)
+		value, err := strconv.ParseFloat(literal.Value, 64)
 
-		return vm.CreateType(&number)
+		if err != nil {
+			log.Panicf("Can not initialize Number as %s", literal.Value)
+		}
+
+		return &types.Value{
+			Type: types.NUMBER,
+			Number: value,
+		}
 	}
 
 	if literal.Type == "string" {
-		str := builtin.String{}
-		str.Init(literal.Value)
-
-		return vm.CreateType(&str)
+		return &types.Value{
+			Type: types.STRING,
+			String: literal.Value,
+		}
 	}
 
 	if literal.Type == "bool" {
-		bl := builtin.Bool{}
-		bl.Init(literal.Value)
 
-		return vm.CreateType(&bl)
+		value := 0.
+
+		if literal.Value == "true" {
+			value = 1.
+		}
+
+		return &types.Value{
+			Type: types.BOOL,
+			Number: value,
+		}
 	}
 
 	if literal.Type == "null" {
-		return vm.CreateType(&builtin.Null{})
+		return vm.CreateNull()
 	}
 
 	log.Panicf("Not able to handle Literal %s", literal)
 
-	return vm.CreateType(&builtin.Null{})
+	return vm.CreateNull()
 }
 
-func (vm *VM) OperationVariable(variable ins.Variable) *types.Type {
+func (vm *VM) Variable(variable ins.Variable) *types.Value {
 
 	if res, ok := vm.env.Get(variable.Name); ok {
 		return res
@@ -267,10 +392,10 @@ func (vm *VM) OperationVariable(variable ins.Variable) *types.Type {
 
 	log.Print("Undefined variable, " + variable.Name)
 
-	return vm.CreateType(&builtin.Null{})
+	return vm.CreateNull()
 }
 
-func (vm *VM) ClassOperationVariable(variable ins.Variable) *types.Type {
+func (vm *VM) ClassOperationVariable(variable ins.Variable) *types.Value {
 
 	class := vm.Classes[len(vm.Classes)-1]
 
@@ -280,12 +405,12 @@ func (vm *VM) ClassOperationVariable(variable ins.Variable) *types.Type {
 
 	log.Print("Undefined variable, " + class.Type() + "." + variable.Name)
 
-	return vm.CreateType(&builtin.Null{})
+	return vm.CreateNull()
 }
 
-func (vm *VM) OperationSet(set ins.Set) *types.Type {
+func (vm *VM) Set(set ins.Set) *types.Value {
 
-	l, ok := vm.env.Get(set.Name)
+	left, ok := vm.env.Get(set.Name)
 
 	if !ok {
 		log.Panicf("Can not set %s, %s is undefined", set.Name, set.Name)
@@ -293,8 +418,8 @@ func (vm *VM) OperationSet(set ins.Set) *types.Type {
 
 	value := vm.Operation(set.Right, types.ON_NOTHING)
 
-	if l.Type() != value.Type() {
-		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.ToString(), value.Type())
+	if vm.GetType(left) != vm.GetType(value) {
+		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, vm.GetType(left), vm.GetAsClass(value).ToString(), vm.GetType(value))
 	}
 
 	vm.env.Set(set.Name, value)
@@ -302,11 +427,11 @@ func (vm *VM) OperationSet(set ins.Set) *types.Type {
 	return value
 }
 
-func (vm *VM) ClassOperationSet(set ins.Set) *types.Type {
+func (vm *VM) ClassOperationSet(set ins.Set) *types.Value {
 
 	class := vm.Classes[len(vm.Classes)-1]
 
-	l, ok := class.Variables[set.Name]
+	left, ok := class.Variables[set.Name]
 
 	if !ok {
 		log.Panicf("Can not set %s, %s is undefined", set.Name, set.Name)
@@ -314,8 +439,8 @@ func (vm *VM) ClassOperationSet(set ins.Set) *types.Type {
 
 	value := vm.Operation(set.Right, types.ON_NOTHING)
 
-	if l.Type() != "Null" && l.Type() != value.Type() {
-		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, l.Type(), value.ToString(), value.Type())
+	if vm.GetType(left) != vm.GetType(value) {
+		log.Panicf("Can not set %s (type %s), to %s (type %s)", set.Name, vm.GetType(left), vm.GetAsClass(value).ToString(), vm.GetType(value))
 	}
 
 	class.SetVariable(set.Name, value)
@@ -323,35 +448,58 @@ func (vm *VM) ClassOperationSet(set ins.Set) *types.Type {
 	return value
 }
 
-func (vm *VM) OperationIf(i ins.If) *types.Type {
+func (vm *VM) If(i ins.If) *types.Value {
 
-	con := vm.Operation(i.Condition, types.ON_NOTHING)
+	condition := vm.Operation(i.Condition, types.ON_NOTHING)
 
-	if con.Type() != "Bool" {
-		log.Panicf("Expecing bool in condition, %s (%s)", con.ToString(), con.Type())
+	// Literal bool
+	if condition.Type == types.BOOL {
+		if condition.Number == 1. {
+			return vm.Operation(i.True, types.ON_NOTHING)
+		}
+
+		return vm.Operation(i.False, types.ON_NOTHING)
 	}
 
-	if con.ToString() == "true" {
+	// Value of the class Bool
+	if vm.GetType(condition) != "Bool" {
+		log.Panicf("Expecing bool in condition, %s (%s)", vm.GetAsClass(condition).ToString(), vm.GetType(condition))
+	}
+
+	if vm.GetAsClass(condition).ToString() == "true" {
 		return vm.Operation(i.True, types.ON_NOTHING)
 	}
 
 	return vm.Operation(i.False, types.ON_NOTHING)
 }
 
-func (vm *VM) OperationCall(call ins.Call) *types.Type {
+func (vm *VM) Call(call ins.Call) *types.Value {
 
-	params := make([]*types.Type, len(call.Parameters))
+	params := make([]*types.Value, len(call.Parameters))
 
 	for i, param := range call.Parameters {
 		params[i] = vm.Operation(param, types.ON_NOTHING)
 	}
 
-	return vm.Classes[len(vm.Classes)-1].Invoke(vm, vm.Operation(call.Left, types.ON_NOTHING).ToString(), params)
+	left := vm.Operation(call.Left, types.ON_NOTHING)
+
+	var method string
+
+	// Optimized string
+	if left.Type == types.STRING {
+		method = left.String
+
+	// Fallbacked string behaviour
+	} else {
+		method = vm.GetAsClass(left).ToString()
+	}
+
+	return vm.Classes[len(vm.Classes)-1].Invoke(vm, method, params)
 }
 
-func (vm *VM) OperationDefineClass(def ins.DefineClass) *types.Type {
+func (vm *VM) DefineClass(def ins.DefineClass) *types.Value {
 
-	class := types.Type{}
+	class := types.Class{}
 	class.Init(def.Name)
 
 	// Push
@@ -373,12 +521,17 @@ func (vm *VM) OperationDefineClass(def ins.DefineClass) *types.Type {
 	vm.Classes = vm.Classes[:len(vm.Classes)-1]
 	vm.env = vm.env.Pop()
 
-	vm.env.Set(def.Name, &class)
+	val := types.Value{
+		Type: types.CLASS,
+		Reference: &class,
+	}
 
-	return vm.CreateType(&builtin.Null{})
+	vm.env.Set(def.Name, &val)
+
+	return vm.CreateNull()
 }
 
-func (vm *VM) OperationDefineMethod(def ins.DefineMethod) *types.Type {
+func (vm *VM) DefineMethod(def ins.DefineMethod) *types.Value {
 
 	if len(vm.Classes) == 0 {
 		log.Panic("Unable to define method, not in class")
@@ -392,24 +545,37 @@ func (vm *VM) OperationDefineMethod(def ins.DefineMethod) *types.Type {
 
 	vm.Classes[len(vm.Classes)-1].AddMethod(def.Name, method)
 
-	return vm.CreateType(&builtin.Null{})
+	return vm.CreateNull()
 }
 
-func (vm *VM) OperationPushClass(pushClass ins.PushClass) *types.Type {
+func (vm *VM) PushClass(pushClass ins.PushClass) *types.Value {
 
 	left := vm.Operation(pushClass.Left, types.ON_NOTHING)
-	name := left.ToString()
 
-	class, ok := vm.env.Get(name)
+	var name string
 
-	if name == "self" {
-		class = vm.Classes[len(vm.Classes)-1]
-		ok = true
+	// Optimize for strings
+	if left.Type == types.STRING {
+		name = left.String
+	} else {
+		name = vm.GetAsClass(left).ToString()
 	}
+
+	// Do not change the current pushed class
+	// Continue imediately
+	if name == "self" {
+		return vm.Operation(pushClass.Right, types.ON_CLASS)
+	}
+
+	var class *types.Class
+
+	value, ok := vm.env.Get(name)
 
 	// There is no such class, use left
 	if !ok {
-		class = left
+		class = vm.GetAsClass(left)
+	} else {
+		class = vm.GetAsClass(value)
 	}
 
 	// Push
@@ -423,82 +589,82 @@ func (vm *VM) OperationPushClass(pushClass ins.PushClass) *types.Type {
 	return res
 }
 
-func (vm *VM) OperationMapCreate(m ins.MapCreate) *types.Type {
+func (vm *VM) MapCreate(m ins.MapCreate) *types.Value {
 	ma := builtin.Map{}
 
-	params := make([]*types.Type, 0)
+	params := make([]*types.Class, 0)
 
 	for i, key := range m.Keys {
-		params = append(params, vm.Operation(key, types.ON_NOTHING))
-		params = append(params, vm.Operation(m.Values[i], types.ON_NOTHING))
+		params = append(params, vm.GetAsClass(vm.Operation(key, types.ON_NOTHING)))
+		params = append(params, vm.GetAsClass(vm.Operation(m.Values[i], types.ON_NOTHING)))
 	}
 
 	ma.InitWithParams(params)
 
-	return vm.CreateType(&ma)
+	return vm.ConvertClassToValue(vm.CreateClassWithLib(&ma))
 }
 
-func (vm *VM) OperationListCreate(list ins.ListCreate) *types.Type {
+func (vm *VM) ListCreate(list ins.ListCreate) *types.Value {
 	l := builtin.List{}
 
-	params := make([]*types.Type, len(list.Items))
+	params := make([]*types.Class, len(list.Items))
 
 	for i, item := range list.Items {
-		params[i] = vm.Operation(item, types.ON_NOTHING)
+		params[i] = vm.GetAsClass(vm.Operation(item, types.ON_NOTHING))
 	}
 
 	l.InitWithParams(params)
 
-	return vm.CreateType(&l)
+	return vm.ConvertClassToValue(vm.CreateClassWithLib(&l))
 }
 
-func (vm *VM) OperationAccessChildItem(access ins.AccessChildItem) *types.Type {
+func (vm *VM) AccessChildItem(access ins.AccessChildItem) *types.Value {
 
 	// Extract the List or Map
 	item := vm.Operation(access.Item, types.ON_NOTHING)
 
 	// Is Map
-	if item.Type() == "Map" {
-		return vm.OperationAccessChildItemMap(access, item)
+	if vm.GetType(item) == "Map" {
+		return vm.AccessChildItemMap(access, item)
 	}
 
-	if item.Type() != "List" {
-		log.Panicf("Expected List or Map in [], got %s", item.Type())
+	if vm.GetType(item) != "List" {
+		log.Panicf("Expected List or Map in [], got %s", vm.GetType(item))
 	}
 
-	library, ok := item.Extension.(*builtin.List)
+	library, ok := vm.GetAsClass(item).Extension.(*builtin.List)
 
 	if !ok {
-		log.Panic("Expected class to be of types.Type *builtin.List")
+		log.Panic("Expected class to be of types.Value *builtin.List")
 	}
 
 	// Get position to access from the list
-	position := vm.Operation(access.Right, types.ON_NOTHING)
+	position := vm.GetAsClass(vm.Operation(access.Right, types.ON_NOTHING))
 
-	return library.ItemAt([]*types.Type{position})
+	return vm.ConvertClassToValue(library.ItemAt([]*types.Class{position}))
 }
 
-func (vm *VM) OperationAccessChildItemMap(access ins.AccessChildItem, item *types.Type) *types.Type {
-	library, ok := item.Extension.(*builtin.Map)
+func (vm *VM) AccessChildItemMap(access ins.AccessChildItem, item *types.Value) *types.Value {
+	library, ok := vm.GetAsClass(item).Extension.(*builtin.Map)
 
 	if !ok {
-		log.Panic("Expected class to be of types.Type *builtin.Map")
+		log.Panic("Expected class to be of types.Value *builtin.Map")
 	}
 
 	// Get position to access from the list
-	position := vm.Operation(access.Right, types.ON_NOTHING)
+	position := vm.GetAsClass(vm.Operation(access.Right, types.ON_NOTHING))
 
-	return library.Get([]*types.Type{position})
+	return vm.ConvertClassToValue(library.Get([]*types.Class{position}))
 }
 
-func (vm *VM) OperationReturn(ret ins.Return) *types.Type {
+func (vm *VM) Return(ret ins.Return) *types.Value {
 
 	vm.ShouldReturn[len(vm.ShouldReturn)-1] = true
 
 	return vm.Operation(ret.Statement, types.ON_NOTHING)
 }
 
-func (vm *VM) OperationInstance(instance ins.Instance) *types.Type {
+func (vm *VM) Instance(instance ins.Instance) *types.Value {
 
 	in, ok := vm.env.Get(instance.Left)
 
@@ -509,13 +675,13 @@ func (vm *VM) OperationInstance(instance ins.Instance) *types.Type {
 	inst := vm.Clone(in)
 
 	if len(instance.Parameters) > 0 {
-		params := make([]*types.Type, 0)
+		params := make([]*types.Class, 0)
 
 		for _, node := range instance.Parameters {
-			params = append(params, vm.Operation(node, types.ON_NOTHING))
+			params = append(params, vm.GetAsClass(vm.Operation(node, types.ON_NOTHING)))
 		}
 
-		inst.Extension.InitWithParams(params)
+		vm.GetAsClass(inst).Extension.InitWithParams(params)
 	}
 
 	return inst
@@ -524,10 +690,10 @@ func (vm *VM) OperationInstance(instance ins.Instance) *types.Type {
 //
 // for before; condition; each { body }
 //
-func (vm *VM) OperationFor(f ins.For) *types.Type {
+func (vm *VM) For(f ins.For) *types.Value {
 
 	if f.IsForIn {
-		return vm.OperationForIn(f)
+		return vm.ForIn(f)
 	}
 
 	// Create variable scope
@@ -541,10 +707,10 @@ func (vm *VM) OperationFor(f ins.For) *types.Type {
 		// Test condition
 		res := vm.Operation(f.Condition, types.ON_FOR_PART)
 
-		condition, is_bool := res.Extension.(*builtin.Bool)
+		condition, is_bool := vm.GetAsClass(res).Extension.(*builtin.Bool)
 
 		if !is_bool {
-			log.Panicf("Expected bool in for, got %s", res.Type())
+			log.Panicf("Expected bool in for, got %s", vm.GetType(res))
 		}
 
 		if !condition.IsTrue() {
@@ -561,13 +727,13 @@ func (vm *VM) OperationFor(f ins.For) *types.Type {
 	// Restore scope
 	vm.env = vm.env.Pop()
 
-	return vm.CreateType(&builtin.Null{})
+	return vm.CreateNull()
 }
 
 // for var item in 1..2
 // for var item in ["first", "second"]
 // for var item in list
-func (vm *VM) OperationForIn(f ins.For) *types.Type {
+func (vm *VM) ForIn(f ins.For) *types.Value {
 
 	// Create variable scope
 	vm.env = vm.env.Push()
@@ -578,14 +744,14 @@ func (vm *VM) OperationForIn(f ins.For) *types.Type {
 	// Get iterator object
 	each := vm.Operation(f.Each, types.ON_NOTHING)
 
-	if each.Type() != "List" {
-		log.Panic("Expected List in for ... in, got %s", each.Type())
+	if vm.GetType(each) != "List" {
+		log.Panic("Expected List in for ... in, got %s", vm.GetType(each))
 	}
 
-	list, ok := each.Extension.(*builtin.List)
+	list, ok := vm.GetAsClass(each).Extension.(*builtin.List)
 
 	if !ok {
-		log.Panic("Expected class to be of types.Type *builtin.List")
+		log.Panic("Expected class to be of types.Value *builtin.List")
 	}
 
 	length := list.Length()
@@ -595,7 +761,7 @@ func (vm *VM) OperationForIn(f ins.For) *types.Type {
 		// Update variable
 		if assign_ok {
 			item := list.ItemAtPosition(key)
-			assign.Right = item
+			assign.Right = vm.ConvertClassToValue(item)
 			vm.Operation(assign, types.ON_NOTHING)
 		}
 
@@ -606,29 +772,114 @@ func (vm *VM) OperationForIn(f ins.For) *types.Type {
 	// Restore scope
 	vm.env = vm.env.Pop()
 
-	return vm.CreateType(&builtin.Null{})
+	return vm.CreateNull()
 }
 
 //
 // Clones a type, returns the new one
 //
-func (vm *VM) Clone(in *types.Type) (out *types.Type) {
-	res := types.Type{}
+func (vm *VM) Clone(input *types.Value) (out *types.Value) {
+
+	in := vm.GetAsClass(input)
+
+	res := types.Class{}
 	res.Class = in.Class
 	res.Methods = in.Methods
 	res.Extension, _ = in.Extension.Instance()
-	res.Variables = make(map[string]*types.Type)
+	res.Variables = make(map[string]*types.Value)
 
 	for name, def := range in.Variables {
 		res.Variables[name] = vm.Clone(def)
 	}
 
-	return &res
+	return vm.ConvertClassToValue(&res)
 }
 
-func (vm *VM) CreateType(lib types.Lib) *types.Type {
-	class := types.Type{}
+func (vm *VM) CreateClassWithLib(lib types.Lib) *types.Class {
+	class := types.Class{}
 	class.InitWithLib(lib)
 
 	return &class
+}
+
+func (vm VM) GetAsClass(in *types.Value) *types.Class {
+
+	// Null
+	if in.Type == types.NULL {
+		return vm.CreateClassWithLib(&builtin.Null{})
+	}
+
+	// Bool
+	if in.Type == types.BOOL {
+		bl := builtin.Bool{}
+		bl.Value = (in.Number == 1)
+		return vm.CreateClassWithLib(&bl)
+	}
+
+	// Number
+	if in.Type == types.NUMBER {
+		number := builtin.Number{}
+		number.Value = in.Number
+		return vm.CreateClassWithLib(&number)
+	}
+
+	// String
+	if in.Type == types.STRING {
+		str := builtin.String{}
+		str.Value = in.String
+		return vm.CreateClassWithLib(&str)
+	}
+
+	// Class
+	if in.Type == types.CLASS {
+		return in.Reference
+	}
+
+	fmt.Println(reflect.ValueOf(in).Type().String())
+
+	return vm.CreateClassWithLib(&builtin.Null{})
+}
+
+func (vm VM) ConvertClassToValue(in *types.Class) *types.Value {
+	return &types.Value{
+		Type: types.CLASS,
+		Reference: in,
+	}
+}
+
+func (vm VM) GetType(in *types.Value) string {
+
+	// Null
+	if in.Type == types.NULL {
+		return "Null"
+	}
+
+	// Bool
+	if in.Type == types.BOOL {
+		return "Bool"
+	}
+
+	// Number
+	if in.Type == types.NUMBER {
+		return "Number"
+	}
+
+	// String
+	if in.Type == types.STRING {
+		return "String"
+	}
+
+	// Class
+	if in.Type == types.CLASS {
+		return in.Reference.Type()
+	}
+
+
+	return "Null"
+}
+
+func (vm VM) CreateNull() *types.Value {
+	return &types.Value{
+		Type: types.NULL,
+	}
 }

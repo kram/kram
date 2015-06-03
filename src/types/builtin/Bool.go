@@ -10,23 +10,23 @@ import (
 
 type Bool struct {
 	Builtin
-	value bool
+	Value bool
 }
 
 func (self Bool) Instance() (types.Lib, string) { return &Bool{}, self.Type() }
 func (self Bool) Type() string { return "Bool" }
-func (self Bool) M_Type() *types.Type { return self.String(self.Type()) }
+func (self Bool) M_Type() *types.Class { return self.String(self.Type()) }
 
 func (self *Bool) Init(str string) {
 	if str == "true" {
-		self.value = true
+		self.Value = true
 	} else {
-		self.value = false
+		self.Value = false
 	}
 }
 
 func (self *Bool) ToString() string {
-	if self.value {
+	if self.Value {
 		return "true"
 	}
 
@@ -34,37 +34,9 @@ func (self *Bool) ToString() string {
 }
 
 func (self *Bool) Set(bl bool) {
-	self.value = bl
+	self.Value = bl
 }
 
 func (self *Bool) IsTrue() bool {
-	return self.value
+	return self.Value
 }
-
-/*
-
-func (self *Bool) Compare(method string, right Type) Type {
-
-	r, ok := right.(*Bool)
-
-	if !ok {
-		log.Panicf("You can not compare a %s() with a %s()", self.Type(), right.Type())
-	}
-
-	if self.Value == r.Value {
-		bl := Bool{}
-		bl.Init("true")
-
-		return &bl
-	}
-
-	log.Panicf("%s() is not implementing %s", self.Type(), method)
-
-	// Will never be reached
-
-	bl := Bool{}
-	bl.Init("false")
-
-	return &bl
-}
-*/

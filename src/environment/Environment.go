@@ -9,13 +9,13 @@ import (
 )
 
 type Environment struct {
-	Env       map[string]*types.Type
+	Env       map[string]*types.Value
 	HasParent bool
 	Parent    *Environment
 }
 
 func (env *Environment) Init() {
-	env.Env = make(map[string]*types.Type)
+	env.Env = make(map[string]*types.Value)
 }
 
 func (env *Environment) Pop() *Environment {
@@ -32,19 +32,19 @@ func (env *Environment) Push() *Environment {
 	return &Environment{
 		Parent:    env,
 		HasParent: true,
-		Env:       make(map[string]*types.Type),
+		Env:       make(map[string]*types.Value),
 	}
 }
 
-func (env *Environment) Set(key string, value *types.Type) {
+func (env *Environment) Set(key string, value *types.Value) {
 	env.Env[key] = value
 }
 
-func (env *Environment) Get(str string) (*types.Type, bool) {
+func (env *Environment) Get(str string) (*types.Value, bool) {
 	return env.get(str, 0)
 }
 
-func (env *Environment) get(str string, r int) (t *types.Type, ok bool) {
+func (env *Environment) get(str string, r int) (t *types.Value, ok bool) {
 
 	if _, ok := env.Env[str]; ok {
 		return env.Env[str], true

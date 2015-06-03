@@ -16,7 +16,7 @@ func (self Library) Init(str string) {
 	// Do nothing
 }
 
-func (self Library) InitWithParams(params []*types.Type) {
+func (self Library) InitWithParams(params []*types.Class) {
 	log.Panic("This Type does not support InitWithParams()")
 }
 
@@ -24,7 +24,7 @@ func (self Library) ToString() string {
 	return "<nil>"
 }
 
-func (self Library) Bool(value bool) *types.Type {
+func (self Library) Bool(value bool) *types.Class {
 
 	bl := builtin.Bool{}
 	bl.Set(value)
@@ -32,18 +32,18 @@ func (self Library) Bool(value bool) *types.Type {
 	return self.fromLib(&bl)
 }
 
-func (self Library) Null() *types.Type {
+func (self Library) Null() *types.Class {
 	return self.fromLib(&builtin.Null{})
 }
 
-func (self Library) String(str string) *types.Type {
+func (self Library) String(str string) *types.Class {
 	return self.fromLib(&builtin.String{
 		Value: str,
 	})
 }
 
-func (self Library) fromLib(lib types.Lib) *types.Type {
-	class := types.Type{}
+func (self Library) fromLib(lib types.Lib) *types.Class {
+	class := types.Class{}
 	class.InitWithLib(lib)
 
 	return &class
