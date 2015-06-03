@@ -74,6 +74,30 @@ Harry.Woho() // Woho!
 Magician.Woho() // Woho!
 ```
 
+#### Default parameters
+
+```dart
+class Magician {
+    Setup(name = "Harry") {
+        // Stuff here
+    }
+}
+```
+
+#### Named arguments
+
+```dart
+class Magician {
+    Setup(name = "Harry", age = 14) {
+        // Stuff here
+    }
+}
+
+var magic = new Magician()
+magic.Setup(age = 11, name = "Ron") // ("Ron", 11)
+magic.Setup(age = 7) // ("Harry", 7)
+```
+
 ### Pretty numbers
 
 You can seperate numbers by spaces (as many or as few as you like) to increase readability of the sourcecode.
