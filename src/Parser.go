@@ -29,6 +29,8 @@ const (
 	ON_DEFAULT     ON = 1 << iota // 1
 	ON_CLASS_BODY                 // 2
 	ON_PUSH_CLASS                 // 4
+	ON_METHOD_PARAMETERS          // 8
+	ON_ARGUMENTS                  // 16
 )
 
 // --------------- Stack
@@ -514,7 +516,7 @@ func (p *Parser) SymbolCall(in ins.Node, on ON) ins.Node {
 	// Calling a method
 	if on == ON_PUSH_CLASS {
 		call := ins.Call{}
-		call.Parameters = p.ParseParameters()
+		call.Arguments = p.ParseArguments()
 
 		// Convert Variable to literal
 		if v, ok := in.(ins.Variable); ok {
@@ -528,7 +530,7 @@ func (p *Parser) SymbolCall(in ins.Node, on ON) ins.Node {
 	}
 
 	call := ins.Call{}
-	call.Parameters = p.ParseParameters()
+	call.Arguments = p.ParseArguments()
 	call.Left = in
 
 	return p.LookAhead(call)
@@ -655,11 +657,11 @@ func (p *Parser) ParseStatementPart(on ON) ins.Node {
 	return p.LookAhead(previous)
 }
 
-func (p *Parser) ParseParameters() []ins.Node {
+func (p *Parser) ParseArguments() []ins.Argument {
 
-	p.Log(1, "ParseParameters()")
+	p.Log(1, "ParseArguments()")
 
-	params := make([]ins.Node, 0)
+	params := make([]ins.Argument, 0)
 
 	for {
 		next := p.NextToken(-1)
@@ -669,14 +671,37 @@ func (p *Parser) ParseParameters() []ins.Node {
 			break
 		}
 
-		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}})
+		param := p.ReadUntilWithON([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}}, ON_ARGUMENTS)
+
+		if math, ok := param.(ins.Math); ok {
+			if math.Method == "=" {
+
+				name, found_name := math.Left.(ins.Variable)
+
+				if !found_name {
+					log.Panic("Named argument, could not find valud name")
+				}
+
+				params = append(params, ins.Argument{
+					Name: name.Name,
+					IsNamed: true,
+					Value: math.Right,
+				})
+
+				continue
+			}
+		}
 
 		if _, ok := param.(*ins.Nil); !ok {
-			params = append(params, param)
+			params = append(params, ins.Argument{
+				Value: param,
+			})
+
+			continue
 		}
 	}
 
-	p.Log(-1, "ParseStatementPart()")
+	p.Log(-1, "ParseArguments()")
 
 	return params
 }
@@ -725,6 +750,12 @@ func (p *Parser) Symbol_name(on ON) ins.Node {
 		// Set
 		// abc = 123
 		if next.Type == "operator" && next.Value == "=" {
+
+			// Hijack and return early when dealing with method parameters
+			if on == ON_METHOD_PARAMETERS || on == ON_ARGUMENTS {
+				return p.ParseStatementPart(on)
+			}
+
 			set := ins.Set{}
 			set.Name = name.Value
 
@@ -734,11 +765,6 @@ func (p *Parser) Symbol_name(on ON) ins.Node {
 
 			return set
 		}
-
-		/*if next.Type == "EOL" || next.Type == "EOF" {
-			fmt.Println("Should we really end up here? 81238nadouas8u")
-			return &ins.Nil{}
-		}*/
 
 		return p.ParseStatementPart(on)
 	}
@@ -816,7 +842,7 @@ func (p *Parser) Symbol_new(on ON) ins.Node {
 		log.Panicf("Expected ( after new, got %s (%s)", name.Type, name.Value)
 	}
 
-	inst.Parameters = p.ParseParameters()
+	inst.Arguments = p.ParseArguments()
 
 	return inst
 }
@@ -946,15 +972,32 @@ func (p *Parser) Symbol_MethodWithName(name string) ins.DefineMethod {
 			break
 		}
 
-		param := p.ReadUntil([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"operator", "{"}, Token{"EOF", ""}})
+		param := p.ReadUntilWithON([]Token{Token{"operator", "="}, Token{"operator", ")"}, Token{"operator", ","}, Token{"operator", "{"}, Token{"EOF", ""}}, ON_METHOD_PARAMETERS)
+
+		// Test if has default value
+		// Will be returned as a Math{a = b}
+		if math, ok := param.(ins.Math); ok {
+			par := ins.Parameter{}
+
+			if l, ok := math.Left.(ins.Variable); ok {
+				par.Name = l.Name
+			} else {
+				log.Panic("Parameters with default value, could not find valid name")
+			}
+
+			par.Default = math.Right
+			par.HasDefault = true
+			method.Parameters = append(method.Parameters, par)
+			continue
+		}
 
 		// Convert Variable{} to a Parameter{}
 		// They are basically the same, but not really
 		if v, ok := param.(ins.Variable); ok {
 			par := ins.Parameter{}
 			par.Name = v.Name
-
 			method.Parameters = append(method.Parameters, par)
+			continue
 		}
 	}
 

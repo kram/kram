@@ -32,6 +32,12 @@ type Method struct {
 	IsPublic   bool
 }
 
+type Argument struct {
+	IsNamed bool
+	Name    string
+	Val     *Value
+}
+
 type Class struct {
 	Class     string
 	Methods   map[string]Method
@@ -64,19 +70,19 @@ func (self *Class) SetVariable(name string, value *Value) {
 	self.Variables[name] = value
 }
 
-func (self *Class) Invoke(vm VM, name string, params []*Value) *Value {
+func (self *Class) Invoke(vm VM, name string, arguments []Argument) *Value {
 
 	if name == "Type" {
 		return self.M_Type()
 	}
 
-	res, ok := self.InvokeNative(vm, name, params)
+	res, ok := self.InvokeNative(vm, name, arguments)
 
 	if ok {
 		return res
 	}
 
-	res, ok = self.InvokeExtension(vm, name, params)
+	res, ok = self.InvokeExtension(vm, name, arguments)
 
 	if ok {
 		return res
@@ -87,7 +93,7 @@ func (self *Class) Invoke(vm VM, name string, params []*Value) *Value {
 	return self.CreateNull()
 }
 
-func (self *Class) InvokeExtension(vm VM, method string, params []*Value) (*Value, bool) {
+func (self *Class) InvokeExtension(vm VM, method string, arguments []Argument) (*Value, bool) {
 
 	if !self.HasExtension {
 		return self.CreateNull(), false
@@ -107,10 +113,10 @@ func (self *Class) InvokeExtension(vm VM, method string, params []*Value) (*Valu
 	if value.Type().NumIn() == 1 {
 
 		// Convert params to []*Class
-		par := make([]*Class, len(params))
+		par := make([]*Class, len(arguments))
 
-		for k, v := range params {
-			par[k] = vm.GetAsClass(v)
+		for k, v := range arguments {
+			par[k] = vm.GetAsClass(v.Val)
 		}
 
 		inputs := make([]reflect.Value, 1)
@@ -129,7 +135,7 @@ func (self *Class) InvokeExtension(vm VM, method string, params []*Value) (*Valu
 	return self.CreateNull(), true
 }
 
-func (self *Class) InvokeNative(vm VM, name string, params []*Value) (*Value, bool) {
+func (self *Class) InvokeNative(vm VM, name string, arguments []Argument) (*Value, bool) {
 
 	method, ok := self.Methods[name]
 
@@ -137,21 +143,81 @@ func (self *Class) InvokeNative(vm VM, name string, params []*Value) (*Value, bo
 		return self.CreateNull(), false
 	}
 
-	if len(method.Parameters) != len(params) {
-		fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", self.ToString(), name, len(method.Parameters), len(params))
+	//param_count := len(method.Parameters)
+	// optional_parameters := 0
+	required_params := 0
+
+	for _, par := range method.Parameters {
+		if !par.HasDefault {
+			required_params++
+		}
+	}
+
+	if required_params > len(arguments) {
+		fmt.Printf("Can not call %s.%s() (%d parameters) with %d parameters\n", self.ToString(), name, len(method.Parameters), len(arguments))
+
+		return self.CreateNull(), true
+	}
+
+	named_arguments := 0
+
+	for _, arg := range arguments {
+		if arg.IsNamed {
+			named_arguments++
+		}
+	}
+
+	if named_arguments > 0 && named_arguments != len(arguments) {
+		fmt.Printf("Can not call %s.%s(), when using named arguments you need to name all arguments\n", self.ToString(), name)
 
 		return self.CreateNull(), true
 	}
 
 	vm.EnvironmentPush()
 
-	// Define variables
-	for i, param := range method.Parameters {
-		ass := ins.Assign{}
-		ass.Name = param.Name
-		ass.Right = params[i]
+	// Not using named arguments
+	if named_arguments == 0 {
 
-		vm.Assign(ass)
+		// Define variables
+		for i, param := range method.Parameters {
+			ass := ins.Assign{}
+			ass.Name = param.Name
+
+			if len(arguments) > i {
+				ass.Right = arguments[i].Val
+			} else {
+				ass.Right = param.Default
+			}
+
+			vm.Assign(ass)
+		}
+	} else {
+
+		// Named arguments
+		for _, param := range method.Parameters {
+			ass := ins.Assign{}
+			ass.Name = param.Name
+
+			// Find name
+			found_name := false
+			for _, v := range arguments {
+				if v.Name == ass.Name {
+					ass.Right = v.Val
+					found_name = true
+					break
+				}
+			}
+
+			if !found_name {
+				if param.HasDefault {
+					ass.Right = param.Default
+				} else {
+					log.Panic("Something something")
+				}
+			}
+
+			vm.Assign(ass)
+		}
 	}
 
 	body := vm.Block(method.Body, ON_METHOD_BODY)
@@ -180,7 +246,9 @@ func (self *Class) Math(vm VM, method string, right *Value) *Value {
 		return vm.ConvertClassToValue(lib.Math(method, vm.GetAsClass(right)))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []*Value{right})
+	res, ok := self.InvokeNative(vm, method, []Argument{Argument{
+ 		Val: right,
+	}})
 
 	if ok {
 		return res
@@ -198,7 +266,9 @@ func (self *Class) Compare(vm VM, method string, right *Value) *Value {
 		return vm.ConvertClassToValue(lib.Compare(method, vm.GetAsClass(right)))
 	}
 
-	res, ok := self.InvokeNative(vm, method, []*Value{right})
+	res, ok := self.InvokeNative(vm, method, []Argument{Argument{
+		Val: right,
+	}})
 
 	if ok {
 		return res

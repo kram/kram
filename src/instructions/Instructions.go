@@ -63,7 +63,7 @@ type Condition struct {
 type Call struct {
 	Call       bool
 	Left       Node
-	Parameters []Node
+	Arguments  []Argument
 }
 
 type DefineClass struct {
@@ -82,13 +82,22 @@ type DefineMethod struct {
 }
 
 type Parameter struct {
-	Name string
+	Name       string
+	Default    Node
+	HasDefault bool
+}
+
+type Argument struct {
+	Argument bool
+	IsNamed  bool
+	Name     string
+	Value    Node
 }
 
 type Instance struct {
 	Instance bool
 	Left     string
-	Parameters []Node
+	Arguments []Argument
 }
 
 type MapCreate struct {

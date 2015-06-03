@@ -1,0 +1,15 @@
+// Anna
+// 15
+// Gregor
+// 15
+// Lisa
+// 17
+class Custom {
+	Method(name = "Gregor", age = 15) {
+		IO.Println(name, age)
+	}
+}
+
+Custom.Method("Anna")
+Custom.Method()
+Custom.Method("Lisa", 17)
