@@ -242,6 +242,8 @@ func (vm *VM) MathCompare(left, right *types.Value, method string) *types.Value 
 		}
 	}
 
+	log.Println("Compare, Could not use VM")
+
 	l := vm.GetAsClass(left)
 
 	return l.Compare(vm, method, right)
@@ -256,6 +258,8 @@ func (vm *VM) MathOperation(left, right *types.Value, method string) *types.Valu
 			}
 		}
 	}
+
+	log.Println("Operation, Could not use VM")
 
 	// Fallback to Class behaviour
 	l := vm.GetAsClass(left)
@@ -448,23 +452,23 @@ func (vm *VM) ClassOperationSet(set ins.Set) *types.Value {
 
 func (vm *VM) If(i ins.If) *types.Value {
 
-	con := vm.Operation(i.Condition, types.ON_NOTHING)
+	condition := vm.Operation(i.Condition, types.ON_NOTHING)
 
 	// Literal bool
-	/*if bl, ok := con.(*types.LiteralBool); ok {
-		if bl.Bool {
+	if condition.Type == types.BOOL {
+		if condition.Number == 1. {
 			return vm.Operation(i.True, types.ON_NOTHING)
-		} else {
-			return vm.Operation(i.False, types.ON_NOTHING)
 		}
-	}*/
 
-	// Value of the class Bool
-	if vm.GetType(con) != "Bool" {
-		log.Panicf("Expecing bool in condition, %s (%s)", vm.GetAsClass(con).ToString(), vm.GetType(con))
+		return vm.Operation(i.False, types.ON_NOTHING)
 	}
 
-	if vm.GetAsClass(con).ToString() == "true" {
+	// Value of the class Bool
+	if vm.GetType(condition) != "Bool" {
+		log.Panicf("Expecing bool in condition, %s (%s)", vm.GetAsClass(condition).ToString(), vm.GetType(condition))
+	}
+
+	if vm.GetAsClass(condition).ToString() == "true" {
 		return vm.Operation(i.True, types.ON_NOTHING)
 	}
 
@@ -484,13 +488,13 @@ func (vm *VM) Call(call ins.Call) *types.Value {
 	var method string
 
 	// Optimized string
-	/*if str, ok := left.(*types.LiteralString); ok {
-		method = str.String
+	if left.Type == types.STRING {
+		method = left.String
 
 	// Fallbacked string behaviour
-	} else {*/
+	} else {
 		method = vm.GetAsClass(left).ToString()
-	//}
+	}
 
 	return vm.Classes[len(vm.Classes)-1].Invoke(vm, method, params)
 }
@@ -833,30 +837,6 @@ func (vm VM) GetAsClass(in *types.Value) *types.Class {
 		return in.Reference
 	}
 
-	/*if lit, ok := in.(*types.LiteralNumber); ok {
-		number := builtin.Number{}
-		number.Value = lit.Number
-		return vm.CreateClassWithLib(&number).(*types.Class)
-	}
-
-	if lit, ok := in.(*types.LiteralString); ok {
-		str := builtin.String{}
-		str.Value = lit.String
-
-		return vm.CreateClassWithLib(&str).(*types.Class)
-	}
-
-	if lit, ok := in.(*types.LiteralBool); ok {
-		bl := builtin.Bool{}
-		bl.Value = lit.Bool
-
-		return vm.CreateClassWithLib(&bl).(*types.Class)
-	}
-
-	if _, ok := in.(*types.LiteralNull); ok {
-		return vm.CreateNull()
-	}*/
-
 	log.Println("GetAsClass() defaulted to null")
 	log.Println(in)
 	fmt.Println(reflect.ValueOf(in).Type().String())
@@ -865,6 +845,9 @@ func (vm VM) GetAsClass(in *types.Value) *types.Class {
 }
 
 func (vm VM) ConvertClassToValue(in *types.Class) *types.Value {
+
+	log.Println("ConvertClassToValue()")
+
 	return &types.Value{
 		Type: types.CLASS,
 		Reference: in,
