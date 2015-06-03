@@ -236,13 +236,11 @@ func (vm *VM) Math(math ins.Math) *types.Value {
 
 func (vm *VM) MathCompare(left, right *types.Value, method string) *types.Value {
 
-	/*
-
-	if left_n, ok := left.(*types.LiteralNumber); ok {
-		if right_n, ok := right.(*types.LiteralNumber); ok {
-			return vm.MathCompareNumbers(left_n, right_n, method)
+	if left.Type == types.NUMBER {
+		if right.Type == types.NUMBER {
+			return vm.MathCompareNumbers(left, right, method)
 		}
-	}*/
+	}
 
 	l := vm.GetAsClass(left)
 
@@ -251,32 +249,18 @@ func (vm *VM) MathCompare(left, right *types.Value, method string) *types.Value 
 
 func (vm *VM) MathOperation(left, right *types.Value, method string) *types.Value {
 
-	/*if left_n, ok := left.(*types.LiteralNumber); ok {
-		if right_n, ok := right.(*types.LiteralNumber); ok {
-			if res, ok := vm.MathOperationNumbers(left_n, right_n, method); ok {
+	if left.Type == types.NUMBER {
+		if right.Type == types.NUMBER || right.Type == types.NULL {
+			if res, ok := vm.MathOperationNumbers(left, right, method); ok {
 				return res
 			}
 		}
-	}*/
-
-	fmt.Println(left)
+	}
 
 	// Fallback to Class behaviour
-
 	l := vm.GetAsClass(left)
 
-	log.Println(l.ToString())
-
-	log.Println(l, method, right)
-
-	res := l.Math(vm, method, right)
-
-	log.Println(l.ToString())
-	log.Println(res)
-
-	fmt.Println(left)
-
-	return res
+	return l.Math(vm, method, right)
 }
 
 func (vm *VM) MathCompareNumbers(left, right *types.Value, method string) *types.Value {
@@ -320,7 +304,13 @@ func (vm *VM) MathOperationNumbers(left, right *types.Value, method string) (*ty
 	case "+":
 		val = left.Number + right.Number
 	case "-":
-		val = left.Number - right.Number
+
+		if right.Type == types.NULL {
+			val = -left.Number
+		} else {
+			val = left.Number - right.Number
+		}
+
 	case "*":
 		val = left.Number * right.Number
 	case "/":

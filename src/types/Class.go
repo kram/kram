@@ -177,8 +177,6 @@ func (self *Class) Math(vm VM, method string, right *Value) *Value {
 		return res
 	}
 
-	log.Println(self.Extension)
-
 	log.Panicf("%s() is not implementing %s (General Math)", self.Type(), method)
 
 	// This code will never be reached
