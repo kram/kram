@@ -6,7 +6,7 @@
 
 ## Example
 
-```dart
+```go
 IO.Print("Hello World!")
 
 var age = 100
@@ -30,13 +30,13 @@ Are you interested? Make a visit to the [Getting Started](https://github.com/zeg
 
 ### Variables
 
-```dart
+```go
 var str = "Hi, there!"
 ```
 
 ### If-cases
 
-```dart
+```go
 if first > second {
     IO.Println("first is bigger than second")
 } else {
@@ -46,7 +46,7 @@ if first > second {
 
 ### Classes
 
-```dart
+```go
 class Magician {
     
     // Instance variables
@@ -76,7 +76,7 @@ Magician.Woho() // Woho!
 
 #### Default parameters
 
-```dart
+```go
 class Magician {
     Setup(name = "Harry") {
         // Stuff here
@@ -86,7 +86,7 @@ class Magician {
 
 #### Named arguments
 
-```dart
+```go
 class Magician {
     Setup(name = "Harry", age = 14) {
         // Stuff here
@@ -102,7 +102,7 @@ magic.Setup(age = 7) // ("Harry", 7)
 
 You can seperate numbers by spaces (as many or as few as you like) to increase readability of the sourcecode.
 
-```dart
+```go
 IO.Println(20 000) // Prints "20000"
 ```
 
@@ -110,7 +110,7 @@ IO.Println(20 000) // Prints "20000"
 
 In Gus, everything is a class, that means that you can do stuff like
 
-```dart
+```go
 150.Sqrt()
 ```
 
