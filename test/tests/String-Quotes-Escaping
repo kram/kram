@@ -1,0 +1,6 @@
+// normal string
+// with "quotes"
+// this is a \ backslash
+IO.Println("normal string")
+IO.Println("with \"quotes\"")
+IO.Println("this is a \\ backslash")

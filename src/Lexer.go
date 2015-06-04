@@ -200,17 +200,23 @@ func (l *Lexer) ParseNext() (string, string) {
 	if l.C == "\"" {
 		str := ""
 
-		// TODO escaping
+		l.I++
 
 		for {
-			if l.CharAtPos(l.I+1) == "\"" {
-				l.I++
+
+			// End of string
+			if l.CharAtPos(l.I) == "\"" {
 				break
 			}
 
-			l.I++
+			// Escaping
+			if l.CharAtPos(l.I) == "\\" {
+				l.I++
+			}
 
 			str += l.CharAtPos(l.I)
+
+			l.I++
 		}
 
 		return "string", str
