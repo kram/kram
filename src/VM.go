@@ -681,18 +681,28 @@ func (vm *VM) Instance(instance ins.Instance) *types.Value {
 		log.Panicf("No such class, %s", instance.Left)
 	}
 
+	// Create new instance
 	inst := vm.Clone(in)
 
-	if len(instance.Arguments) > 0 {
-		arguments := make([]*types.Class, 0)
+	// Parse arguments
+	arguments := make([]types.Argument, len(instance.Arguments))
 
-		for _, arg := range instance.Arguments {
-			arguments = append(arguments, vm.GetAsClass(vm.Operation(arg.Value, types.ON_NOTHING)))
+	for i, argument := range instance.Arguments {
+		arg := types.Argument{}
+		arg.Val = vm.Operation(argument.Value, types.ON_NOTHING)
+
+		if argument.IsNamed {
+			arg.IsNamed = true
+			arg.Name = argument.Name
 		}
 
-		vm.GetAsClass(inst).Extension.InitWithParams(arguments)
+		arguments[i] = arg
 	}
 
+	// Execute the "New" method (if existing)
+	vm.GetAsClass(inst).InvokeSafe(vm, "New", arguments)
+
+	// The instance is returned
 	return inst
 }
 

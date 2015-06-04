@@ -70,7 +70,18 @@ func (self *Class) SetVariable(name string, value *Value) {
 	self.Variables[name] = value
 }
 
+// A safe version of Invoke() that doesn't panic
+func (self *Class) InvokeSafe(vm VM, name string, arguments []Argument) *Value {
+	return self.invoke(vm, name, arguments, false)
+}
+
+// Invoke and panik if method not found
 func (self *Class) Invoke(vm VM, name string, arguments []Argument) *Value {
+	return self.invoke(vm, name, arguments, true)
+}
+
+// Private method for invoking a Gus-method
+func (self *Class) invoke(vm VM, name string, arguments []Argument, panic bool) *Value {
 
 	if name == "Type" {
 		return self.M_Type()
@@ -88,7 +99,9 @@ func (self *Class) Invoke(vm VM, name string, arguments []Argument) *Value {
 		return res
 	}
 
-	log.Panicf("%s::%s, no such method", self.Type(), name)
+	if panic {
+		log.Panicf("%s::%s, no such method", self.Type(), name)
+	}
 
 	return self.CreateNull()
 }

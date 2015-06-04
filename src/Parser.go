@@ -826,6 +826,13 @@ func (p *Parser) Symbol_static() ins.Node {
 */
 
 func (p *Parser) Symbol_new(on ON) ins.Node {
+
+	// "new" is also the name of constructors
+	// This is added so that the lowercase version of the method name also works just fine
+	if on == ON_CLASS_BODY {
+		return p.Symbol_MethodWithName("New")
+	}
+
 	inst := ins.Instance{}
 
 	name := p.Advance()

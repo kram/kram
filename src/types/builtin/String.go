@@ -98,6 +98,11 @@ func (self *String) Compare(method string, right *types.Class) *types.Class {
 
 	return &res
 }
+	
+// Constructor method
+func (self *String) M_New(params []*types.Class) {
+	self.InitWithParams(params)
+}
 
 func (self *String) M_Lower(params []*types.Class) *types.Class {
 	return self.String(strings.ToLower(self.Value))

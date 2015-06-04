@@ -1,0 +1,16 @@
+// Initialized with name: Gustav
+// Initialized with age: 20
+// Initialized with name: Pelle
+// Initialized with age: 13
+// Initialized with name: Gustav
+// Initialized with age: 22
+class Human {
+	New(name = "Gustav", age = 20) {
+		IO.Println("Initialized with name: " + name)
+		IO.Println("Initialized with age: " + new String(age))
+	}
+}
+
+new Human("Gustav")
+new Human("Pelle", 13)
+new Human(age = 22)
