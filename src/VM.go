@@ -259,7 +259,6 @@ func (vm *VM) MathOperation(left, right *types.Value, method string) *types.Valu
 		}
 	}
 
-
 	// Fallback to Class behaviour
 	l := vm.GetAsClass(left)
 
@@ -550,7 +549,6 @@ func (vm *VM) DefineMethod(def ins.DefineMethod) *types.Value {
 	method.Parameters = def.Parameters
 	method.Body = def.Body
 	method.IsStatic = def.IsStatic
-	method.IsPublic = def.IsPublic
 
 	vm.Classes[len(vm.Classes)-1].AddMethod(def.Name, method)
 
@@ -804,6 +802,9 @@ func (vm *VM) Clone(input *types.Value) (out *types.Value) {
 	res := types.Class{}
 	res.Class = in.Class
 	res.Methods = in.Methods
+
+	// This is now an unique instance of this class
+	res.IsInstance = true
 
 	if in.HasExtension {
 		res.Extension, _ = in.Extension.Instance()

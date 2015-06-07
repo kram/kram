@@ -5,7 +5,7 @@
 // Lisa
 // 17
 class Custom {
-	Method(name = "Gregor", age = 15) {
+	static Method(name = "Gregor", age = 15) {
 		IO.Println(name, age)
 	}
 }

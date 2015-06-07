@@ -132,7 +132,7 @@ func (p *Parser) Parse(tokens []Token) ins.Block {
 	p.Symbol("var", p.Symbol_var, 0)
 	p.Symbol("if", p.Symbol_if, 0)
 	p.Symbol("class", p.Symbol_class, 0)
-	//p.Symbol("static", p.Symbol_static, 0)
+	p.Symbol("static", p.Symbol_static, 0)
 	p.Symbol("new", p.Symbol_new, 0)
 	p.Symbol("return", p.Symbol_return, 0)
 	p.Symbol("for", p.Symbol_for, 0)
@@ -814,8 +814,7 @@ func (p *Parser) Symbol_class(on ON) ins.Node {
 	return class
 }
 
-/*
-func (p *Parser) Symbol_static() ins.Node {
+func (p *Parser) Symbol_static(on ON) ins.Node {
 	p.Advance()
 
 	method := p.Symbol_method()
@@ -823,7 +822,6 @@ func (p *Parser) Symbol_static() ins.Node {
 
 	return method
 }
-*/
 
 func (p *Parser) Symbol_new(on ON) ins.Node {
 
@@ -960,16 +958,22 @@ func (p *Parser) Symbol_for_in(f ins.For) ins.For {
 	return f
 }
 
+func (p *Parser) Symbol_method() ins.DefineMethod {
+
+	name := p.NextToken(-1)
+
+	if name.Type != "name" {
+		log.Panicf("Expeced name after method, got %s", name.Type)
+	}
+
+	return p.Symbol_MethodWithName(name.Value)
+}
+
 func (p *Parser) Symbol_MethodWithName(name string) ins.DefineMethod {
 	method := ins.DefineMethod{}
 	method.Parameters = make([]ins.Parameter, 0)
 
 	method.Name = name
-
-	// IsPublic
-	if string(method.Name[0]) >= "A" && string(method.Name[0]) <= "Z" {
-		method.IsPublic = true
-	}
 
 	for {
 		next := p.NextToken(-1)

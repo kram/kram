@@ -12,7 +12,7 @@
 // Red
 
 class Custom {
-	Method(name = "Gregor", age = 15, color = "Pink") {
+	static Method(name = "Gregor", age = 15, color = "Pink") {
 		IO.Println(name, age, color)
 	}
 }

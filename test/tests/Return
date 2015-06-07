@@ -1,7 +1,7 @@
 // The dogs age is: 12true
 // The dogs age is: 2false
 class Dog {
-	IsOld(age) {
+	static IsOld(age) {
 		IO.Print("The dogs age is: ", age)
 
 		if age > 6 {

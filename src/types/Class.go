@@ -44,10 +44,7 @@ type Class struct {
 	Variables map[string]*Value
 	Extension Lib
 	HasExtension bool
-}
-
-func (self Class) IsClass() bool {
-	return true
+	IsInstance bool
 }
 
 func (self *Class) Init(str string) {
@@ -83,6 +80,7 @@ func (self *Class) Invoke(vm VM, name string, arguments []Argument) *Value {
 // Private method for invoking a Gus-method
 func (self *Class) invoke(vm VM, name string, arguments []Argument, panic bool) *Value {
 
+	// Special method
 	if name == "Type" {
 		return self.M_Type()
 	}
@@ -156,8 +154,10 @@ func (self *Class) InvokeNative(vm VM, name string, arguments []Argument) (*Valu
 		return self.CreateNull(), false
 	}
 
-	//param_count := len(method.Parameters)
-	// optional_parameters := 0
+	if !method.IsStatic && !self.IsInstance {
+		log.Panicf("%s::%s is not a static method and needs to be called from a class instance", self.Type(), name)
+	}
+
 	required_params := 0
 
 	for _, par := range method.Parameters {
