@@ -41,6 +41,12 @@ func (list *List) InitWithParams(params []*types.Class) {
 	list.M_Push(params)
 }
 
+func (list *List) Push(data *types.Class) {
+	params := make([]*types.Class, 1)
+	params[0] = data
+	list.M_Push(params)
+}
+
 func (list *List) M_Push(params []*types.Class) {
 	for _, param := range params {
 		list.Items = append(list.Items, param)

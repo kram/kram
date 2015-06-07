@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package libraries
@@ -15,8 +15,8 @@ type Library_File struct {
 }
 
 func (self Library_File) Instance() (types.Lib, string) { return &Library_File{}, self.Type() }
-func (self Library_File) Type() string { return "File" }
-func (self Library_File) M_Type() *types.Class { return self.String(self.Type()) }
+func (self Library_File) Type() string                  { return "File" }
+func (self Library_File) M_Type() *types.Class          { return self.String(self.Type()) }
 
 // File.Read()
 // @param path String

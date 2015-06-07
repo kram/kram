@@ -1,0 +1,30 @@
+// [1, 2, 3, string, [a, list], false, true, null]
+// {
+//     "ip": 185.52.180.35,
+//     "hostname": 185-52-180-35.customer.t3.se,
+//     "city": null,
+//     "country": SE,
+//     "loc": 59.3294,18.0686,
+//     "org": AS28908 Telecom3 Sverige AB
+// }
+// 123
+// Hej
+
+var map = "{
+  \"ip\": \"185.52.180.35\",
+  \"hostname\": \"185-52-180-35.customer.t3.se\",
+  \"city\": null,
+  \"country\": \"SE\",
+  \"loc\": \"59.3294,18.0686\",
+  \"org\": \"AS28908 Telecom3 Sverige AB\"
+}"
+
+var list = "[1, 2, 3, \"string\", [\"a\", \"list\"], false, true, null]"
+
+var num = "123"
+var str = "\"Hej\""
+
+IO.Println(JSON.Decode(list))
+IO.Println(JSON.Decode(map))
+IO.Println(JSON.Decode(num))
+IO.Println(JSON.Decode(str))

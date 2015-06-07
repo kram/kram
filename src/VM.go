@@ -71,6 +71,8 @@ func (vm *VM) Libraries() {
 	// Libraries
 	libs = append(libs, &lib.Library_IO{})
 	libs = append(libs, &lib.Library_File{})
+	libs = append(libs, &lib.Library_HTTP{})
+	libs = append(libs, &lib.Library_JSON{})
 
 	for _, li := range libs {
 

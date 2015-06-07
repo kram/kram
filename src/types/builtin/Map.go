@@ -22,7 +22,10 @@ func (self Map) M_Type() *types.Class { return self.String(self.Type()) }
 
 // Map can not be initialized with Init
 // see InitWithParams
-func (self *Map) Init(str string) {}
+func (self *Map) Init(str string) {
+	params := make([]*types.Class, 0)
+	self.InitWithParams(params)
+}
 
 func (self *Map) InitWithParams(params []*types.Class) {
 	self.items = make(map[string]*types.Class)
@@ -59,6 +62,14 @@ func (self *Map) ToString() string {
 	str += "\n}"
 
 	return str
+}
+
+func (self *Map) Set(key, val *types.Class) {
+	params := make([]*types.Class, 2)
+	params[0] = key
+	params[1] = val
+
+	self.M_Set(params)
 }
 
 func (self *Map) M_Set(params []*types.Class) {
@@ -112,4 +123,8 @@ func (self *Map) M_Has(params []*types.Class) *types.Class {
 
 func (self *Map) Length() int {
 	return len(self.items)
+}
+
+func (self *Map) GetMap() map[string]*types.Class {
+	return self.items
 }
