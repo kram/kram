@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package builtin
@@ -17,8 +17,8 @@ type Map struct {
 }
 
 func (self Map) Instance() (types.Lib, string) { return &Map{}, self.Type() }
-func (self Map) Type() string { return "Map" }
-func (self Map) M_Type() *types.Class { return self.String(self.Type()) }
+func (self Map) Type() string                  { return "Map" }
+func (self Map) M_Type() *types.Class          { return self.String(self.Type()) }
 
 // Map can not be initialized with Init
 // see InitWithParams
@@ -111,7 +111,7 @@ func (self *Map) M_Get(params []*types.Class) *types.Class {
 }
 
 func (self *Map) M_Has(params []*types.Class) *types.Class {
-		if len(params) != 1 {
+	if len(params) != 1 {
 		log.Panic("Map::Has() expected exactly 1 parameter")
 	}
 

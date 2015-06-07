@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package builtin
@@ -16,8 +16,8 @@ type String struct {
 }
 
 func (self String) Instance() (types.Lib, string) { return &String{}, self.Type() }
-func (self String) Type() string { return "String" }
-func (self String) M_Type() *types.Class { return self.String(self.Type()) }
+func (self String) Type() string                  { return "String" }
+func (self String) M_Type() *types.Class          { return self.String(self.Type()) }
 
 func (self *String) Init(str string) {
 	self.Value = str
@@ -98,7 +98,7 @@ func (self *String) Compare(method string, right *types.Class) *types.Class {
 
 	return &res
 }
-	
+
 // Constructor method
 func (self *String) M_New(params []*types.Class) {
 	self.InitWithParams(params)

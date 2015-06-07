@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package gus
@@ -26,11 +26,11 @@ type SymbolFunction func(ON) ins.Node
 type ON int
 
 const (
-	ON_DEFAULT     ON = 1 << iota // 1
-	ON_CLASS_BODY                 // 2
-	ON_PUSH_CLASS                 // 4
-	ON_METHOD_PARAMETERS          // 8
-	ON_ARGUMENTS                  // 16
+	ON_DEFAULT           ON = 1 << iota // 1
+	ON_CLASS_BODY                       // 2
+	ON_PUSH_CLASS                       // 4
+	ON_METHOD_PARAMETERS                // 8
+	ON_ARGUMENTS                        // 16
 )
 
 // --------------- Stack
@@ -87,9 +87,9 @@ type Parser struct {
 	// Symbols, eg var + -...
 	Symbols map[string]Symbol
 
-	Comparisions  map[string]bool
-	StartOperators  map[string]bool
-	LeftOnlyInfix map[string]bool
+	Comparisions   map[string]bool
+	StartOperators map[string]bool
+	LeftOnlyInfix  map[string]bool
 	RightOnlyInfix map[string]bool
 
 	// The current stack (used by Expression)
@@ -263,7 +263,7 @@ func (p *Parser) AdvanceAndExpect(t, v string) Token {
 	}
 
 	if v != "" && next.Value != v {
-		log.Panicf("Expected %s %s got %s %s", t, v, next.Type, next.Value)	
+		log.Panicf("Expected %s %s got %s %s", t, v, next.Type, next.Value)
 	}
 
 	return next
@@ -454,7 +454,7 @@ func (p *Parser) LookAheadWithON(in ins.Node, on ON) ins.Node {
 	//   ^
 	if next.Type == "operator" && next.Value == "." {
 		return p.SymbolPushClass(in)
-	} 
+	}
 
 	// Call
 	// IO.Println("123")
@@ -465,7 +465,7 @@ func (p *Parser) LookAheadWithON(in ins.Node, on ON) ins.Node {
 
 	// We encountered an operator, check the type of the previous expression
 	if next.Type == "operator" {
-		if _, ok := p.StartOperators[next.Value]; ok  {
+		if _, ok := p.StartOperators[next.Value]; ok {
 			return p.SymbolMath(in)
 		}
 
@@ -683,9 +683,9 @@ func (p *Parser) ParseArguments() []ins.Argument {
 				}
 
 				params = append(params, ins.Argument{
-					Name: name.Name,
+					Name:    name.Name,
 					IsNamed: true,
-					Value: math.Right,
+					Value:   math.Right,
 				})
 
 				continue

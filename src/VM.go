@@ -1,15 +1,15 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package gus
 
 import (
-	"log"
-	"strconv"
-	"reflect"
 	"fmt"
+	"log"
 	"math"
+	"reflect"
+	"strconv"
 
 	"github.com/zegl/Gus/src/environment"
 	ins "github.com/zegl/Gus/src/instructions"
@@ -82,7 +82,7 @@ func (vm *VM) Libraries() {
 		class.InitWithLib(instance)
 
 		val := types.Value{
-			Type: types.CLASS,
+			Type:      types.CLASS,
 			Reference: &class,
 		}
 
@@ -245,7 +245,6 @@ func (vm *VM) MathCompare(left, right *types.Value, method string) *types.Value 
 		}
 	}
 
-
 	l := vm.GetAsClass(left)
 
 	return l.Compare(vm, method, right)
@@ -295,7 +294,7 @@ func (vm *VM) MathCompareNumbers(left, right *types.Value, method string) *types
 	}
 
 	return &types.Value{
-		Type: types.BOOL,
+		Type:   types.BOOL,
 		Number: val,
 	}
 }
@@ -334,7 +333,7 @@ func (vm *VM) MathOperationNumbers(left, right *types.Value, method string) (*ty
 	}
 
 	res := types.Value{
-		Type: types.NUMBER,
+		Type:   types.NUMBER,
 		Number: val,
 	}
 
@@ -351,14 +350,14 @@ func (vm *VM) Literal(literal ins.Literal) *types.Value {
 		}
 
 		return &types.Value{
-			Type: types.NUMBER,
+			Type:   types.NUMBER,
 			Number: value,
 		}
 	}
 
 	if literal.Type == "string" {
 		return &types.Value{
-			Type: types.STRING,
+			Type:   types.STRING,
 			String: literal.Value,
 		}
 	}
@@ -372,7 +371,7 @@ func (vm *VM) Literal(literal ins.Literal) *types.Value {
 		}
 
 		return &types.Value{
-			Type: types.BOOL,
+			Type:   types.BOOL,
 			Number: value,
 		}
 	}
@@ -499,7 +498,7 @@ func (vm *VM) Call(call ins.Call) *types.Value {
 	if left.Type == types.STRING {
 		method = left.String
 
-	// Fallbacked string behaviour
+		// Fallbacked string behaviour
 	} else {
 		method = vm.GetAsClass(left).ToString()
 	}
@@ -532,7 +531,7 @@ func (vm *VM) DefineClass(def ins.DefineClass) *types.Value {
 	vm.env = vm.env.Pop()
 
 	val := types.Value{
-		Type: types.CLASS,
+		Type:      types.CLASS,
 		Reference: &class,
 	}
 
@@ -869,7 +868,7 @@ func (vm VM) GetAsClass(in *types.Value) *types.Class {
 
 func (vm VM) ConvertClassToValue(in *types.Class) *types.Value {
 	return &types.Value{
-		Type: types.CLASS,
+		Type:      types.CLASS,
 		Reference: in,
 	}
 }
@@ -900,7 +899,6 @@ func (vm VM) GetType(in *types.Value) string {
 	if in.Type == types.CLASS {
 		return in.Reference.Type()
 	}
-
 
 	return "Null"
 }

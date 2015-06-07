@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package builtin
@@ -17,8 +17,8 @@ type List struct {
 }
 
 func (self List) Instance() (types.Lib, string) { return &List{}, self.Type() }
-func (self List) Type() string { return "List" }
-func (self List) M_Type() *types.Class { return self.String(self.Type()) }
+func (self List) Type() string                  { return "List" }
+func (self List) M_Type() *types.Class          { return self.String(self.Type()) }
 
 func (list *List) ToString() string {
 	out := make([]string, len(list.Items))

@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package gus
@@ -181,7 +181,7 @@ func (l *Lexer) ParseNext() (string, string) {
 			// A dot needs to be followed by another digit to be valid
 			if c == "." {
 				cc := l.CharAtPos(l.I + 2)
-				if (cc < "0" || cc > "9") {
+				if cc < "0" || cc > "9" {
 					break
 				}
 			}

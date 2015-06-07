@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package instructions
@@ -61,9 +61,9 @@ type Condition struct {
 }
 
 type Call struct {
-	Call       bool
-	Left       Node
-	Arguments  []Argument
+	Call      bool
+	Left      Node
+	Arguments []Argument
 }
 
 type DefineClass struct {
@@ -94,8 +94,8 @@ type Argument struct {
 }
 
 type Instance struct {
-	Instance bool
-	Left     string
+	Instance  bool
+	Left      string
 	Arguments []Argument
 }
 

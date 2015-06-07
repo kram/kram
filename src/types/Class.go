@@ -1,5 +1,5 @@
 // Copyright (c) 2015 The Gus Project Developers. All rights reserved.
-// See the LICENSE file at the top-level directory of this distribution. 
+// See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
 package types
@@ -39,12 +39,12 @@ type Argument struct {
 }
 
 type Class struct {
-	Class     string
-	Methods   map[string]Method
-	Variables map[string]*Value
-	Extension Lib
+	Class        string
+	Methods      map[string]Method
+	Variables    map[string]*Value
+	Extension    Lib
 	HasExtension bool
-	IsInstance bool
+	IsInstance   bool
 }
 
 func (self *Class) Init(str string) {
@@ -55,7 +55,7 @@ func (self *Class) Init(str string) {
 
 func (self *Class) InitWithLib(lib Lib) {
 	self.Init(lib.Type())
-	self.Extension = lib	
+	self.Extension = lib
 	self.HasExtension = true
 }
 
@@ -260,7 +260,7 @@ func (self *Class) Math(vm VM, method string, right *Value) *Value {
 	}
 
 	res, ok := self.InvokeNative(vm, method, []Argument{Argument{
- 		Val: right,
+		Val: right,
 	}})
 
 	if ok {
@@ -301,7 +301,7 @@ func (self Class) CreateNull() *Value {
 
 func (self *Class) M_Type() *Value {
 	return &Value{
-		Type: STRING,
+		Type:   STRING,
 		String: self.Type(),
 	}
 }
