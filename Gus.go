@@ -45,7 +45,6 @@ func main() {
 		}
 
 		var parse = gus.Parser{}
-		parse.Debug = *debug
 
 		tree := parse.Parse(tokens)
 

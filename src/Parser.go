@@ -5,258 +5,159 @@
 package gus
 
 import (
-	"fmt"
 	"log"
-	"strings"
 
 	ins "github.com/zegl/Gus/src/instructions"
 )
 
-// --------------- Symbols
-
-type Symbol struct {
-	Function   SymbolFunction
-	Importance int
-}
-
-type SymbolFunction func(ON) ins.Node
-
-// --------------- Symbols
-
-type ON int
-
-const (
-	ON_DEFAULT           ON = 1 << iota // 1
-	ON_CLASS_BODY                       // 2
-	ON_PUSH_CLASS                       // 4
-	ON_METHOD_PARAMETERS                // 8
-	ON_ARGUMENTS                        // 16
-)
-
-// --------------- Stack
-
-type Stack struct {
-	Items   *[]ins.Node
-	Parents []*[]ins.Node
-}
-
-func (stack *Stack) Pop() {
-	if len(stack.Parents) == 0 {
-		items := make([]ins.Node, 0)
-		stack.Items = &items
-		return
-	}
-
-	stack.Items = stack.Parents[len(stack.Parents)-1]
-	stack.Parents = stack.Parents[:len(stack.Parents)-1]
-}
-
-func (stack *Stack) Push() {
-	stack.Parents = append(stack.Parents, stack.Items)
-
-	items := make([]ins.Node, 0)
-	stack.Items = &items
-}
-
-func (stack *Stack) Add(node ins.Node) {
-	items := *stack.Items
-	items = append(items, node)
-
-	stack.Items = &items
-}
-
-func (stack *Stack) Reset() {
-	stack.Empty()
-	stack.Parents = make([]*[]ins.Node, 0)
-}
-
-func (stack *Stack) Empty() {
-	items := make([]ins.Node, 0)
-	stack.Items = &items
-}
-
-// --------------- Stack
-
-// --------------- Parser
-
 type Parser struct {
-	Tokens  []Token
-	Current int
-	Token   Token
+	tokens  []Token
+	current int
+	token   Token
 
 	// Symbols, eg var + -...
-	Symbols map[string]Symbol
+	symbols map[string]Symbol
 
-	Comparisions   map[string]bool
-	StartOperators map[string]bool
-	LeftOnlyInfix  map[string]bool
-	RightOnlyInfix map[string]bool
+	comparisions   map[string]bool
+	startOperators map[string]bool
+	leftOnlyInfix  map[string]bool
+	rightOnlyInfix map[string]bool
 
 	// The current stack (used by Expression)
-	Stack Stack
-
-	// Used for debugging
-	Depth int
-	Debug bool
+	stack Stack
 }
 
-func (p *Parser) Log(change int, str string, a ...interface{}) {
+func (parser *Parser) Parse(tokens []Token) ins.Block {
 
-	if !p.Debug {
-		return
-	}
-
-	if change > 0 {
-		p.Depth += change
-	}
-
-	fmt.Print(strings.Repeat("--", p.Depth), str)
-	fmt.Println(a)
-
-	if change <= 0 {
-		p.Depth += change
-	}
-}
-
-func (p *Parser) Parse(tokens []Token) ins.Block {
-
-	p.Log(1, "Parse()")
-
-	p.Tokens = tokens
-	p.Current = 0
-	p.Symbols = make(map[string]Symbol)
+	parser.tokens = tokens
+	parser.current = 0
+	parser.symbols = make(map[string]Symbol)
 
 	// Initialize Stack
-	p.Stack.Reset()
+	parser.stack.Reset()
 
-	p.Symbol("var", p.Symbol_var, 0)
-	p.Symbol("if", p.Symbol_if, 0)
-	p.Symbol("class", p.Symbol_class, 0)
-	p.Symbol("static", p.Symbol_static, 0)
-	p.Symbol("new", p.Symbol_new, 0)
-	p.Symbol("return", p.Symbol_return, 0)
-	p.Symbol("for", p.Symbol_for, 0)
+	parser.symbol("var", parser.symbol_Assign, 0)
+	parser.symbol("if", parser.symbol_If, 0)
+	parser.symbol("class", parser.symbol_DefineClass, 0)
+	parser.symbol("static", parser.symbol_DefineClassStatic, 0)
+	parser.symbol("new", parser.symbol_New, 0)
+	parser.symbol("return", parser.symbol_Return, 0)
+	parser.symbol("for", parser.symbol_For, 0)
 
-	p.Symbol("[", p.Symbol_list, 5)
-	p.Symbol("{", p.Symbol_map, 5)
+	parser.symbol("[", parser.symbol_List, 5)
+	parser.symbol("{", parser.symbol_Map, 5)
 
-	p.Symbol("name", p.Symbol_name, 2)
+	parser.symbol("name", parser.symbol_Name, 2)
 
-	p.Infix("number", 0)
-	p.Infix("string", 0)
-	p.Infix("bool", 0)
+	parser.infix("number", 0)
+	parser.infix("string", 0)
+	parser.infix("bool", 0)
 
 	// Comparisions
-	p.Infix("&&", 30)
-	p.Infix("||", 30)
-	p.Infix("==", 40)
-	p.Infix("!=", 40)
-	p.Infix("<", 40)
-	p.Infix("<=", 40)
-	p.Infix(">", 40)
-	p.Infix(">=", 40)
+	parser.infix("&&", 30)
+	parser.infix("||", 30)
+	parser.infix("==", 40)
+	parser.infix("!=", 40)
+	parser.infix("<", 40)
+	parser.infix("<=", 40)
+	parser.infix(">", 40)
+	parser.infix(">=", 40)
 
 	// Hashmap of comparisions
-	p.Comparisions = make(map[string]bool)
-	p.Comparisions["=="] = true
-	p.Comparisions[">"] = true
-	p.Comparisions[">="] = true
-	p.Comparisions["<"] = true
-	p.Comparisions["<="] = true
-	p.Comparisions["&&"] = true
-	p.Comparisions["||"] = true
+	parser.comparisions = make(map[string]bool)
+	parser.comparisions["=="] = true
+	parser.comparisions[">"] = true
+	parser.comparisions[">="] = true
+	parser.comparisions["<"] = true
+	parser.comparisions["<="] = true
+	parser.comparisions["&&"] = true
+	parser.comparisions["||"] = true
 
 	// 123++
-	p.LeftOnlyInfix = make(map[string]bool)
-	p.LeftOnlyInfix["++"] = true
-	p.LeftOnlyInfix["--"] = true
+	parser.leftOnlyInfix = make(map[string]bool)
+	parser.leftOnlyInfix["++"] = true
+	parser.leftOnlyInfix["--"] = true
 
 	// -123
-	p.RightOnlyInfix = make(map[string]bool)
-	p.RightOnlyInfix["-"] = true
+	parser.rightOnlyInfix = make(map[string]bool)
+	parser.rightOnlyInfix["-"] = true
 
 	// List of all operators starting a new sub-expression
-	// Starting off with a clonse of p.Comparisions
-	p.StartOperators = make(map[string]bool)
-	p.StartOperators["=="] = true
-	p.StartOperators[">"] = true
-	p.StartOperators[">="] = true
-	p.StartOperators["<"] = true
-	p.StartOperators["<="] = true
-	p.StartOperators["&&"] = true
-	p.StartOperators["||"] = true
-	p.StartOperators["++"] = true
-	p.StartOperators["--"] = true
-	p.StartOperators["-"] = true
-	p.StartOperators["+"] = true
-	p.StartOperators["*"] = true
-	p.StartOperators["/"] = true
-	p.StartOperators["("] = true
-	p.StartOperators["="] = true
-	p.StartOperators[".."] = true
-	p.StartOperators["..."] = true
+	// Starting off with a clonse of parser.comparisions
+	parser.startOperators = make(map[string]bool)
+	parser.startOperators["=="] = true
+	parser.startOperators[">"] = true
+	parser.startOperators[">="] = true
+	parser.startOperators["<"] = true
+	parser.startOperators["<="] = true
+	parser.startOperators["&&"] = true
+	parser.startOperators["||"] = true
+	parser.startOperators["++"] = true
+	parser.startOperators["--"] = true
+	parser.startOperators["-"] = true
+	parser.startOperators["+"] = true
+	parser.startOperators["*"] = true
+	parser.startOperators["/"] = true
+	parser.startOperators["("] = true
+	parser.startOperators["="] = true
+	parser.startOperators[".."] = true
+	parser.startOperators["..."] = true
 
 	// Math
-	p.Infix("+", 50)
-	p.Infix("-", 50)
-	p.Infix("*", 60)
-	p.Infix("/", 60)
+	parser.infix("+", 50)
+	parser.infix("-", 50)
+	parser.infix("*", 60)
+	parser.infix("/", 60)
 
 	// Builtins
-	p.Infix("...", 70)
-	p.Infix("..", 70)
+	parser.infix("...", 70)
+	parser.infix("..", 70)
 
-	p.Infix(".", 80)
-	p.Infix("(", 80)
-	p.Infix("=", 80)
-	p.Infix("++", 80)
-	p.Infix("--", 80)
+	parser.infix(".", 80)
+	parser.infix("(", 80)
+	parser.infix("=", 80)
+	parser.infix("++", 80)
+	parser.infix("--", 80)
 
-	file := p.ParseFile()
-
-	p.Log(-1, "Parse()")
+	file := parser.parseFile()
 
 	return file
 }
 
 // Add to the symbol table
-func (p *Parser) Symbol(str string, function SymbolFunction, importance int) {
-	p.Symbols[str] = Symbol{
+func (parser *Parser) symbol(str string, function SymbolFunction, importance int) {
+	parser.symbols[str] = Symbol{
 		Function:   function,
 		Importance: importance,
 	}
 }
 
-//
 // Shortcut for adding Infix's to the symbol table
-//
-func (p *Parser) Infix(str string, importance int) {
-	p.Symbol(str, func(on ON) ins.Node {
-		return p.ParseStatementPart(on)
+func (parser *Parser) infix(str string, importance int) {
+	parser.symbol(str, func(on ON) ins.Node {
+		return parser.parseStatementPart(on)
 	}, importance)
 }
 
-//
-// Get the next token in p.Tokens
-//
-func (p *Parser) Advance() Token {
-	if p.Current >= len(p.Tokens) {
-		p.Token = Token{
+// Get the next token in parser.tokens
+func (parser *Parser) advance() Token {
+	if parser.current >= len(parser.tokens) {
+		parser.token = Token{
 			Type: "EOF",
 		}
 
-		return p.Token
+		return parser.token
 	}
 
-	token := p.Tokens[p.Current]
-	p.Token = token
-	p.Current++
+	token := parser.tokens[parser.current]
+	parser.token = token
+	parser.current++
 
 	return token
 }
 
-func (p *Parser) AdvanceAndExpect(t, v string) Token {
-	next := p.Advance()
+func (parser *Parser) advanceAndExpect(t, v string) Token {
+	next := parser.advance()
 
 	if next.Type != t {
 		log.Panicf("Expected %s %s got %s %s", t, v, next.Type, next.Value)
@@ -269,350 +170,155 @@ func (p *Parser) AdvanceAndExpect(t, v string) Token {
 	return next
 }
 
-//
-// Reverse progress made by p.Advance()
-//
-func (p *Parser) Reverse(times int) {
-	p.Current -= times
+// Reverse progress made by parser.advance()
+func (parser *Parser) reverse(times int) {
+	parser.current -= times
 }
 
-//
 // Take a sneek-peak et the next token
-//
-func (p *Parser) NextToken(i int) Token {
+func (parser *Parser) nextToken(i int) Token {
 
-	// End or beginning of p.Tokens (i can be negative)
-	if p.Current+i >= len(p.Tokens) || p.Current+i < 0 {
-		p.Token = Token{
+	// End or beginning of parser.tokens (i can be negative)
+	if parser.current+i >= len(parser.tokens) || parser.current+i < 0 {
+		parser.token = Token{
 			Type: "EOF",
 		}
 
-		return p.Token
+		return parser.token
 	}
 
-	return p.Tokens[p.Current+i]
+	return parser.tokens[parser.current+i]
 }
 
-func (p *Parser) GetOperatorImportance(str string) int {
-	if _, ok := p.Symbols[str]; ok {
-		return p.Symbols[str].Importance
+func (parser *Parser) getOperatorImportance(str string) int {
+	if _, ok := parser.symbols[str]; ok {
+		return parser.symbols[str].Importance
 	}
 
 	return 0
 }
 
-func (p *Parser) ParseNext(advance bool) ins.Node {
-	return p.ParseNextWithON(advance, ON_DEFAULT)
+func (parser *Parser) readUntil(until []Token) ins.Node {
+	return parser.readUntilWithON(until, ON_DEFAULT)
 }
 
-func (p *Parser) ParseNextWithON(advance bool, on ON) ins.Node {
-	if advance {
-		p.Advance()
-	}
-
-	tok := p.Token
-
-	p.Log(1, "ParseNext() (Start) ", on, tok)
-
-	if _, ok := p.Symbols[tok.Value]; ok {
-		a := p.Symbols[tok.Value].Function(on)
-		p.Log(-1, "ParseNext() (End) ", tok)
-		return p.LookAheadWithON(a, on)
-	}
-
-	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" || tok.Type == "name" {
-		a := p.Symbols[tok.Type].Function(on)
-		p.Log(-1, "ParseNext() (End) ", tok)
-		return p.LookAheadWithON(a, on)
-	}
-
-	p.Log(-1, "ParseNext() (Nil) ", tok)
-
-	return &ins.Nil{}
-}
-
-func (p *Parser) ReadUntil(until []Token) ins.Node {
-	return p.ReadUntilWithON(until, ON_DEFAULT)
-}
-
-func (p *Parser) ReadUntilWithON(until []Token, on ON) (res ins.Node) {
-	p.Log(1, "ReadUntil() (Start)", on, until)
-
+func (parser *Parser) readUntilWithON(until []Token, on ON) (res ins.Node) {
 	res = &ins.Nil{}
 
-	p.Stack.Push()
+	parser.stack.Push()
 	first := true
 
 	for {
-
 		// Multiple statements can end at the same EOL
 		if !first {
 			for _, t := range until {
-				if (t.Type == "EOL" || (t.Type == "operator" && t.Value == ";")) && p.Token.Type == t.Type {
-					p.Log(-1, "ReadUntil() (Premature End)", until)
-					p.Stack.Pop()
+				if (t.Type == "EOL" || (t.Type == "operator" && t.Value == ";")) && parser.token.Type == t.Type {
+
+					parser.stack.Pop()
 					return
 				}
 			}
 		}
 
 		first = false
-		p.Advance()
+		parser.advance()
 
 		for _, t := range until {
-			if p.Token.Type == t.Type && p.Token.Value == t.Value {
-				p.Log(-1, "ReadUntil() (End)", until)
-				p.Stack.Pop()
+			if parser.token.Type == t.Type && parser.token.Value == t.Value {
+
+				parser.stack.Pop()
 				return
 			}
 		}
 
-		r := p.ParseNextWithON(false, on)
+		r := parser.parseNextWithON(false, on)
 
 		if _, ok := r.(*ins.Nil); ok {
-			p.Log(0, "ReadUntil()", "Was nil, not overwriting...")
+
 			continue
 		}
 
 		res = r
-		p.Stack.Add(r)
+		parser.stack.Add(r)
 	}
 
-	p.Stack.Pop()
-	p.Log(-1, "ReadUntil() (End)", until)
+	parser.stack.Pop()
 
 	return
 }
 
-func (p *Parser) ParseBlock() ins.Block {
-	return p.ParseBlockWithON(ON_DEFAULT)
+func (parser *Parser) parseNext(advance bool) ins.Node {
+	return parser.parseNextWithON(advance, ON_DEFAULT)
 }
 
-func (p *Parser) ParseBlockWithON(on ON) ins.Block {
-	p.Log(1, "ParseBlock()")
+func (parser *Parser) parseNextWithON(advance bool, on ON) ins.Node {
+	if advance {
+		parser.advance()
+	}
 
+	tok := parser.token
+
+	if _, ok := parser.symbols[tok.Value]; ok {
+		a := parser.symbols[tok.Value].Function(on)
+
+		return parser.lookAheadWithON(a, on)
+	}
+
+	if tok.Type == "number" || tok.Type == "string" || tok.Type == "bool" || tok.Type == "name" {
+		a := parser.symbols[tok.Type].Function(on)
+
+		return parser.lookAheadWithON(a, on)
+	}
+
+	return &ins.Nil{}
+}
+
+func (parser *Parser) parseBlock() ins.Block {
+	return parser.parseBlockWithON(ON_DEFAULT)
+}
+
+func (parser *Parser) parseBlockWithON(on ON) ins.Block {
 	block := ins.Block{}
 
 	for {
-		i := p.ReadUntilWithON([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}}, on)
+		i := parser.readUntilWithON([]Token{Token{"EOF", ""}, Token{"EOL", ""}, Token{"operator", "}"}}, on)
 
 		if _, ok := i.(*ins.Nil); !ok {
 			block.Body = append(block.Body, i)
 		}
 
-		if p.Token.Type == "operator" && p.Token.Value == "}" {
-			p.Log(-1, "ParseBlock()")
+		if parser.token.Type == "operator" && parser.token.Value == "}" {
+
 			return block
 		}
 
-		if p.Token.Type == "EOF" {
-			p.Log(-1, "ParseBlock() EOF")
+		if parser.token.Type == "EOF" {
+
 			return block
 		}
 	}
 
-	p.Log(-1, "ParseBlock()")
 	return block
 }
 
-func (p *Parser) ParseFile() ins.Block {
-
-	p.Log(1, "ParseFile()")
-
+func (parser *Parser) parseFile() ins.Block {
 	block := ins.Block{}
 
 	for {
-		if next := p.NextToken(1); next.Type == "EOF" {
+		if next := parser.nextToken(1); next.Type == "EOF" {
 			break
 		}
 
-		block.Body = append(block.Body, p.ParseBlock())
+		block.Body = append(block.Body, parser.parseBlock())
 	}
 
-	p.Log(-1, "ParseFile()")
 	return block
 }
 
-func (p *Parser) TopOfStack() ins.Node {
-	if len(*p.Stack.Items) > 0 {
-		items := *p.Stack.Items
-		return items[len(items)-1]
-	}
+func (parser *Parser) parseStatementPart(on ON) ins.Node {
 
-	return ins.Nil{}
-}
-
-func (p *Parser) LookAhead(in ins.Node) ins.Node {
-	return p.LookAheadWithON(in, ON_DEFAULT)
-}
-
-func (p *Parser) LookAheadWithON(in ins.Node, on ON) ins.Node {
-	next := p.NextToken(0)
-
-	// PushClass
-	// IO.Println("123")
-	//   ^
-	if next.Type == "operator" && next.Value == "." {
-		return p.SymbolPushClass(in)
-	}
-
-	// Call
-	// IO.Println("123")
-	//           ^
-	if next.Type == "operator" && next.Value == "(" {
-		return p.SymbolCall(in, on)
-	}
-
-	// We encountered an operator, check the type of the previous expression
-	if next.Type == "operator" {
-		if _, ok := p.StartOperators[next.Value]; ok {
-			return p.SymbolMath(in)
-		}
-
-		return in
-	}
-
-	// Default is to do nothing
-	return in
-}
-
-func (p *Parser) SymbolPushClass(in ins.Node) ins.Node {
-	p.Log(1, "SymbolPushClass()")
-
-	p.AdvanceAndExpect("operator", ".")
-
-	push := ins.PushClass{}
-	push.Left = in
-
-	// Convert Variable to literal
-	if v, ok := push.Left.(ins.Variable); ok {
-		push.Left = ins.Literal{
-			Type:  "string",
-			Value: v.Name,
-		}
-	}
-
-	push.Right = p.ParseNextWithON(true, ON_PUSH_CLASS)
-
-	p.Log(-1, "SymbolPushClass()")
-
-	return p.LookAhead(push)
-}
-
-func (p *Parser) SymbolCall(in ins.Node, on ON) ins.Node {
-	p.Log(1, "SymbolCall()")
-
-	p.AdvanceAndExpect("operator", "(")
-
-	// Method definitions
-	if on == ON_CLASS_BODY {
-		if variable, ok := in.(ins.Variable); ok {
-			return p.Symbol_MethodWithName(variable.Name)
-		}
-
-		log.Panic("Encountered unknown in ON_CLASS_BODY")
-	}
-
-	// Calling a method
-	if on == ON_PUSH_CLASS {
-		call := ins.Call{}
-		call.Arguments = p.ParseArguments()
-
-		// Convert Variable to literal
-		if v, ok := in.(ins.Variable); ok {
-			call.Left = ins.Literal{
-				Type:  "string",
-				Value: v.Name,
-			}
-		}
-
-		return p.LookAhead(call)
-	}
-
-	call := ins.Call{}
-	call.Arguments = p.ParseArguments()
-	call.Left = in
-
-	return p.LookAhead(call)
-}
-
-func (p *Parser) SymbolMath(previous ins.Node) ins.Node {
-	p.Log(1, "SymbolMath()")
-
-	current := p.NextToken(0)
-
-	p.Advance()
-
-	math := ins.Math{}
-	math.Method = current.Value // + - * /
-
-	// Differentiate between comparisions and arithmetic operators
-	if _, ok := p.Comparisions[math.Method]; ok {
-		math.IsComparision = true
-	} else {
-		math.IsComparision = false
-	}
-
-	if prev, ok := previous.(ins.Math); ok {
-		if p.GetOperatorImportance(prev.Method) < p.GetOperatorImportance(math.Method) {
-			math.Left = prev.Left
-			math.Method = prev.Method
-			math.Right = ins.Math{
-				Method: current.Value,
-				Left:   prev.Right,
-				Right:  p.ParseNext(true),
-			}
-		} else {
-			math.Left = previous
-			math.Right = p.ParseNext(true)
-		}
-
-		return p.LookAhead(math)
-	}
-
-	_, isLeftOnly := p.LeftOnlyInfix[math.Method]
-	_, isRightOnly := p.RightOnlyInfix[math.Method]
-
-	if _, ok := previous.(ins.Literal); ok {
-		math.Left = previous
-
-		if !isLeftOnly {
-			math.Right = p.ParseNext(true)
-		}
-
-		return p.LookAhead(math)
-	}
-
-	if _, ok := previous.(ins.Variable); ok {
-		math.Left = previous
-
-		if !isLeftOnly {
-			math.Right = p.ParseNext(true)
-		}
-
-		return p.LookAhead(math)
-	}
-
-	if isRightOnly {
-		math.Left = p.ParseNext(true)
-
-		return p.LookAhead(math)
-	}
-
-	math.Left = previous
-	math.Right = p.ParseNext(true)
-
-	p.Log(-1, "SymbolMath()")
-
-	return p.LookAhead(math)
-}
-
-func (p *Parser) ParseStatementPart(on ON) ins.Node {
-
-	previous := p.TopOfStack()
-	current := p.Token
-
-	p.Log(1, "ParseStatementPart()", current, previous)
+	previous := parser.topOfStack()
+	current := parser.token
 
 	// Number or string
 	if current.Type == "number" || current.Type == "string" || current.Type == "bool" {
@@ -621,9 +327,7 @@ func (p *Parser) ParseStatementPart(on ON) ins.Node {
 			Value: current.Value,
 		}
 
-		p.Log(-1, "ParseStatementPart()")
-
-		return p.LookAhead(literal)
+		return parser.lookAhead(literal)
 	}
 
 	// Variables
@@ -631,47 +335,37 @@ func (p *Parser) ParseStatementPart(on ON) ins.Node {
 		variable := ins.Variable{}
 		variable.Name = current.Value
 
-		p.Log(-1, "ParseStatementPart()")
-
-		return p.LookAheadWithON(variable, on)
+		return parser.lookAheadWithON(variable, on)
 	}
 
 	// Operator overloading
 	if current.Type == "operator" && on == ON_CLASS_BODY {
-		return p.Symbol_MethodWithName(current.Value)
+		return parser.symbol_MethodWithName(current.Value)
 	}
 
 	// Math exceptions
 	if current.Type == "operator" && current.Value == "-" {
-		if _, ok := p.RightOnlyInfix[current.Value]; ok {
-			p.Reverse(1)
-
-			p.Log(-1, "ParseStatementPart()")
-
-			return p.SymbolMath(ins.Nil{})
+		if _, ok := parser.rightOnlyInfix[current.Value]; ok {
+			parser.reverse(1)
+			return parser.symbol_Math(ins.Nil{})
 		}
 	}
 
-	p.Log(-1, "ParseStatementPart()")
-
-	return p.LookAhead(previous)
+	return parser.lookAhead(previous)
 }
 
-func (p *Parser) ParseArguments() []ins.Argument {
-
-	p.Log(1, "ParseArguments()")
-
+func (parser *Parser) parseArguments() []ins.Argument {
 	params := make([]ins.Argument, 0)
 
 	for {
-		next := p.NextToken(-1)
+		next := parser.nextToken(-1)
 
 		// We're done here
 		if (next.Type == "operator" && next.Value == ")") || next.Type == "EOL" || next.Type == "EOF" {
 			break
 		}
 
-		param := p.ReadUntilWithON([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}}, ON_ARGUMENTS)
+		param := parser.readUntilWithON([]Token{Token{"operator", ")"}, Token{"operator", ","}, Token{"EOF", ""}, Token{"EOL", ""}}, ON_ARGUMENTS)
 
 		if math, ok := param.(ins.Math); ok {
 			if math.Method == "=" {
@@ -701,15 +395,177 @@ func (p *Parser) ParseArguments() []ins.Argument {
 		}
 	}
 
-	p.Log(-1, "ParseArguments()")
-
 	return params
 }
 
-func (p *Parser) Symbol_var(on ON) ins.Node {
+func (parser *Parser) topOfStack() ins.Node {
+	if len(*parser.stack.Items) > 0 {
+		items := *parser.stack.Items
+		return items[len(items)-1]
+	}
+
+	return ins.Nil{}
+}
+
+func (parser *Parser) lookAhead(in ins.Node) ins.Node {
+	return parser.lookAheadWithON(in, ON_DEFAULT)
+}
+
+func (parser *Parser) lookAheadWithON(in ins.Node, on ON) ins.Node {
+	next := parser.nextToken(0)
+
+	// PushClass
+	// IO.Println("123")
+	//   ^
+	if next.Type == "operator" && next.Value == "." {
+		return parser.symbol_PushClass(in)
+	}
+
+	// Call
+	// IO.Println("123")
+	//           ^
+	if next.Type == "operator" && next.Value == "(" {
+		return parser.symbol_Call(in, on)
+	}
+
+	// We encountered an operator, check the type of the previous expression
+	if next.Type == "operator" {
+		if _, ok := parser.startOperators[next.Value]; ok {
+			return parser.symbol_Math(in)
+		}
+
+		return in
+	}
+
+	// Default is to do nothing
+	return in
+}
+
+func (parser *Parser) symbol_PushClass(in ins.Node) ins.Node {
+	parser.advanceAndExpect("operator", ".")
+
+	push := ins.PushClass{}
+	push.Left = in
+
+	// Convert Variable to literal
+	if v, ok := push.Left.(ins.Variable); ok {
+		push.Left = ins.Literal{
+			Type:  "string",
+			Value: v.Name,
+		}
+	}
+
+	push.Right = parser.parseNextWithON(true, ON_PUSH_CLASS)
+
+	return parser.lookAhead(push)
+}
+
+func (parser *Parser) symbol_Call(in ins.Node, on ON) ins.Node {
+	parser.advanceAndExpect("operator", "(")
+
+	// Method definitions
+	if on == ON_CLASS_BODY {
+		if variable, ok := in.(ins.Variable); ok {
+			return parser.symbol_MethodWithName(variable.Name)
+		}
+
+		log.Panic("Encountered unknown in ON_CLASS_BODY")
+	}
+
+	// Calling a method
+	if on == ON_PUSH_CLASS {
+		call := ins.Call{}
+		call.Arguments = parser.parseArguments()
+
+		// Convert Variable to literal
+		if v, ok := in.(ins.Variable); ok {
+			call.Left = ins.Literal{
+				Type:  "string",
+				Value: v.Name,
+			}
+		}
+
+		return parser.lookAhead(call)
+	}
+
+	call := ins.Call{}
+	call.Arguments = parser.parseArguments()
+	call.Left = in
+
+	return parser.lookAhead(call)
+}
+
+func (parser *Parser) symbol_Math(previous ins.Node) ins.Node {
+	current := parser.nextToken(0)
+
+	parser.advance()
+
+	math := ins.Math{}
+	math.Method = current.Value // + - * /
+
+	// Differentiate between comparisions and arithmetic operators
+	if _, ok := parser.comparisions[math.Method]; ok {
+		math.IsComparision = true
+	} else {
+		math.IsComparision = false
+	}
+
+	if prev, ok := previous.(ins.Math); ok {
+		if parser.getOperatorImportance(prev.Method) < parser.getOperatorImportance(math.Method) {
+			math.Left = prev.Left
+			math.Method = prev.Method
+			math.Right = ins.Math{
+				Method: current.Value,
+				Left:   prev.Right,
+				Right:  parser.parseNext(true),
+			}
+		} else {
+			math.Left = previous
+			math.Right = parser.parseNext(true)
+		}
+
+		return parser.lookAhead(math)
+	}
+
+	_, isLeftOnly := parser.leftOnlyInfix[math.Method]
+	_, isRightOnly := parser.rightOnlyInfix[math.Method]
+
+	if _, ok := previous.(ins.Literal); ok {
+		math.Left = previous
+
+		if !isLeftOnly {
+			math.Right = parser.parseNext(true)
+		}
+
+		return parser.lookAhead(math)
+	}
+
+	if _, ok := previous.(ins.Variable); ok {
+		math.Left = previous
+
+		if !isLeftOnly {
+			math.Right = parser.parseNext(true)
+		}
+
+		return parser.lookAhead(math)
+	}
+
+	if isRightOnly {
+		math.Left = parser.parseNext(true)
+
+		return parser.lookAhead(math)
+	}
+
+	math.Left = previous
+	math.Right = parser.parseNext(true)
+
+	return parser.lookAhead(math)
+}
+
+func (parser *Parser) symbol_Assign(on ON) ins.Node {
 	n := ins.Assign{}
 
-	name := p.Advance()
+	name := parser.advance()
 
 	if name.Type != "name" {
 		log.Panicf("var, expected name, got %s", name.Type)
@@ -717,7 +573,7 @@ func (p *Parser) Symbol_var(on ON) ins.Node {
 
 	n.Name = name.Value
 
-	next := p.NextToken(0)
+	next := parser.nextToken(0)
 
 	// As in:
 	// for var name in
@@ -726,26 +582,26 @@ func (p *Parser) Symbol_var(on ON) ins.Node {
 	}
 
 	if next.Type == "operator" && next.Value == "=" {
-		p.Advance()
+		parser.advance()
 	} else {
 		log.Panicf("var, expected = got %s, %s", next.Type, next.Value)
 	}
 
-	n.Right = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}, Token{"operator", ";"}})
+	n.Right = parser.readUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}, Token{"operator", ";"}})
 
 	return n
 }
 
-func (p *Parser) Symbol_name(on ON) ins.Node {
+func (parser *Parser) symbol_Name(on ON) ins.Node {
 	// Var as assignment
-	if len(*p.Stack.Items) == 0 {
-		name := p.Token
+	if len(*parser.stack.Items) == 0 {
+		name := parser.token
 
 		if name.Type != "name" {
 			log.Panicf("var, expected name, got %s", name.Type)
 		}
 
-		next := p.NextToken(0)
+		next := parser.nextToken(0)
 
 		// Set
 		// abc = 123
@@ -753,87 +609,87 @@ func (p *Parser) Symbol_name(on ON) ins.Node {
 
 			// Hijack and return early when dealing with method parameters
 			if on == ON_METHOD_PARAMETERS || on == ON_ARGUMENTS {
-				return p.ParseStatementPart(on)
+				return parser.parseStatementPart(on)
 			}
 
 			set := ins.Set{}
 			set.Name = name.Value
 
-			p.Advance()
+			parser.advance()
 
-			set.Right = p.ReadUntil([]Token{Token{"EOL", ""}})
+			set.Right = parser.readUntil([]Token{Token{"EOL", ""}})
 
 			return set
 		}
 
-		return p.ParseStatementPart(on)
+		return parser.parseStatementPart(on)
 	}
 
-	return p.ParseStatementPart(on)
+	return parser.parseStatementPart(on)
 }
 
-func (p *Parser) Symbol_if(on ON) ins.Node {
+func (parser *Parser) symbol_If(on ON) ins.Node {
 	i := ins.If{}
 
-	i.Condition = p.ReadUntil([]Token{Token{"operator", "{"}})
+	i.Condition = parser.readUntil([]Token{Token{"operator", "{"}})
 
-	i.True = p.ParseBlock()
+	i.True = parser.parseBlock()
 	i.True.Scope = true // Create new scope
 
-	next := p.NextToken(0)
+	next := parser.nextToken(0)
 
 	if next.Type == "keyword" && next.Value == "else" {
-		p.AdvanceAndExpect("keyword", "else")
-		p.AdvanceAndExpect("operator", "{")
-		i.False = p.ParseBlock()
+		parser.advanceAndExpect("keyword", "else")
+		parser.advanceAndExpect("operator", "{")
+		i.False = parser.parseBlock()
 		i.False.Scope = true // Create new scope
 	}
 
 	return i
 }
 
-func (p *Parser) Symbol_class(on ON) ins.Node {
+func (parser *Parser) symbol_DefineClass(on ON) ins.Node {
 	class := ins.DefineClass{}
 
-	name := p.Advance()
+	name := parser.advance()
 
 	if name.Type != "name" {
 		log.Panicf("Expected name after class, got %s (%s)", name.Type, name.Value)
 	}
 
-	block_start := p.Advance()
+	block_start := parser.advance()
 
 	if block_start.Type != "operator" || block_start.Value != "{" {
 		log.Panicf("Expected { after class name, got %s (%s)", name.Type, name.Value)
 	}
 
 	class.Name = name.Value
-	class.Body = p.ParseBlockWithON(ON_CLASS_BODY)
+	class.Body = parser.parseBlockWithON(ON_CLASS_BODY)
 	class.Body.Scope = true
 
 	return class
 }
 
-func (p *Parser) Symbol_static(on ON) ins.Node {
-	p.Advance()
+func (parser *Parser) symbol_DefineClassStatic(on ON) ins.Node {
+	parser.advance()
 
-	method := p.Symbol_method()
+	method := parser.symbol_Method()
 	method.IsStatic = true
 
 	return method
 }
 
-func (p *Parser) Symbol_new(on ON) ins.Node {
+func (parser *Parser) symbol_New(on ON) ins.Node {
 
 	// "new" is also the name of constructors
 	// This is added so that the lowercase version of the method name also works just fine
 	if on == ON_CLASS_BODY {
-		return p.Symbol_MethodWithName("New")
+		return parser.symbol_MethodWithName("New")
 	}
 
 	inst := ins.Instance{}
 
-	name := p.Advance()
+	name := parser.advance()
 
 	if name.Type != "name" {
 		log.Panicf("Expected name after new, got %s (%s)", name.Type, name.Value)
@@ -841,58 +697,58 @@ func (p *Parser) Symbol_new(on ON) ins.Node {
 
 	inst.Left = name.Value
 
-	next := p.Advance()
+	next := parser.advance()
 
 	if next.Type != "operator" && next.Value != "(" {
 		log.Panicf("Expected ( after new, got %s (%s)", name.Type, name.Value)
 	}
 
-	inst.Arguments = p.ParseArguments()
+	inst.Arguments = parser.parseArguments()
 
 	return inst
 }
 
-func (p *Parser) Symbol_list(on ON) ins.Node {
-	if len(*p.Stack.Items) == 0 {
-		return p.Symbol_ListCreate()
+func (parser *Parser) symbol_List(on ON) ins.Node {
+	if len(*parser.stack.Items) == 0 {
+		return parser.symbol_ListCreate()
 	}
 
-	return p.Symbol_ListAccess()
+	return parser.symbol_ListAccess()
 }
 
-func (p *Parser) Symbol_ListCreate() ins.Node {
+func (parser *Parser) symbol_ListCreate() ins.Node {
 	list := ins.ListCreate{}
 	list.Items = make([]ins.Node, 0)
 
 	for {
-		next := p.NextToken(-1)
+		next := parser.nextToken(-1)
 
 		if next.Type == "operator" && next.Value == "]" {
 			break
 		}
 
-		list.Items = append(list.Items, p.ReadUntil([]Token{Token{"operator", ","}, Token{"operator", "]"}}))
+		list.Items = append(list.Items, parser.readUntil([]Token{Token{"operator", ","}, Token{"operator", "]"}}))
 	}
 
 	return list
 }
 
-func (p *Parser) Symbol_ListAccess() ins.Node {
+func (parser *Parser) symbol_ListAccess() ins.Node {
 	access := ins.AccessChildItem{}
-	access.Item = p.TopOfStack()
-	access.Right = p.ReadUntil([]Token{Token{"operator", "]"}, Token{"EOF", ""}})
+	access.Item = parser.topOfStack()
+	access.Right = parser.readUntil([]Token{Token{"operator", "]"}, Token{"EOF", ""}})
 
 	return access
 }
 
-func (p *Parser) Symbol_return(on ON) ins.Node {
+func (parser *Parser) symbol_Return(on ON) ins.Node {
 	res := ins.Return{}
-	res.Statement = p.ReadUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
+	res.Statement = parser.readUntil([]Token{Token{"EOL", ""}, Token{"EOF", ""}, Token{"operator", "}"}})
 
 	return res
 }
 
-func (p *Parser) Symbol_map(on ON) ins.Node {
+func (parser *Parser) symbol_Map(on ON) ins.Node {
 	m := ins.MapCreate{}
 	m.Keys = make([]ins.Node, 0)
 	m.Values = make([]ins.Node, 0)
@@ -900,13 +756,13 @@ func (p *Parser) Symbol_map(on ON) ins.Node {
 	is_key := true
 
 	for {
-		next := p.NextToken(-1)
+		next := parser.nextToken(-1)
 
 		if next.Type == "operator" && next.Value == "}" {
 			break
 		}
 
-		read := p.ReadUntil([]Token{Token{"operator", ","}, Token{"operator", ":"}, Token{"operator", "}"}})
+		read := parser.readUntil([]Token{Token{"operator", ","}, Token{"operator", ":"}, Token{"operator", "}"}})
 
 		if _, ok := read.(*ins.Nil); ok {
 			return m
@@ -924,66 +780,65 @@ func (p *Parser) Symbol_map(on ON) ins.Node {
 	return m
 }
 
-func (p *Parser) Symbol_for(on ON) ins.Node {
+func (parser *Parser) symbol_For(on ON) ins.Node {
 	f := ins.For{}
 
-	f.Before = p.ReadUntil([]Token{Token{"operator", ";"}, Token{"keyword", "in"}})
+	f.Before = parser.readUntil([]Token{Token{"operator", ";"}, Token{"keyword", "in"}})
 
-	next := p.NextToken(-1)
+	next := parser.nextToken(-1)
 
 	if next.Type == "keyword" && next.Value == "in" {
-		return p.Symbol_for_in(f)
+		return parser.symbol_For_in(f)
 	}
 
-	return p.Symbol_for_normal(f)
+	return parser.symbol_For_normal(f)
 }
 
-func (p *Parser) Symbol_for_normal(f ins.For) ins.For {
-	f.Condition = p.ReadUntil([]Token{Token{"operator", ";"}})
-	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
+func (parser *Parser) symbol_For_normal(f ins.For) ins.For {
+	f.Condition = parser.readUntil([]Token{Token{"operator", ";"}})
+	f.Each = parser.readUntil([]Token{Token{"operator", "{"}})
 
-	f.Body = p.ParseBlock()
+	f.Body = parser.parseBlock()
 	f.Body.Scope = true
 
 	return f
 }
 
-func (p *Parser) Symbol_for_in(f ins.For) ins.For {
+func (parser *Parser) symbol_For_in(f ins.For) ins.For {
 	f.IsForIn = true
-	f.Each = p.ReadUntil([]Token{Token{"operator", "{"}})
+	f.Each = parser.readUntil([]Token{Token{"operator", "{"}})
 
-	f.Body = p.ParseBlock()
+	f.Body = parser.parseBlock()
 	f.Body.Scope = true
 
 	return f
 }
 
-func (p *Parser) Symbol_method() ins.DefineMethod {
-
-	name := p.NextToken(-1)
+func (parser *Parser) symbol_Method() ins.DefineMethod {
+	name := parser.nextToken(-1)
 
 	if name.Type != "name" {
 		log.Panicf("Expeced name after method, got %s", name.Type)
 	}
 
-	return p.Symbol_MethodWithName(name.Value)
+	return parser.symbol_MethodWithName(name.Value)
 }
 
-func (p *Parser) Symbol_MethodWithName(name string) ins.DefineMethod {
+func (parser *Parser) symbol_MethodWithName(name string) ins.DefineMethod {
 	method := ins.DefineMethod{}
 	method.Parameters = make([]ins.Parameter, 0)
 
 	method.Name = name
 
 	for {
-		next := p.NextToken(-1)
+		next := parser.nextToken(-1)
 
 		// We're done where when the next char is a )
 		if next.Type == "operator" && next.Value == ")" {
 			break
 		}
 
-		param := p.ReadUntilWithON([]Token{Token{"operator", "="}, Token{"operator", ")"}, Token{"operator", ","}, Token{"operator", "{"}, Token{"EOF", ""}}, ON_METHOD_PARAMETERS)
+		param := parser.readUntilWithON([]Token{Token{"operator", "="}, Token{"operator", ")"}, Token{"operator", ","}, Token{"operator", "{"}, Token{"EOF", ""}}, ON_METHOD_PARAMETERS)
 
 		// Test if has default value
 		// Will be returned as a Math{a = b}
@@ -1012,13 +867,13 @@ func (p *Parser) Symbol_MethodWithName(name string) ins.DefineMethod {
 		}
 	}
 
-	block_start := p.Advance()
+	block_start := parser.advance()
 
 	if block_start.Type != "operator" || block_start.Value != "{" {
 		log.Panicf("Expected { after method name, got %s (%s)", block_start.Type, block_start.Value)
 	}
 
-	method.Body = p.ParseBlock()
+	method.Body = parser.parseBlock()
 	method.Body.Scope = true
 
 	return method
