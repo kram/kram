@@ -1,0 +1,13 @@
+// Initialize HTTP library
+var http = new HTTP()
+
+// Set method and URL
+http.Request("GET", "http://ipinfo.io/json")
+
+// Make the request
+var response = http.Do()
+
+// Parse JSON to Map
+var result = JSON.Decode(response)
+
+IO.Print("My IP is: ", result["ip"])
