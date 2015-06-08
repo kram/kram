@@ -29,14 +29,14 @@ func main() {
 		}
 
 		var lexer = gus.Lexer{}
-		lexer.Init(content)
+		tokens := lexer.Init(content)
 
 		if *debug {
 			fmt.Println("-------------------")
 			fmt.Println("-       LEXER     -")
 			fmt.Println("-------------------")
 
-			b, _ := json.MarshalIndent(lexer.Tokens, "", "  ")
+			b, _ := json.MarshalIndent(tokens, "", "  ")
 			fmt.Println(string(b))
 
 			fmt.Println("-------------------")
@@ -47,7 +47,7 @@ func main() {
 		var parse = gus.Parser{}
 		parse.Debug = *debug
 
-		tree := parse.Parse(lexer.Tokens)
+		tree := parse.Parse(tokens)
 
 		if *debug {
 			b, _ := json.MarshalIndent(tree, "", "  ")
@@ -62,13 +62,5 @@ func main() {
 		vm.Debug = *debug
 
 		vm.Run(tree)
-
-		/*if *debug {
-			b, _ := json.MarshalIndent(vm.Environment().Env, "", "  ")
-			fmt.Println("\n-------------------")
-			fmt.Println("-   ENVIRONMENT   -")
-			fmt.Println("-------------------")
-			fmt.Println(string(b))
-		}*/
 	}
 }

@@ -13,256 +13,287 @@ type Token struct {
 	Value string
 }
 
+// The lexers responsibility is to split the input (eg. the sourcecode) and split it into different sections (aka tokens)
 type Lexer struct {
-	C      string // The current character
-	I      int    // Index of the current character
-	Length int    // Length of the source
-	Source []rune
+	current string // The current character
+	index   int    // Index of the current character
+	length  int    // Length of the source
+	source  []rune
 
-	Operators map[string]bool
-	Keywords  map[string]bool
+	operators map[string]bool
+	keywords  map[string]bool
 
-	Tokens []Token // The result goes here
+	tokens []Token // The result goes here
 }
 
-func (l *Lexer) Init(source []byte) {
+// Initialize and run the lexer
+func (lexer *Lexer) Init(source []byte) []Token {
+	lexer.operators = make(map[string]bool)
+	lexer.operators["+"] = true
+	lexer.operators["-"] = true
+	lexer.operators["*"] = true
+	lexer.operators["/"] = true
+	lexer.operators["%"] = true
+	lexer.operators["**"] = true
+	lexer.operators["="] = true
+	lexer.operators["=="] = true
+	lexer.operators[">"] = true
+	lexer.operators[">="] = true
+	lexer.operators["<"] = true
+	lexer.operators["<="] = true
+	lexer.operators["&&"] = true
+	lexer.operators["||"] = true
+	lexer.operators["..."] = true
+	lexer.operators[".."] = true
+	lexer.operators["."] = true
+	lexer.operators["{"] = true
+	lexer.operators["}"] = true
+	lexer.operators[":"] = true
+	lexer.operators[","] = true
 
-	l.Operators = make(map[string]bool)
-	l.Operators["+"] = true
-	l.Operators["-"] = true
-	l.Operators["*"] = true
-	l.Operators["/"] = true
-	l.Operators["%"] = true
-	l.Operators["**"] = true
-	l.Operators["="] = true
-	l.Operators["=="] = true
-	l.Operators[">"] = true
-	l.Operators[">="] = true
-	l.Operators["<"] = true
-	l.Operators["<="] = true
-	l.Operators["&&"] = true
-	l.Operators["||"] = true
-	l.Operators["..."] = true
-	l.Operators[".."] = true
-	l.Operators["."] = true
-	l.Operators["{"] = true
-	l.Operators["}"] = true
-	l.Operators[":"] = true
-	l.Operators[","] = true
+	lexer.operators["++"] = true
+	lexer.operators["--"] = true
 
-	l.Operators["++"] = true
-	l.Operators["--"] = true
+	lexer.keywords = make(map[string]bool)
+	lexer.keywords["if"] = true
+	lexer.keywords["else"] = true
+	lexer.keywords["var"] = true
+	lexer.keywords["class"] = true
+	lexer.keywords["static"] = true
+	lexer.keywords["return"] = true
+	lexer.keywords["for"] = true
+	lexer.keywords["in"] = true
 
-	l.Keywords = make(map[string]bool)
-	l.Keywords["if"] = true
-	l.Keywords["else"] = true
-	l.Keywords["var"] = true
-	l.Keywords["class"] = true
-	l.Keywords["static"] = true
-	l.Keywords["return"] = true
-	l.Keywords["for"] = true
-	l.Keywords["in"] = true
+	lexer.source = []rune(string(source))
+	lexer.length = len(lexer.source)
 
-	l.Source = []rune(string(source))
-	l.Length = len(l.Source)
+	lexer.parse()
 
-	l.Parse()
+	return lexer.tokens
 }
 
-func (l *Lexer) Parse() {
-
+// Loop over the input from the begining to the end
+func (lexer *Lexer) parse() {
 	last_type := ""
 
 	for {
-		t, v := l.ParseNext()
+		t, v := lexer.parseNext()
 
+		// Reached the end of the file, quit properly and return
 		if t == "EOF" {
-
-			// Push both EOL and EOF before quitting
-			l.Push("EOL", "")
-			l.Push("EOF", "")
-
+			lexer.push("EOL", "")
+			lexer.push("EOF", "")
 			return
 		}
 
-		l.I++
+		lexer.index++
 
+		// Nothing happened, just continue
 		if t == "" && v == "" {
 			continue
 		}
 
+		// Two numbers in a row (1 2 3) results in the final number 123
+		// This is done by adding to the last number if we encounter two numbers in a row
 		if last_type == "number" && t == "number" {
-			l.Append(v)
+			lexer.append(v)
 			continue
 		}
 
 		last_type = t
-
-		l.Push(t, v)
+		lexer.push(t, v)
 	}
 }
 
-func (l *Lexer) ParseNext() (string, string) {
-	// End
-	if l.I >= l.Length {
+func (lexer *Lexer) parseNext() (string, string) {
+	// End of file
+	if lexer.index >= lexer.length {
 		return "EOF", ""
 	}
 
 	// Get current char
-	l.C = l.CharAtPos(l.I)
+	lexer.current = lexer.charAtPos(lexer.index)
 
 	// Line endings
-	if l.C == "\n" || l.C == "\r" || l.C == "" {
+	if lexer.current == "\n" || lexer.current == "\r" || lexer.current == "" {
 		return "EOL", ""
 	}
 
 	// Ignore Whitespace
-	if strings.TrimSpace(l.C) != l.C {
+	if strings.TrimSpace(lexer.current) != lexer.current {
 		return "", ""
 	}
 
 	// Comments
-	if l.C == "/" && l.CharAtPos(l.I+1) == "/" {
-
-		// Comments contine until the end of the file or a new row
-		for {
-			l.I++
-
-			l.C = l.CharAtPos(l.I)
-
-			if l.C == "\n" || l.C == "\r" || l.C == "" {
-				return "EOL", ""
-			}
-		}
-
-		return "", ""
+	if lexer.current == "/" && lexer.charAtPos(lexer.index+1) == "/" {
+		return lexer.comment()
 	}
 
 	// Names
 	// Begins with a char a-Z
-	if (l.C >= "a" && l.C <= "z") || (l.C >= "A" && l.C <= "Z") {
-		str := l.C
-
-		for {
-			c := l.CharAtPos(l.I + 1)
-
-			// After the beginning, a name can be a-Z0-9_
-			if (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9") || c == "_" {
-				str += c
-				l.I++
-			} else {
-				break
-			}
-		}
-
-		if str == "true" || str == "false" {
-			return "bool", str
-		}
-
-		if _, ok := l.Keywords[str]; ok {
-			return "keyword", str
-		}
-
-		return "name", str
+	if (lexer.current >= "a" && lexer.current <= "z") || (lexer.current >= "A" && lexer.current <= "Z") {
+		return lexer.name()
 	}
 
 	// Numbers
-	if l.C >= "0" && l.C <= "9" {
-		str := l.C
-
-		// Look for more digits.
-		for {
-			c := l.CharAtPos(l.I + 1)
-
-			if (c < "0" || c > "9") && c != "." {
-				break
-			}
-
-			// A dot needs to be followed by another digit to be valid
-			if c == "." {
-				cc := l.CharAtPos(l.I + 2)
-				if cc < "0" || cc > "9" {
-					break
-				}
-			}
-
-			l.I++
-			str += c
-		}
-
-		// TODO Decimal
-		// TODO Verify that it ends with a space?
-
-		return "number", str
+	if lexer.current >= "0" && lexer.current <= "9" {
+		return lexer.number()
 	}
 
 	// Strings
-	if l.C == "\"" {
-		str := ""
-
-		l.I++
-
-		for {
-
-			// End of string
-			if l.CharAtPos(l.I) == "\"" {
-				break
-			}
-
-			// Escaping
-			if l.CharAtPos(l.I) == "\\" {
-				l.I++
-			}
-
-			str += l.CharAtPos(l.I)
-
-			l.I++
-		}
-
-		return "string", str
+	if lexer.current == "\"" {
+		return lexer.string()
 	}
 
-	// Operators
-	if _, ok := l.Operators[l.C]; ok {
-		str := l.C
-
-		for {
-
-			next := l.CharAtPos(l.I + 1)
-
-			if next == "" {
-				break
-			}
-
-			if _, ok := l.Operators[str+next]; ok {
-				l.I++
-				str += l.CharAtPos(l.I)
-			} else {
-				break
-			}
-		}
-
-		return "operator", str
+	// operators
+	if _, ok := lexer.operators[lexer.current]; ok {
+		return lexer.operator()
 	}
 
-	return "operator", l.C
+	return "operator", lexer.current
 }
 
-func (l *Lexer) CharAtPos(pos int) string {
-	if pos >= l.Length {
+// Get the charater at a certain offset, used to look forward and backwards
+func (lexer *Lexer) charAtPos(pos int) string {
+
+	// End of file
+	if pos >= lexer.length {
 		return ""
 	}
 
-	return string(l.Source[pos])
+	return string(lexer.source[pos])
 }
 
-func (l *Lexer) Push(typ, value string) {
-	l.Tokens = append(l.Tokens, Token{
+// Push to the lexers stack
+func (lexer *Lexer) push(typ, value string) {
+	lexer.tokens = append(lexer.tokens, Token{
 		Type:  typ,
 		Value: value,
 	})
 }
 
-func (l *Lexer) Append(value string) {
-	l.Tokens[len(l.Tokens)-1].Value += value
+// Add to the previous item on the stack
+func (lexer *Lexer) append(value string) {
+	lexer.tokens[len(lexer.tokens)-1].Value += value
+}
+
+// Comments contine until the end of the file or a new row
+func (lexer *Lexer) comment() (string, string) {
+	for {
+		lexer.index++
+
+		lexer.current = lexer.charAtPos(lexer.index)
+
+		if lexer.current == "\n" || lexer.current == "\r" || lexer.current == "" {
+			return "EOL", ""
+		}
+	}
+
+	return "", ""
+}
+
+// Parse names
+func (lexer *Lexer) name() (string, string) {
+	str := lexer.current
+
+	for {
+		c := lexer.charAtPos(lexer.index + 1)
+
+		// After the beginning, a name can be a-Z0-9_
+		if (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || (c >= "0" && c <= "9") || c == "_" {
+			str += c
+			lexer.index++
+		} else {
+			break
+		}
+	}
+
+	if str == "true" || str == "false" {
+		return "bool", str
+	}
+
+	if _, ok := lexer.keywords[str]; ok {
+		return "keyword", str
+	}
+
+	return "name", str
+}
+
+// Parse numberss
+func (lexer *Lexer) number() (string, string) {
+	str := lexer.current
+
+	// Look for more digits.
+	for {
+		c := lexer.charAtPos(lexer.index + 1)
+
+		if (c < "0" || c > "9") && c != "." {
+			break
+		}
+
+		// A dot needs to be followed by another digit to be valid
+		if c == "." {
+			cc := lexer.charAtPos(lexer.index + 2)
+			if cc < "0" || cc > "9" {
+				break
+			}
+		}
+
+		lexer.index++
+		str += c
+	}
+
+	// TODO Decimal
+	// TODO Verify that it ends with a space?
+
+	return "number", str
+}
+
+// Parse strings
+func (lexer *Lexer) string() (string, string) {
+	str := ""
+
+	lexer.index++
+
+	for {
+
+		// End of string
+		if lexer.charAtPos(lexer.index) == "\"" {
+			break
+		}
+
+		// Escaping
+		if lexer.charAtPos(lexer.index) == "\\" {
+			lexer.index++
+		}
+
+		str += lexer.charAtPos(lexer.index)
+
+		lexer.index++
+	}
+
+	return "string", str
+}
+
+// Parse operators
+func (lexer *Lexer) operator() (string, string) {
+	str := lexer.current
+
+	for {
+
+		next := lexer.charAtPos(lexer.index + 1)
+
+		if next == "" {
+			break
+		}
+
+		if _, ok := lexer.operators[str+next]; ok {
+			lexer.index++
+			str += lexer.charAtPos(lexer.index)
+		} else {
+			break
+		}
+	}
+
+	return "operator", str
 }
