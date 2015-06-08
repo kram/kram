@@ -14,6 +14,23 @@ type Token struct {
 }
 
 // The lexers responsibility is to split the input (eg. the sourcecode) and split it into different sections (aka tokens)
+// This process is pretty stragit forward and there isn't any "magic" going on here.
+//
+// If the input is:
+//		var my_var = 1 + 2
+//
+// The output becomes:
+// 		[
+// 		  { "Type": "keyword",   "Value": "var" },
+// 		  { "Type": "name",      "Value": "my_var" },
+// 		  { "Type": "operator",  "Value": "=" },
+// 		  { "Type": "number",    "Value": "1" },
+// 		  { "Type": "operator",  "Value": "+" },
+// 		  { "Type": "number",    "Value": "2" },
+// 		  { "Type": "EOL",       "Value": "" },
+// 		  { "Type": "EOF",       "Value": "" }
+// 		]
+//
 type Lexer struct {
 	current string // The current character
 	index   int    // Index of the current character
