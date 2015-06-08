@@ -1,7 +1,7 @@
-// [1, 2, 3, string, [a, list], false, true, null, {
-//     "i": am a,
-//     "map": true
-// }]
+// 1
+// [a, list]
+// false
+// am a
 // DONE
 // [1,2,3,"string",["a","list"],false,true,null,{"i":"am a","map":true}]
 
@@ -9,7 +9,10 @@ var list = "[1, 2, 3, \"string\", [\"a\", \"list\"], false, true, null, {\"i\": 
 
 var object = JSON.Decode(list)
 
-IO.Println(object)
+IO.Println(object[0])
+IO.Println(object[4])
+IO.Println(object[5])
+IO.Println(object[8]["i"])
 
 var json = JSON.Encode(object)
 
