@@ -24,6 +24,17 @@ func (self Library) ToString() string {
 	return "<nil>"
 }
 
+func (self Library) Params(in []*types.Class, out ...interface{}) {
+	for k, v := range in {
+		switch o := out[k].(type) {
+		case *string:
+			*o = v.ToString()
+		default:
+			log.Panic("Library.Params() can not handle this type?")
+		}
+	}
+}
+
 func (self Library) Bool(value bool) *types.Class {
 	bl := builtin.Bool{}
 	bl.Set(value)
