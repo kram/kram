@@ -14,6 +14,12 @@ import (
 	"github.com/zegl/Gus/src"
 )
 
+// The main function is very simple.
+// 
+// 1. Read the input file
+// 2. Run the lexer
+// 3. Run the parser on the result from the lexer and create an AST
+// 4. Run the VM with the AST as instructions
 func main() {
 
 	debug := flag.Bool("debug", false, "Debuggning output")
