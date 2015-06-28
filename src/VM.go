@@ -1,8 +1,8 @@
-// Copyright (c) 2015 The Gus Project Developers. All rights reserved.
+// Copyright (c) 2015 The kram Project Developers. All rights reserved.
 // See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
-package gus
+package kram
 
 import (
 	"fmt"
@@ -11,11 +11,11 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/zegl/Gus/src/environment"
-	ins "github.com/zegl/Gus/src/instructions"
-	lib "github.com/zegl/Gus/src/libraries"
-	"github.com/zegl/Gus/src/types"
-	"github.com/zegl/Gus/src/types/builtin"
+	"github.com/kram/kram/src/environment"
+	ins "github.com/kram/kram/src/instructions"
+	lib "github.com/kram/kram/src/libraries"
+	"github.com/kram/kram/src/types"
+	"github.com/kram/kram/src/types/builtin"
 
 	// Debug tools
 	"encoding/json"

@@ -1,6 +1,6 @@
-# Gus - A class based scripting language
+# Kram - A class based scripting language
 
-[![Build Status](https://travis-ci.org/zegl/Gus.svg?branch=master)](https://travis-ci.org/zegl/Gus)
+[![Build Status](https://travis-ci.org/kram/kram.svg?branch=master)](https://travis-ci.org/kram/kram)
 
 **Clarification**, this project is currently just a prototype. Don't actually use it anywhere. Things will break.
 
@@ -24,7 +24,7 @@ class Magic {
 var three = 1 + 2 * 3 - 16.Sqrt() // 3
 ```
 
-Are you interested? Make a visit to the [Getting Started](https://github.com/zegl/Gus/wiki) page!
+Are you interested? Make a visit to the [Getting Started](https://github.com/kram/kram/wiki) page!
 
 ## Features
 
@@ -108,16 +108,16 @@ IO.Println(20 000) // Prints "20000"
 
 ### Everything is a class
 
-In Gus, everything is a class, that means that you can do stuff like
+In kram, everything is a class, that means that you can do stuff like
 
 ```go
 150.Sqrt()
 ```
 
-## The future of Gus
+## The future of kram
 
-There is a lot of [stuff](https://github.com/zegl/Gus/labels/Feature) that needs to be implemented before Gus is complete. And **you** are very welcome to help! :ok_hand:
+There is a lot of [stuff](https://github.com/kram/kram/labels/Feature) that needs to be implemented before kram is complete. And **you** are very welcome to help! :ok_hand:
 
 # License
 
-*Gus* is released under a modified 3-clause BSD-license. See [LICENSE](https://github.com/zegl/Gus/blob/master/LICENSE) for details.
+*kram* is released under a modified 3-clause BSD-license. See [LICENSE](https://github.com/kram/kram/blob/master/LICENSE) for details.

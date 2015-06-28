@@ -1,8 +1,8 @@
-// Copyright (c) 2015 The Gus Project Developers. All rights reserved.
+// Copyright (c) 2015 The kram Project Developers. All rights reserved.
 // See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
-package gus
+package kram
 
 // ON is the datatype used by the parser to differentiate between different parts of the sourcecode
 // Eg. the "static"-keyword is only used when ON_CLASS_BODY is active. And func() can be both a Call to a method

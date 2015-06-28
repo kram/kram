@@ -1,4 +1,4 @@
-// Copyright (c) 2015 The Gus Project Developers. All rights reserved.
+// Copyright (c) 2015 The kram Project Developers. All rights reserved.
 // See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/zegl/Gus/src"
+	"github.com/kram/kram/src"
 )
 
 // The main function is very simple.
@@ -34,7 +34,7 @@ func main() {
 			continue
 		}
 
-		var lexer = gus.Lexer{}
+		var lexer = kram.Lexer{}
 		tokens := lexer.Init(content)
 
 		if *debug {
@@ -50,7 +50,7 @@ func main() {
 			fmt.Println("-------------------")
 		}
 
-		var parse = gus.Parser{}
+		var parse = kram.Parser{}
 
 		tree := parse.Parse(tokens)
 
@@ -63,7 +63,7 @@ func main() {
 			fmt.Println("-------------------")
 		}
 
-		var vm = gus.VM{}
+		var vm = kram.VM{}
 		vm.Debug = *debug
 
 		vm.Run(tree)
