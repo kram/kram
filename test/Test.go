@@ -53,9 +53,9 @@ func Test(path string) bool {
 	var cmd *exec.Cmd
 
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("Gus.exe", path)
+		cmd = exec.Command("kram.exe", path)
 	} else {
-		cmd = exec.Command("./bin/Gus", path)
+		cmd = exec.Command("./bin/kram", path)
 	}
 
 	stdout, err := cmd.Output()

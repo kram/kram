@@ -1,5 +1,5 @@
 build:
-	go build -o bin/Gus
+	go build -o bin/kram
 
 build_test:
 	go build -o bin/Test ./test
