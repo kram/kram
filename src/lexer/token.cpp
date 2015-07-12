@@ -62,6 +62,21 @@ Token Token::BOOL(std::string val) {
 }
 
 void Token::print() {
+	std::string ty;
+
+	switch (this->type) {
+		case Type::T_EOF: ty = "T_EOF"; break;
+		case Type::T_EOL: ty = "T_EOL"; break;
+		case Type::IGNORE: ty = "IGNORE"; break;
+		case Type::STRING: ty = "STRING"; break;
+		case Type::NUMBER: ty = "NUMBER"; break;
+		case Type::KEYWORD: ty = "KEYWORD"; break;
+		case Type::OPERATOR: ty = "OPERATOR"; break;
+		case Type::NAME: ty = "NAME"; break;
+		case Type::BOOL: ty = "BOOL"; break;
+		default: ty = "UNKNOWN"; break;
+	}
+
 	// std::cout << this->type << ", " << this->value << "\n";
-	std::cout << this->value << "\n";
+	std::cout << ty << ": " << this->value << "\n";
 }

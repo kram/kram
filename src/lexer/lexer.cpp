@@ -47,20 +47,27 @@ std::vector<Token> Lexer::parse_file() {
 
     while (std::getline(file, this->row))
     {
-    	std::cout << this->row << std::endl;
-
     	this->index = 0;
 
     	while (true) {
         	Token tok = this->next();
-        	tok.print();
+
         	this->index++;
 
-        	if (tok.type == Type::T_EOF) {
+        	if (tok.type == Type::IGNORE) {
+        		continue;
+        	}
+
+        	result.push_back(tok);
+
+        	if (tok.type == Type::T_EOF || tok.type == Type::T_EOL) {
         		break;
         	}
         }
     }
+
+    // Indicate end of file
+    result.push_back(Token::T_EOF());
 
     return result;
 }
@@ -77,14 +84,8 @@ char Lexer::char_at_pos(int index) {
 Token Lexer::next() {
 	this->current = this->char_at_pos(this->index);
 
-	std::cout << "next(): " << this->current << std::endl;
-
+	// End of row
 	if (this->current == '\0') {
-		return Token::T_EOF();
-	}
-
-	// Line endings
-	if (this->current == '\n' || this->current == '\r') {
 		return Token::T_EOL();
 	}
 
@@ -115,9 +116,9 @@ Token Lexer::next() {
 	}
 
 	// operators
-	//if (this->operators.contains_key(&this->current.to_string())) {
-	//	return this->oper();
-	//}
+	if (this->operators.find(&this->current) != this->operators.end()) {
+		return this->oper();
+	}
 
 	return Token::IGNORE();
 }
@@ -152,6 +153,10 @@ Token Lexer::name() {
 
 	if (s == "true" || s == "false") {
 		return Token::BOOL(s);
+	}
+
+	if (this->keywords.find(s) != this->keywords.end()) {
+		return Token::KEYWORD(s);
 	}
 
 	return Token::NAME(s);
@@ -225,12 +230,12 @@ Token Lexer::oper() {
 
 		std::string combined = s + next;
 
-		//if (this->keywords.contains_key(&combined)) {
+		if (this->keywords.find(combined) != this->keywords.end()) {
 			s += next;
 			this->index += 1;
-		//} else {
-		//	break
-		//}
+		} else {
+			break;
+		}
 	}
 
 	return Token::OPERATOR(s);
