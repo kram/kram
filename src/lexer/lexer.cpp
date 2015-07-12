@@ -4,6 +4,8 @@
 
 #include "lexer.h"
 
+using namespace lexer;
+
 Lexer::Lexer() {
 	// Initialize all operators and keywords
 	operators["+"] = true;

@@ -1,14 +1,17 @@
 #include <iostream>
 #include "lexer/lexer.h"
+#include "parser/parser.h"
 
 int main() {
 	
-	Lexer lex;
-	std::vector<Token> tokens = lex.parse_file();
+	lexer::Lexer lexer;
+	std::vector<lexer::Token> tokens = lexer.parse_file();
 
-	for (Token tok : tokens) {
+	for (lexer::Token tok : tokens) {
 		tok.print();
 	}
+
+	Parser parser (tokens);
 
 	return 0;
 }

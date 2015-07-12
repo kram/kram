@@ -1,6 +1,8 @@
 #include <iostream>
 #include "token.h"
 
+using namespace lexer;
+
 Token Token::T_EOF() {
 	Token tok;
 	tok.type = Type::T_EOF;
