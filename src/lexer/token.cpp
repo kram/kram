@@ -3,6 +3,11 @@
 
 using namespace lexer;
 
+Token::Token() {
+	type = Type::IGNORE;
+	sub = Type::IGNORE;
+}
+
 Token Token::T_EOF() {
 	Token tok;
 	tok.type = Type::T_EOF;
@@ -39,6 +44,11 @@ Token Token::KEYWORD(std::string val) {
 	Token tok;
 	tok.type = Type::KEYWORD;
 	tok.value = val;
+
+	if (val == "var") {
+		tok.sub = Type::KEYWORD_VAR;
+	}
+
 	return tok;
 }
 
@@ -46,6 +56,11 @@ Token Token::OPERATOR(std::string val) {
 	Token tok;
 	tok.type = Type::OPERATOR;
 	tok.value = val;
+
+	if (val == "=") {
+		tok.sub = Type::OPERATOR_EQ;
+	}
+
 	return tok;
 }
 
@@ -79,6 +94,5 @@ void Token::print() {
 		default: ty = "UNKNOWN"; break;
 	}
 
-	// std::cout << this->type << ", " << this->value << "\n";
 	std::cout << ty << ": " << this->value << "\n";
 }

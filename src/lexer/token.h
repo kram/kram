@@ -7,19 +7,32 @@ namespace lexer {
 	enum class Type {
 		T_EOF,
 		T_EOL,
+
 		IGNORE,
+
 		STRING,
 		NUMBER,
-		KEYWORD,
-		OPERATOR,
 		NAME,
-		BOOL
+
+		BOOL,
+		BOOL_TRUE,
+		BOOL_FALSE,
+
+		KEYWORD,
+		KEYWORD_VAR, // var
+
+		OPERATOR,
+		OPERATOR_EQ, // =
+		OPERATOR_SEMICOLON, // ;
 	};
 
 	struct Token {
 		public:
 			Type type;
+			Type sub;
 			std::string value;
+
+			Token();
 
 			static Token T_EOF();
 			static Token T_EOL();
