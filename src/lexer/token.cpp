@@ -59,6 +59,16 @@ Token Token::OPERATOR(std::string val) {
 
 	if (val == "=") {
 		tok.sub = Type::OPERATOR_EQ;
+	} else if (val == ".") {
+		tok.sub = Type::OPERATOR_DOT;
+	} else if (val == "(") {
+		tok.sub = Type::OPERATOR_PAREN_L;
+	} else if (val == ")") {
+		tok.sub = Type::OPERATOR_PAREN_R;
+	} else if (val == ";") {
+		tok.sub = Type::OPERATOR_SEMICOLON;
+	} else if (val == ",") {
+		tok.sub = Type::OPERATOR_COLON;
 	}
 
 	return tok;

@@ -28,6 +28,8 @@ Lexer::Lexer() {
 	operators["."] = true;
 	operators["{"] = true;
 	operators["}"] = true;
+	operators["("] = true;
+	operators[")"] = true;
 	operators[":"] = true;
 	operators["++"] = true;
 	operators["--"] = true;

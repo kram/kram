@@ -1,5 +1,11 @@
+#ifndef VM_VALUE_H
+#define VM_VALUE_H
+
 #include <string>
 #include <iostream>
+
+// Fake library
+class Library;
 
 enum class Type {
 	NUL,
@@ -14,12 +20,16 @@ class Value {
 	// TODO: Union(-ify) this
 	std::string strval;
 	int number;
+	Library* ref;
 
 	public:
 		Value();
 		Value(Type);
+
 		static Value NUMBER(int);
 		static Value STRING(std::string);
+		static Value REFERENCE(Library*);
+		static Value NUL();
 
 		void print(void) {
 			std::string i = "UNKNOWN";
@@ -43,4 +53,10 @@ class Value {
 
 			std::cout << ">\n";
 		};
+
+		std::string string() {
+			return this->strval;
+		}
 };
+
+#endif

@@ -11,24 +11,9 @@ std::vector<Instruction> Parser::run() {
 }
 
 std::vector<Instruction> Parser::read_file() {
-	std::vector<Instruction> ins;
-
-	while (true) {
-
-		std::cout << "Loop: " << ins.size() << "\n";
-
-		lexer::Token tok = this->get_token();
-
-		if (tok.type == lexer::Type::T_EOF) {
-			break;
-		}
-
-		ins.push_back(this->symbol(tok));
-
-		this->advance();
-	}
-
-	return ins;
+	return this->read_until(std::vector<lexer::Token>{
+		lexer::Token::T_EOF()
+	});
 }
 
 std::vector<Instruction> Parser::read_until_eol() {
@@ -53,7 +38,6 @@ std::vector<Instruction> Parser::read_until(std::vector<lexer::Token> until) {
 		if (!first) {
 			for (lexer::Token unt : until) {
 				if ((unt.type == lexer::Type::T_EOL || unt.type == lexer::Type::T_EOF || (unt.type == lexer::Type::OPERATOR && unt.sub == lexer::Type::OPERATOR_SEMICOLON)) && prev.type == unt.type) {
-					std::cout << "Stopped early\n";
 					return res;
 				}
 			}
@@ -63,12 +47,8 @@ std::vector<Instruction> Parser::read_until(std::vector<lexer::Token> until) {
 		this->advance();
 		lexer::Token next = this->get_token();
 
-		std::cout << "read_until() HAS: ";
-		next.print();
-
 		for (lexer::Token unt : until) {
 			if (unt.type == next.type && unt.sub == next.sub) {
-				std::cout << "Stopped reading until\n";
 				return res;
 			}
 		}
@@ -82,7 +62,31 @@ std::vector<Instruction> Parser::read_until(std::vector<lexer::Token> until) {
 	return res;
 }
 
-//Instruction Parser::lookahead(ON);
+Instruction Parser::lookahead(Instruction prev, ON on) {
+	this->advance();
+
+	lexer::Token next = this->get_token();
+
+	// PushClass
+	// IO.Println("123")
+	//   ^
+	if (next.type == lexer::Type::OPERATOR && next.sub == lexer::Type::OPERATOR_DOT) {
+		return this->push_class(prev);
+	}
+
+	next.print();
+
+	// Call
+	// IO.Println("123")
+	//           ^
+	if (next.type == lexer::Type::OPERATOR && next.sub == lexer::Type::OPERATOR_PAREN_L) {
+		return this->call(prev, on);
+	}
+
+	this->reverse();
+
+	return prev;
+}
 
 lexer::Token Parser::get_token() {
 	return this->tokens[this->index];
@@ -103,18 +107,26 @@ lexer::Token Parser::get_and_expect_token(lexer::Token expect) {
 }
 
 void Parser::advance() {
-	this->index++;
+	if (this->has_advanced) {
+		this->index++;
+	} else {
+		this->has_advanced = true;
+	}
 }
 void Parser::reverse() {
 	this->index--;
 }
 
-//Instruction Parser::symbol_next();
+Instruction Parser::symbol_next() {
+	this->advance();
+	return this->symbol(this->get_token());
+}
 
 Instruction Parser::symbol(lexer::Token tok) {
 	switch (tok.type) {
 		case lexer::Type::KEYWORD: return this->keyword(tok); break;
 		case lexer::Type::NUMBER: return this->number(tok); break;
+		case lexer::Type::NAME: return this->name(tok); break;
 		default: std::cout << "Unknown symbol\n"; tok.print(); break;
 	}
 }
@@ -129,9 +141,6 @@ Instruction Parser::keyword(lexer::Token tok) {
 }
 
 Instruction Parser::keyword_var(lexer::Token tok) {
-
-	std::cout << "keyword_var()\n";
-
 	Instruction ins(Ins::ASSIGN);
 
 	this->advance();
@@ -143,15 +152,7 @@ Instruction Parser::keyword_var(lexer::Token tok) {
 	this->advance();
 	this->get_and_expect_token(lexer::Token::OPERATOR("="));
 
-	//this->advance();
-
-	std::cout << "keyword_var() read_until_eol\n";
-
 	ins.right = this->read_until_eol();
-
-	std::cout << "keyword_var() done\n";
-
-	ins.print();
 
 	return ins;
 }
@@ -159,23 +160,43 @@ Instruction Parser::keyword_var(lexer::Token tok) {
 //Instruction Parser::keyword_if(lexer::Token);
 
 Instruction Parser::name(lexer::Token tok) {
+	Instruction ins(Ins::NAME);
+	ins.name = tok.value;
 
+	return this->lookahead(ins, ON::DEFAULT);
 }
 
 Instruction Parser::number(lexer::Token tok) {
-	std::cout << "number()\n";
-
 	Instruction ins(Ins::LITERAL);
 	ins.value = Value::NUMBER(std::stoi(tok.value));
 
-	ins.print();
-
-	return ins;
+	return this->lookahead(ins, ON::DEFAULT);
 }
 
 //Instruction Parser::oper(lexer::Token);
 //Instruction Parser::ignore(lexer::Token);
 //Instruction Parser::bl(lexer::Token);
 //Instruction Parser::math(Instruction);
-//Instruction Parser::push_class(Instruction);
-//Instruction Parser::call(Instruction, ON);
+
+Instruction Parser::push_class(Instruction prev) {
+	Instruction ins(Ins::PUSH_CLASS);
+	ins.left = std::vector<Instruction>{ prev };
+	ins.right = std::vector<Instruction>{ this->symbol_next() };
+
+	ins.print();
+
+	return this->lookahead(ins, ON::PUSH_CLASS);
+}
+
+Instruction Parser::call(Instruction prev, ON on) {
+	Instruction ins(Ins::CALL);
+	ins.left = std::vector<Instruction>{ prev };
+
+	// Read until ) or ,
+	ins.right = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR(")"),
+		lexer::Token::OPERATOR(","),
+	});
+
+	return this->lookahead(ins, ON::DEFAULT);
+}

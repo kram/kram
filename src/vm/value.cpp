@@ -21,3 +21,16 @@ Value Value::STRING(std::string val) {
 
 	return vl;
 }
+
+Value Value::NUL() {
+	Value vl(Type::NUL);
+
+	return vl;
+}
+
+Value Value::REFERENCE(Library* lib) {
+	Value vl(Type::REFERENCE);
+	vl.ref = lib;
+
+	return vl;
+}

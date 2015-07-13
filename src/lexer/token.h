@@ -23,7 +23,11 @@ namespace lexer {
 
 		OPERATOR,
 		OPERATOR_EQ, // =
+		OPERATOR_COLON, // ,
 		OPERATOR_SEMICOLON, // ;
+		OPERATOR_DOT, // .
+		OPERATOR_PAREN_L, // (
+		OPERATOR_PAREN_R, // )
 	};
 
 	struct Token {

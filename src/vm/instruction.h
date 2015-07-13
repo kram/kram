@@ -72,7 +72,7 @@ class Instruction {
 				std::cout << std::string(ident + 1, '\t') << "]\n";
 			}
 
-			if (center.size() > 0) {
+			/*if (center.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "center: [\n";
 
 				for (Instruction i : center) {
@@ -80,7 +80,7 @@ class Instruction {
 				}
 
 				std::cout << std::string(ident + 1, '\t') << "]\n";
-			}
+			}*/
 
 			if (right.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "right: [\n";
