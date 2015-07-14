@@ -5,7 +5,6 @@
 namespace lexer {
 	class Lexer {
 		std::unordered_map<std::string, bool> keywords;
-		std::unordered_map<std::string, bool> operators;
 		std::string row;
 		int index;
 		char current;
@@ -22,5 +21,6 @@ namespace lexer {
 		public:
 			Lexer();
 			std::vector<Token> parse_file(void);
+			static void print(std::vector<Token>);
 	};
 }

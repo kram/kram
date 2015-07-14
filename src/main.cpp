@@ -8,11 +8,17 @@ int main() {
 	lexer::Lexer lexer;
 	std::vector<lexer::Token> tokens = lexer.parse_file();
 
+	// lexer::Lexer::print(tokens);
+
 	Parser parser (tokens);
 	std::vector<Instruction> instructions = parser.run();
 
-	for (int i = 0; i < instructions.size(); i++) {
-		instructions[i].print();
+
+	std::cout << "Printing ins:\n";
+
+	for (Instruction ins : instructions) {
+		ins.print();
+		std::cout << "--------\n";
 	}
 
 	VM vm;

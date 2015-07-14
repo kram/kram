@@ -19,10 +19,10 @@ class Parser {
 	int lenght;
 	bool has_advanced;
 
-	std::unordered_map<std::string, bool> comparisions;
-	std::unordered_map<std::string, bool> startOperators;
-	std::unordered_map<std::string, bool> leftOnlyInfix;
-	std::unordered_map<std::string, bool> rightOnlyInfix;
+	std::unordered_map<lexer::Type, bool> comparisions;
+	std::unordered_map<lexer::Type, bool> startOperators;
+	std::unordered_map<lexer::Type, bool> leftOnlyInfix;
+	std::unordered_map<lexer::Type, bool> rightOnlyInfix;
 
 	std::vector<Instruction> read_file();
 	std::vector<Instruction> read_until_eol();
@@ -34,20 +34,20 @@ class Parser {
 	void reverse();
 	Instruction symbol_next();
 	Instruction symbol(lexer::Token);
-	//uint infix_priority(std::string);
 	Instruction keyword(lexer::Token);
 	Instruction keyword_var(lexer::Token);
 	//Instruction keyword_if(lexer::Token);
 	Instruction name(lexer::Token);
 	Instruction number(lexer::Token);
 	//Instruction oper(lexer::Token);
-	//Instruction ignore(lexer::Token);
+	Instruction ignore();
 	//Instruction bl(lexer::Token);
-	//Instruction math(Instruction);
+	Instruction math(Instruction);
 	Instruction push_class(Instruction);
 	Instruction call(Instruction, ON);
 
 	public: 
 		Parser(std::vector<lexer::Token>);
 		std::vector<Instruction> run();
+		static int infix_priority(lexer::Type);
 };

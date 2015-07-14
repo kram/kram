@@ -7,33 +7,7 @@
 using namespace lexer;
 
 Lexer::Lexer() {
-	// Initialize all operators and keywords
-	operators["+"] = true;
-	operators["-"] = true;
-	operators["*"] = true;
-	operators["/"] = true;
-	operators["%"] = true;
-	operators["**"] = true;
-	operators["="] = true;
-	operators["=="] = true;
-	operators[">"] = true;
-	operators[">="] = true;
-	operators["<"] = true;
-	operators["<="] = true;
-	operators["&&"] = true;
-	operators["|"] = true;
-	operators["||"] = true;
-	operators["..."] = true;
-	operators[".."] = true;
-	operators["."] = true;
-	operators["{"] = true;
-	operators["}"] = true;
-	operators["("] = true;
-	operators[")"] = true;
-	operators[":"] = true;
-	operators["++"] = true;
-	operators["--"] = true;
-
+	// Initialize all  keywords
 	keywords["if"] = true;
 	keywords["else"] = true;
 	keywords["var"] = true;
@@ -119,10 +93,13 @@ Token Lexer::next() {
 		return this->string();
 	}
 
-	// operators
-	if (this->operators.find(&this->current) != this->operators.end()) {
+	// Operators
+	std::string str(1, this->current);
+	if (Token::Trans(str) != Type::IGNORE) {
 		return this->oper();
 	}
+
+	std::cout << "Ignoring: " << this->current << "(" << str << ")\n";
 
 	return Token::IGNORE();
 }
@@ -141,7 +118,7 @@ Token Lexer::comment() {
 }
 
 Token Lexer::name() {
-	std::string s = &this->current;
+	std::string s(1, this->current);
 
 	while (true) {
 		char c = this->char_at_pos(this->index + 1);
@@ -167,7 +144,7 @@ Token Lexer::name() {
 }
 
 Token Lexer::number() {
-	std::string s = &this->current;
+	std::string s(1, this->current);
 
 	// Look for more digits.
 	while(true) {
@@ -197,7 +174,7 @@ Token Lexer::number() {
 }
 
 Token Lexer::string() {
-	std::string s = &this->current;
+	std::string s(1, this->current);
 
 	this->index += 1;
 
@@ -221,7 +198,7 @@ Token Lexer::string() {
 }
 
 Token Lexer::oper() {
-	std::string s = &this->current;
+	std::string s(1, this->current);
 
 	while(true) {
 
@@ -234,7 +211,7 @@ Token Lexer::oper() {
 
 		std::string combined = s + next;
 
-		if (this->keywords.find(combined) != this->keywords.end()) {
+		if (Token::Trans(combined) != Type::IGNORE) {
 			s += next;
 			this->index += 1;
 		} else {
@@ -243,4 +220,10 @@ Token Lexer::oper() {
 	}
 
 	return Token::OPERATOR(s);
+}
+
+void Lexer::print(std::vector<Token> tokens) {
+	for (Token tok : tokens) {
+		std::cout << tok.print() << "\n";
+	}
 }

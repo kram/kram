@@ -4,6 +4,41 @@
 Parser::Parser(std::vector<lexer::Token> tokens) {
 	this->tokens = tokens;
 	this->lenght = tokens.size();
+
+	// Hashmap of comparisions
+	this->comparisions[lexer::Type::OPERATOR_EQEQ] = true;
+	this->comparisions[lexer::Type::OPERATOR_GT] = true;
+	this->comparisions[lexer::Type::OPERATOR_GTEQ] = true;
+	this->comparisions[lexer::Type::OPERATOR_LT] = true;
+	this->comparisions[lexer::Type::OPERATOR_LTEQ] = true;
+	this->comparisions[lexer::Type::OPERATOR_DOUBLE_AND] = true;
+	this->comparisions[lexer::Type::OPERATOR_DOUBLE_OR] = true;
+
+	// 123++
+	this->leftOnlyInfix[lexer::Type::OPERATOR_PLUS_PLUS] = true;
+	this->leftOnlyInfix[lexer::Type::OPERATOR_MINUS_MINUS] = true;
+
+	// -123
+	this->rightOnlyInfix[lexer::Type::OPERATOR_MINUS] = true;
+
+	// List of all operators starting a new sub-expression
+	this->startOperators[lexer::Type::OPERATOR_EQEQ] = true;
+	this->startOperators[lexer::Type::OPERATOR_GT] = true;
+	this->startOperators[lexer::Type::OPERATOR_GTEQ] = true;
+	this->startOperators[lexer::Type::OPERATOR_LT] = true;
+	this->startOperators[lexer::Type::OPERATOR_LTEQ] = true;
+	this->startOperators[lexer::Type::OPERATOR_DOUBLE_AND] = true;
+	this->startOperators[lexer::Type::OPERATOR_DOUBLE_OR] = true;
+	this->startOperators[lexer::Type::OPERATOR_PLUS_PLUS] = true;
+	this->startOperators[lexer::Type::OPERATOR_MINUS_MINUS] = true;
+	this->startOperators[lexer::Type::OPERATOR_MINUS] = true;
+	this->startOperators[lexer::Type::OPERATOR_PLUS] = true;
+	this->startOperators[lexer::Type::OPERATOR_MUL] = true;
+	this->startOperators[lexer::Type::OPERATOR_DIV] = true;
+	this->startOperators[lexer::Type::OPERATOR_PAREN_L] = true;
+	this->startOperators[lexer::Type::OPERATOR_EQ] = true;
+	this->startOperators[lexer::Type::OPERATOR_2DOT] = true;
+	this->startOperators[lexer::Type::OPERATOR_3DOT] = true;
 }
 
 std::vector<Instruction> Parser::run() {
@@ -68,19 +103,25 @@ Instruction Parser::lookahead(Instruction prev, ON on) {
 	lexer::Token next = this->get_token();
 
 	// PushClass
+	// IO::Println("123")
+	//   ^^
 	// IO.Println("123")
 	//   ^
-	if (next.type == lexer::Type::OPERATOR && next.sub == lexer::Type::OPERATOR_DOT) {
+	if (next.type == lexer::Type::OPERATOR && (next.sub == lexer::Type::OPERATOR_DOT || next.sub == lexer::Type::OPERATOR_DOUBLE_COLON)) {
 		return this->push_class(prev);
 	}
 
-	next.print();
-
 	// Call
-	// IO.Println("123")
+	// IO::Println("123")
 	//           ^
 	if (next.type == lexer::Type::OPERATOR && next.sub == lexer::Type::OPERATOR_PAREN_L) {
 		return this->call(prev, on);
+	}
+
+	if (next.type == lexer::Type::OPERATOR) {
+		if (this->startOperators.find(next.sub) != this->startOperators.end()) {
+			return this->math(prev);
+		}
 	}
 
 	this->reverse();
@@ -127,17 +168,78 @@ Instruction Parser::symbol(lexer::Token tok) {
 		case lexer::Type::KEYWORD: return this->keyword(tok); break;
 		case lexer::Type::NUMBER: return this->number(tok); break;
 		case lexer::Type::NAME: return this->name(tok); break;
-		default: std::cout << "Unknown symbol\n"; tok.print(); break;
+
+		case lexer::Type::T_EOL:
+		case lexer::Type::T_EOF:
+			return this->ignore();
+			break;
+
+		// Just a bit of silencing
+		default: break;
 	}
+
+	std::cout << "Unknown symbol: " << tok.print() << "\n";
+	exit(1);
 }
 
-//uint Parser::infix_priority(std::string);
+int Parser::infix_priority(lexer::Type in) {
+	switch (in) {
+		// && ||
+		case lexer::Type::OPERATOR_DOUBLE_AND:
+		case lexer::Type::OPERATOR_DOUBLE_OR:
+			return 30;
+			break;
+
+		// Comparisions
+		case lexer::Type::OPERATOR_EQEQ:
+		case lexer::Type::OPERATOR_NOT_EQ:
+		case lexer::Type::OPERATOR_LT:
+		case lexer::Type::OPERATOR_LTEQ:
+		case lexer::Type::OPERATOR_GT:
+		case lexer::Type::OPERATOR_GTEQ:
+			return 40;
+			break;
+
+		case lexer::Type::OPERATOR_PLUS:
+		case lexer::Type::OPERATOR_MINUS:
+			return 50;
+			break;
+
+		case lexer::Type::OPERATOR_MUL:
+		case lexer::Type::OPERATOR_DIV:
+			return 60;
+			break;
+
+		case lexer::Type::OPERATOR_2DOT:
+		case lexer::Type::OPERATOR_3DOT:
+			return 70;
+			break;
+
+		case lexer::Type::OPERATOR_DOT:
+		case lexer::Type::OPERATOR_PAREN_L:
+		case lexer::Type::OPERATOR_EQ:
+		case lexer::Type::OPERATOR_PLUS_PLUS:
+		case lexer::Type::OPERATOR_MINUS_MINUS:
+			return 80;
+			break;
+
+		default:
+			return 0;
+			break;
+	}
+
+	return 0;
+}
 
 Instruction Parser::keyword(lexer::Token tok) {
 	switch (tok.sub) {
 		case lexer::Type::KEYWORD_VAR: return this->keyword_var(tok); break;
-		default: std::cout << "Unknown keyword\n"; tok.print(); break;
+		default: break;
 	}
+
+	std::cout << "Unknown keyword\n";
+	tok.print();
+	exit(1);
 }
 
 Instruction Parser::keyword_var(lexer::Token tok) {
@@ -174,16 +276,63 @@ Instruction Parser::number(lexer::Token tok) {
 }
 
 //Instruction Parser::oper(lexer::Token);
-//Instruction Parser::ignore(lexer::Token);
+
+Instruction Parser::ignore() {
+	Instruction res(Ins::IGNORE);
+	return res;
+}
+
 //Instruction Parser::bl(lexer::Token);
-//Instruction Parser::math(Instruction);
+
+Instruction Parser::math(Instruction prev) {
+
+	// Get the current token
+	lexer::Token current = this->get_token();
+
+	// Create a new instruction
+	Instruction math(Ins::MATH);
+
+	// Set the mathematical operator, eg + or -
+	math.type = current.sub;
+
+	if (prev.instruction == Ins::LITERAL || prev.instruction == Ins::NAME) {
+		math.left = std::vector<Instruction> { prev };
+		math.right = std::vector<Instruction> { this->symbol_next() };
+
+		// Verify that the ordering (infix_priority()) is correct
+		// Left is either a LITERAL or NAME, and right is a (new) MATH
+		if (math.right[0].instruction == Ins::MATH) {
+
+			// The ordering is wrong, and we need to correct this
+			// [a, *, [b, +, c]] -> [[a, *, b], +, c]
+			// This part is a little bit well, confusing and tight. But hey, it is a side-project after all.
+			if (Parser::infix_priority(math.type) > Parser::infix_priority(math.right[0].type)) {
+
+				Instruction right = math.right[0];
+				Instruction res(Ins::MATH);
+				Instruction left(Ins::MATH);
+
+				left.type = math.type;
+				left.left = math.left;
+				left.right = right.left;
+				
+				res.left = std::vector<Instruction> { left };
+				
+				res.type = right.type;
+				res.right = right.right;
+
+				return res;
+			}
+		}
+	}
+
+	return math;
+}
 
 Instruction Parser::push_class(Instruction prev) {
 	Instruction ins(Ins::PUSH_CLASS);
 	ins.left = std::vector<Instruction>{ prev };
 	ins.right = std::vector<Instruction>{ this->symbol_next() };
-
-	ins.print();
 
 	return this->lookahead(ins, ON::PUSH_CLASS);
 }

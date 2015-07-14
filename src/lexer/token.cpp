@@ -44,10 +44,7 @@ Token Token::KEYWORD(std::string val) {
 	Token tok;
 	tok.type = Type::KEYWORD;
 	tok.value = val;
-
-	if (val == "var") {
-		tok.sub = Type::KEYWORD_VAR;
-	}
+	tok.sub = Token::Trans(val);
 
 	return tok;
 }
@@ -56,20 +53,7 @@ Token Token::OPERATOR(std::string val) {
 	Token tok;
 	tok.type = Type::OPERATOR;
 	tok.value = val;
-
-	if (val == "=") {
-		tok.sub = Type::OPERATOR_EQ;
-	} else if (val == ".") {
-		tok.sub = Type::OPERATOR_DOT;
-	} else if (val == "(") {
-		tok.sub = Type::OPERATOR_PAREN_L;
-	} else if (val == ")") {
-		tok.sub = Type::OPERATOR_PAREN_R;
-	} else if (val == ";") {
-		tok.sub = Type::OPERATOR_SEMICOLON;
-	} else if (val == ",") {
-		tok.sub = Type::OPERATOR_COLON;
-	}
+	tok.sub = Token::Trans(val);
 
 	return tok;
 }
@@ -88,21 +72,82 @@ Token Token::BOOL(std::string val) {
 	return tok;
 }
 
-void Token::print() {
-	std::string ty;
+namespace lexer {
+	std::unordered_map<std::string, Type> opTrans;
+	bool built_op_trans;
+}
 
-	switch (this->type) {
-		case Type::T_EOF: ty = "T_EOF"; break;
-		case Type::T_EOL: ty = "T_EOL"; break;
-		case Type::IGNORE: ty = "IGNORE"; break;
-		case Type::STRING: ty = "STRING"; break;
-		case Type::NUMBER: ty = "NUMBER"; break;
-		case Type::KEYWORD: ty = "KEYWORD"; break;
-		case Type::OPERATOR: ty = "OPERATOR"; break;
-		case Type::NAME: ty = "NAME"; break;
-		case Type::BOOL: ty = "BOOL"; break;
-		default: ty = "UNKNOWN"; break;
+std::string Token::print() {
+	// make sure that opTrans is built
+	Token::Trans("");
+
+	std::string res = "";
+
+	res += "T: " + Token::print(this->type) + ", ";
+	res += "S: " + Token::print(this->sub) + ", ";
+	res += "V: " + this->value;
+
+	return res;
+}
+
+std::string Token::print(Type in) {
+	for (const auto& kv : opTrans) {
+		if (kv.second == in) {
+			return kv.first;
+		}
 	}
 
-	std::cout << ty << ": " << this->value << "\n";
+	return "UNKNOWN";
+}
+
+Type Token::Trans(std::string from) {
+	if (!built_op_trans) {
+
+		opTrans["OPERATOR"] = Type::OPERATOR;
+		opTrans[","] = Type::OPERATOR_COMMA;
+		opTrans[":"] = Type::OPERATOR_COLON;
+		opTrans["::"] = Type::OPERATOR_DOUBLE_COLON;
+		opTrans[";"] = Type::OPERATOR_SEMICOLON;
+		opTrans["="] = Type::OPERATOR_EQ;
+		opTrans["=="] = Type::OPERATOR_EQEQ;
+		opTrans[">"] = Type::OPERATOR_GT;
+		opTrans[">="] = Type::OPERATOR_GTEQ;
+		opTrans["<"] = Type::OPERATOR_LT;
+		opTrans["<="] = Type::OPERATOR_LTEQ;
+		opTrans["&&"] = Type::OPERATOR_DOUBLE_AND;
+		opTrans["||"] = Type::OPERATOR_DOUBLE_OR;
+		opTrans["++"] = Type::OPERATOR_PLUS_PLUS;
+		opTrans["--"] = Type::OPERATOR_MINUS_MINUS;
+		opTrans["+"] = Type::OPERATOR_PLUS;
+		opTrans["-"] = Type::OPERATOR_MINUS;
+		opTrans["*"] = Type::OPERATOR_MUL;
+		opTrans["/"] = Type::OPERATOR_DIV;
+		opTrans["."] = Type::OPERATOR_DOT;
+		opTrans[".."] = Type::OPERATOR_2DOT;
+		opTrans["..."] = Type::OPERATOR_3DOT;
+		opTrans["("] = Type::OPERATOR_PAREN_L;
+		opTrans[")"] = Type::OPERATOR_PAREN_R;
+
+		opTrans["T_EOF"] = Type::T_EOF;
+		opTrans["T_EOL"] = Type::T_EOL;
+		opTrans["IGNORE"] = Type::IGNORE;
+		opTrans["STRING"] = Type::STRING;
+		opTrans["NUMBER"] = Type::NUMBER;
+		opTrans["NAME"] = Type::NAME;
+
+		opTrans["BOOL"] = Type::BOOL;
+		opTrans["true"] = Type::BOOL_TRUE;
+		opTrans["false"] = Type::BOOL_FALSE;
+
+		opTrans["KEYWORD"] = Type::KEYWORD;
+		opTrans["var"] = Type::KEYWORD_VAR;
+
+		built_op_trans = true;
+	}
+
+	if (opTrans.find(from) == opTrans.end()) {
+		return Type::IGNORE;	
+	}
+
+	return opTrans[from];
 }

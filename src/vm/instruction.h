@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include "value.h"
+#include "../lexer/token.h"
 
 enum class Ins {
 	// name, right
@@ -35,13 +36,18 @@ enum class Ins {
 class Instruction {
 	public:
 		Ins instruction;
+
 		std::string name;
 		Value value;
+		lexer::Type type;
+
 		std::vector<Instruction> left;
 		std::vector<Instruction> right;
 		std::vector<Instruction> center;
 
-		Instruction(Ins i) : instruction(i) {}
+		Instruction(Ins i) : instruction(i) {
+			type = lexer::Type::IGNORE;
+		}
 
 		void print(int ident = 0) {
 			std::string i = "UNKNOWN";
@@ -59,8 +65,16 @@ class Instruction {
 
 			std::cout << std::string(ident, '\t') << "{\n";
 			std::cout << std::string(ident + 1, '\t') << "instruction: " << i << "\n";
-			std::cout << std::string(ident + 1, '\t') << "name: " << this->name << "\n";
-			std::cout << std::string(ident + 1, '\t') << "value: "; this->value.print();
+
+			if (this->name != "") {
+				std::cout << std::string(ident + 1, '\t') << "name: " << this->name << "\n";
+			}
+
+			if (this->type != lexer::Type::IGNORE) {
+				std::cout << std::string(ident + 1, '\t') << "type: " << lexer::Token::print(this->type) << "\n";
+			}
+
+			std::cout << std::string(ident + 1, '\t') << "value: " << this->value.print() << "\n";
 
 			if (left.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "left: [\n";

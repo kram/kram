@@ -31,9 +31,10 @@ class Value {
 		static Value REFERENCE(Library*);
 		static Value NUL();
 
-		void print(void) {
-			std::string i = "UNKNOWN";
+		std::string print(void) {
+			std::string res = "";
 
+			std::string i = "UNKNOWN";
 			switch (this->type) {
 				case Type::NUL: i = "NUL"; break;
 				case Type::STRING: i = "STRING"; break;
@@ -41,17 +42,19 @@ class Value {
 				case Type::REFERENCE: i = "REFERENCE"; break;
 			}
 
-			std::cout << i << "<";
+			res += i + "<";
 
 			if (this->type == Type::STRING) {
-				std::cout << this->strval;
+				res += this->strval;
 			}
 
 			if (this->type == Type::NUMBER) {
-				std::cout << this->number;
+				res += std::to_string(this->number);
 			}
 
-			std::cout << ">\n";
+			res += ">";
+
+			return res;
 		};
 
 		std::string string() {
