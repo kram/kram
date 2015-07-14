@@ -3,8 +3,7 @@
 
 class IO: public Library {
 	static void println(Value val) {
-		std::cout << "PRINT!\n";
-		val.print();
+		std::cout << val.print() << "\n";
 	}
 
 	public:

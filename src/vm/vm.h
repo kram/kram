@@ -12,6 +12,8 @@ class VM {
 	std::unordered_map<std::string, Library> env;
 	std::vector<Library*> lib_stack;
 
+	std::unordered_map<std::string, Value> names;
+
 	Value run(Instruction);
 
 	Value assign(Instruction);

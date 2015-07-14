@@ -3,6 +3,8 @@
 #import <iostream>
 
 Value VM::assign(Instruction ins) {
+	this->names[ins.name] = this->run(ins.right[0]);
+
 	return Value::NUL();
 }
 
@@ -12,11 +14,37 @@ Value VM::literal(Instruction ins) {
 }
 
 Value VM::name(Instruction ins) {
-	return Value::STRING(ins.name);
+
+	// TODO
+	if (this->names.find(ins.name) == this->names.end()) {
+		return Value::STRING(ins.name);	
+	}
+
+	return this->names[ins.name];
 }
 
 Value VM::math(Instruction ins) {
-	return Value::NUL();
+
+	int res = 0;
+	int l = this->run(ins.left[0]).getNumber();
+	int r = this->run(ins.right[0]).getNumber();
+
+	switch (ins.type) {
+		case lexer::Type::OPERATOR_PLUS:
+			res = l + r;
+			break;
+		case lexer::Type::OPERATOR_MINUS:
+			res = l - r;
+			break;
+		case lexer::Type::OPERATOR_DIV:
+			res = l / r;
+			break;
+		case lexer::Type::OPERATOR_MUL:
+			res = l * r;
+			break;
+	}
+
+	return Value::NUMBER(res);
 }
 
 Value VM::if_case(Instruction ins) {
@@ -32,7 +60,7 @@ Value VM::push_class(Instruction ins) {
 	Value name = this->name(ins.left[0]);
 
 	// Add a pointer to the class to the back (aka top) of the stack
-	this->lib_stack.push_back(&this->env[name.string()]);
+	this->lib_stack.push_back(&this->env[name.getString()]);
 
 	// Run the right part
 	return this->block(ins.right);
@@ -50,7 +78,7 @@ Value VM::call(Instruction ins) {
 	Value params = this->run(ins.right[0]);
 
 	// Call the method
-	lib->call(name.string(), params);
+	lib->call(name.getString(), params);
 
 	// TODO: Return values
 	return Value::NUL();

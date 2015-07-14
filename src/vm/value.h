@@ -57,8 +57,12 @@ class Value {
 			return res;
 		};
 
-		std::string string() {
+		std::string getString() {
 			return this->strval;
+		}
+
+		int getNumber() {
+			return this->number;
 		}
 };
 

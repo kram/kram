@@ -14,12 +14,12 @@ int main() {
 	std::vector<Instruction> instructions = parser.run();
 
 
-	std::cout << "Printing ins:\n";
+	/*std::cout << "Printing ins:\n";
 
 	for (Instruction ins : instructions) {
 		ins.print();
 		std::cout << "--------\n";
-	}
+	}*/
 
 	VM vm;
 	vm.boot(instructions);

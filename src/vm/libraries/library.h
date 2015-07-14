@@ -13,7 +13,6 @@ class Library {
 		std::unordered_map<std::string, method> methods;
 
 		void add_method(std::string name, method m) {
-			std::cout << "add_method(): " << name << "\n";
 			this->methods[name] = m;
 		}
 
