@@ -37,11 +37,18 @@ class Parser {
 	Instruction keyword(lexer::Token);
 	//Instruction keyword_if(lexer::Token);
 	Instruction name(lexer::Token);
+	
 	Instruction number(lexer::Token);
+	Instruction number_init(std::string);
+	Instruction number_init();
+
 	//Instruction oper(lexer::Token);
 	Instruction ignore();
 	//Instruction bl(lexer::Token);
+	
 	Instruction assign(Instruction);
+	Instruction assign_with_type(Instruction);
+
 	Instruction math(Instruction);
 	Instruction push_class(Instruction);
 	Instruction call(Instruction, ON);

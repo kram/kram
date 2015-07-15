@@ -118,11 +118,18 @@ Instruction Parser::lookahead(Instruction prev, ON on) {
 		return this->call(prev, on);
 	}
 
-	// Call
-	// IO::Println("123")
-	//           ^
+	// Assignment
+	// num := 100
+	//     ^^
 	if (next.type == lexer::Type::OPERATOR && next.sub == lexer::Type::OPERATOR_COLON_EQ) {
 		return this->assign(prev);
+	}
+
+	// Create new variable of type
+	// num : Number
+	//           ^
+	if (next.type == lexer::Type::OPERATOR && next.sub == lexer::Type::OPERATOR_COLON) {
+		return this->assign_with_type(prev);
 	}
 
 	if (next.type == lexer::Type::OPERATOR) {
@@ -148,7 +155,7 @@ lexer::Token Parser::get_and_expect_token(lexer::Token expect) {
 		expect.print();
 		std::cout << "Got:\n";
 		tok.print();
-		exit(1);
+		exit(0);
 	}
 
 	return tok;
@@ -186,7 +193,7 @@ Instruction Parser::symbol(lexer::Token tok) {
 	}
 
 	std::cout << "Unknown symbol: " << tok.print() << "\n";
-	exit(1);
+	exit(0);
 }
 
 int Parser::infix_priority(lexer::Type in) {
@@ -246,7 +253,7 @@ Instruction Parser::keyword(lexer::Token tok) {
 
 	std::cout << "Unknown keyword\n";
 	tok.print();
-	exit(1);
+	exit(0);
 }
 
 Instruction Parser::assign(Instruction prev) {
@@ -254,12 +261,44 @@ Instruction Parser::assign(Instruction prev) {
 
 	if (prev.instruction != Ins::NAME) {
 		std::cout << ":= expects previous instruction to be of type NAME";
-		exit(1);
+		exit(0);
 	}
 
 	// Get name from previous OP
 	ins.name = prev.name;
 	ins.right = this->read_until_eol();
+
+	return ins;
+}
+
+Instruction Parser::assign_with_type(Instruction prev) {
+	Instruction ins(Ins::ASSIGN);
+
+	if (prev.instruction != Ins::NAME) {
+		std::cout << ": expects previous instruction to be of type NAME";
+		exit(0);
+	}
+
+	// Get name from previous OP
+	ins.name = prev.name;
+
+	// Read the rest of the row
+	std::vector<Instruction> row = this->read_until_eol();
+
+	// Expect exactly one name
+	if (row.size() != 1 || row[0].instruction != Ins::NAME) {
+		std::cout << ": needs to be followed by exactly one NAME (aka the type)";
+		exit(0);
+	}
+
+	std::string type = row[0].name;
+
+	if (type == "Number") {
+		ins.right.push_back(this->number_init());
+	} else {
+		std::cout << "Does not know how to init type " << type << " after :";
+		exit(0);
+	}
 
 	return ins;
 }
@@ -274,10 +313,20 @@ Instruction Parser::name(lexer::Token tok) {
 }
 
 Instruction Parser::number(lexer::Token tok) {
-	Instruction ins(Ins::LITERAL);
-	ins.value = Value::NUMBER(std::stoi(tok.value));
-
+	Instruction ins = this->number_init(tok.value);
 	return this->lookahead(ins, ON::DEFAULT);
+}
+
+Instruction Parser::number_init(std::string val) {
+	Instruction ins(Ins::LITERAL);
+	ins.value = Value::NUMBER(std::stoi(val));
+	return ins;
+}
+
+Instruction Parser::number_init() {
+	Instruction ins(Ins::LITERAL);
+	ins.value = Value::NUMBER(0);
+	return ins;
 }
 
 //Instruction Parser::oper(lexer::Token);
