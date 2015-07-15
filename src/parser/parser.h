@@ -35,13 +35,13 @@ class Parser {
 	Instruction symbol_next();
 	Instruction symbol(lexer::Token);
 	Instruction keyword(lexer::Token);
-	Instruction keyword_var(lexer::Token);
 	//Instruction keyword_if(lexer::Token);
 	Instruction name(lexer::Token);
 	Instruction number(lexer::Token);
 	//Instruction oper(lexer::Token);
 	Instruction ignore();
 	//Instruction bl(lexer::Token);
+	Instruction assign(Instruction);
 	Instruction math(Instruction);
 	Instruction push_class(Instruction);
 	Instruction call(Instruction, ON);

@@ -118,6 +118,13 @@ Instruction Parser::lookahead(Instruction prev, ON on) {
 		return this->call(prev, on);
 	}
 
+	// Call
+	// IO::Println("123")
+	//           ^
+	if (next.type == lexer::Type::OPERATOR && next.sub == lexer::Type::OPERATOR_COLON_EQ) {
+		return this->assign(prev);
+	}
+
 	if (next.type == lexer::Type::OPERATOR) {
 		if (this->startOperators.find(next.sub) != this->startOperators.end()) {
 			return this->math(prev);
@@ -233,7 +240,7 @@ int Parser::infix_priority(lexer::Type in) {
 
 Instruction Parser::keyword(lexer::Token tok) {
 	switch (tok.sub) {
-		case lexer::Type::KEYWORD_VAR: return this->keyword_var(tok); break;
+		// case lexer::Type::KEYWORD_VAR: return this->keyword_var(tok); break;
 		default: break;
 	}
 
@@ -242,18 +249,16 @@ Instruction Parser::keyword(lexer::Token tok) {
 	exit(1);
 }
 
-Instruction Parser::keyword_var(lexer::Token tok) {
+Instruction Parser::assign(Instruction prev) {
 	Instruction ins(Ins::ASSIGN);
 
-	this->advance();
+	if (prev.instruction != Ins::NAME) {
+		std::cout << ":= expects previous instruction to be of type NAME";
+		exit(1);
+	}
 
-	// Get name
-	ins.name = this->get_and_expect_token(lexer::Token::NAME("")).value;
-
-	// Expect an equal-sign
-	this->advance();
-	this->get_and_expect_token(lexer::Token::OPERATOR("="));
-
+	// Get name from previous OP
+	ins.name = prev.name;
 	ins.right = this->read_until_eol();
 
 	return ins;

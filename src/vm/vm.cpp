@@ -42,6 +42,9 @@ Value VM::math(Instruction ins) {
 		case lexer::Type::OPERATOR_MUL:
 			res = l * r;
 			break;
+
+		// Ssssh!
+		default: break;
 	}
 
 	return Value::NUMBER(res);

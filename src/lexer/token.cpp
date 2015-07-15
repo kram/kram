@@ -105,6 +105,7 @@ Type Token::Trans(std::string from) {
 
 		opTrans["OPERATOR"] = Type::OPERATOR;
 		opTrans[","] = Type::OPERATOR_COMMA;
+		opTrans[":="] = Type::OPERATOR_COLON_EQ;
 		opTrans[":"] = Type::OPERATOR_COLON;
 		opTrans["::"] = Type::OPERATOR_DOUBLE_COLON;
 		opTrans[";"] = Type::OPERATOR_SEMICOLON;
@@ -140,7 +141,7 @@ Type Token::Trans(std::string from) {
 		opTrans["false"] = Type::BOOL_FALSE;
 
 		opTrans["KEYWORD"] = Type::KEYWORD;
-		opTrans["var"] = Type::KEYWORD_VAR;
+		// opTrans["var"] = Type::KEYWORD_VAR;
 
 		built_op_trans = true;
 	}
