@@ -68,7 +68,7 @@ Token Lexer::next() {
 	}
 
 	// Ignore Whitespace
-	if (this->current == ' ') {
+	if (iswspace(this->current)) {
 		return Token::IGNORE();
 	}
 

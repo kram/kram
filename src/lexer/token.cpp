@@ -128,6 +128,8 @@ Type Token::Trans(std::string from) {
 		opTrans["..."] = Type::OPERATOR_3DOT;
 		opTrans["("] = Type::OPERATOR_PAREN_L;
 		opTrans[")"] = Type::OPERATOR_PAREN_R;
+		opTrans["{"] = Type::OPERATOR_CURLYPAREN_L;
+		opTrans["}"] = Type::OPERATOR_CURLYPAREN_R;
 
 		opTrans["T_EOF"] = Type::T_EOF;
 		opTrans["T_EOL"] = Type::T_EOL;
@@ -141,7 +143,7 @@ Type Token::Trans(std::string from) {
 		opTrans["false"] = Type::BOOL_FALSE;
 
 		opTrans["KEYWORD"] = Type::KEYWORD;
-		// opTrans["var"] = Type::KEYWORD_VAR;
+		opTrans["class"] = Type::KEYWORD_CLASS;
 
 		built_op_trans = true;
 	}

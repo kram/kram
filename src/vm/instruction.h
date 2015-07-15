@@ -30,7 +30,10 @@ enum class Ins {
 	PUSH_CLASS,
 
 	// left (the method name), right (the parameters)
-	CALL
+	CALL,
+
+	// name, right
+	DEFINE_CLASS,
 };
 
 class Instruction {
@@ -61,6 +64,7 @@ class Instruction {
 				case Ins::IGNORE: i = "IGNORE"; break;
 				case Ins::PUSH_CLASS: i = "PUSH_CLASS"; break;
 				case Ins::CALL: i = "CALL"; break;
+				case Ins::DEFINE_CLASS: i = "DEFINE_CLASS"; break;
 			}
 
 			std::cout << std::string(ident, '\t') << "{\n";
@@ -86,7 +90,7 @@ class Instruction {
 				std::cout << std::string(ident + 1, '\t') << "]\n";
 			}
 
-			/*if (center.size() > 0) {
+			if (center.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "center: [\n";
 
 				for (Instruction i : center) {
@@ -94,7 +98,7 @@ class Instruction {
 				}
 
 				std::cout << std::string(ident + 1, '\t') << "]\n";
-			}*/
+			}
 
 			if (right.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "right: [\n";

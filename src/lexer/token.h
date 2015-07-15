@@ -20,7 +20,7 @@ namespace lexer {
 		BOOL_FALSE,
 
 		KEYWORD,
-		// KEYWORD_VAR,
+		KEYWORD_CLASS,
 
 		OPERATOR,
 	
@@ -48,6 +48,8 @@ namespace lexer {
 		OPERATOR_3DOT,          // ...
 		OPERATOR_PAREN_L,       // (
 		OPERATOR_PAREN_R,       // )
+		OPERATOR_CURLYPAREN_L,  // {
+		OPERATOR_CURLYPAREN_R,  // }
 		OPERATOR_COLON_EQ,      // :=
 	};
 
