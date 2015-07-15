@@ -34,9 +34,12 @@ class Parser {
 	void reverse();
 	Instruction symbol_next();
 	Instruction symbol(lexer::Token);
+
 	Instruction keyword(lexer::Token);
 	Instruction keyword_class();
-	//Instruction keyword_if(lexer::Token);
+	Instruction keyword_fn();
+	//Instruction keyword_if();
+
 	Instruction name(lexer::Token);
 	
 	Instruction number(lexer::Token);

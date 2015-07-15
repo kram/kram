@@ -247,8 +247,8 @@ int Parser::infix_priority(lexer::Type in) {
 
 Instruction Parser::keyword(lexer::Token tok) {
 	switch (tok.sub) {
-		// case lexer::Type::KEYWORD_VAR: return this->keyword_var(tok); break;
 		case lexer::Type::KEYWORD_CLASS: return this->keyword_class(); break;
+		case lexer::Type::KEYWORD_FN: return this->keyword_fn(); break;
 		default: break;
 	}
 
@@ -263,6 +263,26 @@ Instruction Parser::keyword_class() {
 
 	lexer::Token n = this->get_and_expect_token(lexer::Token::NAME(""));
 	ins.name = n.value;
+
+	this->advance();
+	this->get_and_expect_token(lexer::Token::OPERATOR("{"));
+
+	this->advance();
+	ins.right = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR("}")
+	});
+
+	return ins;
+}
+
+Instruction Parser::keyword_fn() {
+	Instruction ins(Ins::FUNCTION);
+
+	this->advance();
+	this->get_and_expect_token(lexer::Token::OPERATOR("("));
+	
+	this->advance();
+	this->get_and_expect_token(lexer::Token::OPERATOR(")"));
 
 	this->advance();
 	this->get_and_expect_token(lexer::Token::OPERATOR("{"));

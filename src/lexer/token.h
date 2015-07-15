@@ -21,6 +21,7 @@ namespace lexer {
 
 		KEYWORD,
 		KEYWORD_CLASS,
+		KEYWORD_FN,
 
 		OPERATOR,
 	

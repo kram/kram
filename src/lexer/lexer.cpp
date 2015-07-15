@@ -8,14 +8,8 @@ using namespace lexer;
 
 Lexer::Lexer() {
 	// Initialize all  keywords
-	keywords["if"] = true;
-	keywords["else"] = true;
-	keywords["var"] = true;
 	keywords["class"] = true;
-	keywords["static"] = true;
-	keywords["return"] = true;
-	keywords["for"] = true;
-	keywords["in"] = true;
+	keywords["fn"] = true;
 }
 
 std::vector<Token> Lexer::parse_file() {
