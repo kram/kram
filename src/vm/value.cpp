@@ -28,9 +28,7 @@ Value Value::NUL() {
 	return vl;
 }
 
-Value Value::REFERENCE(Library* lib) {
-	Value vl(Type::REFERENCE);
-	vl.ref = lib;
-
-	return vl;
+void Value::REFERENCE(std::string name) {
+	this->type = Type::REFERENCE;
+	this->strval = name;
 }

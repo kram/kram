@@ -3,9 +3,7 @@
 
 #include <string>
 #include <iostream>
-
-// Fake library
-class Library;
+#include <unordered_map>
 
 enum class Type {
 	NUL,
@@ -15,21 +13,27 @@ enum class Type {
 };
 
 class Value {
-	Type type;
 	
 	// TODO: Union(-ify) this
 	std::string strval;
 	int number;
-	Library* ref;
+
+	// Library* ref;
+	typedef void (*method)(Value);
+
+	protected:
+		std::unordered_map<std::string, method> methods;
 
 	public:
+		Type type;
+
 		Value();
 		Value(Type);
 
 		static Value NUMBER(int);
 		static Value STRING(std::string);
-		static Value REFERENCE(Library*);
 		static Value NUL();
+		void REFERENCE(std::string);
 
 		std::string print(void) {
 			std::string res = "";
@@ -52,6 +56,11 @@ class Value {
 				res += std::to_string(this->number);
 			}
 
+			if (this->type == Type::REFERENCE) {
+				res += this->strval;
+				//res += this->ref->print();
+			}
+
 			res += ">";
 
 			return res;
@@ -63,6 +72,43 @@ class Value {
 
 		int getNumber() {
 			return this->number;
+		}
+
+		/*Library* getReference() {
+			return this->ref;
+		}*/
+
+		// Overwritten by references
+		void init(void) {}
+
+		Value execMethod(std::string name, Value val) {
+
+			if (this->type != Type::REFERENCE) {
+				std::cout << "Is not of type REFERENCE\n";
+				exit(0);
+			}
+
+			std::cout << "Lib::call() " << name << "\n";
+
+			if (this->methods.find(name) == this->methods.end()) {
+				std::cout << "UNKNOWN METHOD: " << name << "\n";
+				exit(0);
+			}
+
+			std::cout << "Pre\n";
+
+			method m = this->methods[name];
+
+			std::cout << "Post\n";
+
+			m(val);
+
+			return Value::NUL();
+		}
+
+		void add_method(std::string name, method m) {
+			std::cout << "add_method() " << name << "\n";
+			this->methods[name] = m;
 		}
 };
 

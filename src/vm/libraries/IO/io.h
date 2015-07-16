@@ -1,7 +1,8 @@
 #include <iostream>
-#include "../library.h"
+#include "../../value.h"
 
-class IO: public Library {
+class IO: public Value {
+
 	static void println(Value val) {
 		std::cout << val.print() << "\n";
 	}
