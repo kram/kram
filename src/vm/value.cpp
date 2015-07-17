@@ -8,27 +8,35 @@ Value::Value(Type t) {
 	type = t;
 }
 
-Value Value::NUMBER(int val) {
-	Value vl(Type::NUMBER);
-	vl.number = val;
-
-	return vl;
+Value::Value(Type t, int val) {
+	type = t;
+	number = val;
 }
 
-Value Value::STRING(std::string val) {
-	Value vl(Type::STRING);
-	vl.strval = val;
-
-	return vl;
+Value::Value(Type t, std::string val) {
+	type = t;
+	strval = val;
 }
 
-Value Value::NUL() {
-	Value vl(Type::NUL);
+Value* Value::execMethod(std::string name, Value* val) {
 
-	return vl;
+	if (this->type != Type::REFERENCE) {
+		std::cout << "Is not of type REFERENCE\n";
+		exit(0);
+	}
+
+	if (this->methods.find(name) == this->methods.end()) {
+		std::cout << "UNKNOWN METHOD: " << name << "\n";
+		exit(0);
+	}
+
+	method m = this->methods[name];
+
+	m(this, val);
+
+	return new Value();
 }
 
-void Value::REFERENCE(std::string name) {
-	this->type = Type::REFERENCE;
-	this->strval = name;
+void Value::add_method(std::string name, method m) {
+	this->methods[name] = m;
 }

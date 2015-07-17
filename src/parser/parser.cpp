@@ -358,13 +358,13 @@ Instruction Parser::number(lexer::Token tok) {
 
 Instruction Parser::number_init(std::string val) {
 	Instruction ins(Ins::LITERAL);
-	ins.value = Value::NUMBER(std::stoi(val));
+	ins.value = Value(Type::NUMBER, std::stoi(val));
 	return ins;
 }
 
 Instruction Parser::number_init() {
 	Instruction ins(Ins::LITERAL);
-	ins.value = Value::NUMBER(0);
+	ins.value = Value(Type::NUMBER, 0);
 	return ins;
 }
 

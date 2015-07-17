@@ -4,15 +4,14 @@
 
 class Function: public Value {
 
-	static void exec(Value val) {
-		std::cout << "Executing function\n";
-		//Function* fn = (Function*) self;
-		//Function* fn = static_cast<Function*>(self);
-		// self->vm->run(fn->content);
+	static void exec(Value* self, Value* val) {
+		Function* fn = static_cast<Function*>(self);
+		fn->vm->run(fn->content);
 	}
 
 	public:
 		std::vector<Instruction> content;
+		VM* vm;
 
 		void init() {
 			this->add_method("exec", this->exec);

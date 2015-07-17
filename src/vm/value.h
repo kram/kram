@@ -5,6 +5,8 @@
 #include <iostream>
 #include <unordered_map>
 
+class VM;
+
 enum class Type {
 	NUL,
 	STRING,
@@ -18,8 +20,7 @@ class Value {
 	std::string strval;
 	int number;
 
-	// Library* ref;
-	typedef void (*method)(Value);
+	typedef void (*method)(Value*, Value*);
 
 	protected:
 		std::unordered_map<std::string, method> methods;
@@ -29,11 +30,8 @@ class Value {
 
 		Value();
 		Value(Type);
-
-		static Value NUMBER(int);
-		static Value STRING(std::string);
-		static Value NUL();
-		void REFERENCE(std::string);
+		Value(Type, std::string);
+		Value(Type, int);
 
 		std::string print(void) {
 			std::string res = "";
@@ -74,42 +72,12 @@ class Value {
 			return this->number;
 		}
 
-		/*Library* getReference() {
-			return this->ref;
-		}*/
-
 		// Overwritten by references
 		void init(void) {}
 
-		Value execMethod(std::string name, Value val) {
-
-			if (this->type != Type::REFERENCE) {
-				std::cout << "Is not of type REFERENCE\n";
-				exit(0);
-			}
-
-			std::cout << "Lib::call() " << name << "\n";
-
-			if (this->methods.find(name) == this->methods.end()) {
-				std::cout << "UNKNOWN METHOD: " << name << "\n";
-				exit(0);
-			}
-
-			std::cout << "Pre\n";
-
-			method m = this->methods[name];
-
-			std::cout << "Post\n";
-
-			m(val);
-
-			return Value::NUL();
-		}
-
-		void add_method(std::string name, method m) {
-			std::cout << "add_method() " << name << "\n";
-			this->methods[name] = m;
-		}
+		// #justlibrarythings
+		Value* execMethod(std::string name, Value* val);
+		void add_method(std::string name, method m);
 };
 
 #endif

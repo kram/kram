@@ -1,3 +1,5 @@
-var test = 10 / 2 + 20 * 40
+test := fn() {
+	IO::Println(100 + 200)
+}
 
-IO::Println(test)
+test()

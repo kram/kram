@@ -3,8 +3,8 @@
 
 class IO: public Value {
 
-	static void println(Value val) {
-		std::cout << val.print() << "\n";
+	static void println(Value* self, Value* val) {
+		std::cout << val->print() << "\n";
 	}
 
 	public:
