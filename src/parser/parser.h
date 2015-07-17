@@ -26,7 +26,10 @@ class Parser {
 
 	std::vector<Instruction> read_file();
 	std::vector<Instruction> read_until_eol();
+	
 	std::vector<Instruction> read_until(std::vector<lexer::Token>);
+	std::vector<Instruction> read_until(std::vector<lexer::Token>, std::vector<Instruction>);
+
 	Instruction lookahead(Instruction, ON);
 	lexer::Token get_token();
 	lexer::Token get_and_expect_token(lexer::Token);

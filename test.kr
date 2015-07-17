@@ -1,5 +1,13 @@
-test := fn() {
-	IO::Println(100 + 200)
+plusOne := fn(in) {
+	in + 1
 }
 
-test()
+myNumber := 100
+IO::Println(myNumber)
+myNumber := plusOne(myNumber)
+IO::Println(myNumber)
+myNumber := plusOne(myNumber)
+IO::Println(myNumber)
+myNumber := plusOne(myNumber)
+IO::Println(myNumber)
+myNumber := plusOne(myNumber)

@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#include <vector>
 
 class VM;
 
@@ -20,7 +21,7 @@ class Value {
 	std::string strval;
 	int number;
 
-	typedef void (*method)(Value*, Value*);
+	typedef Value* (*method)(Value*, std::vector<Value*>);
 
 	protected:
 		std::unordered_map<std::string, method> methods;
@@ -76,8 +77,8 @@ class Value {
 		void init(void) {}
 
 		// #justlibrarythings
-		Value* execMethod(std::string name, Value* val);
-		void add_method(std::string name, method m);
+		Value* execMethod(std::string, std::vector<Value*>);
+		void add_method(std::string, method);
 };
 
 #endif

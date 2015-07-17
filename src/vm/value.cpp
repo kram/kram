@@ -18,7 +18,7 @@ Value::Value(Type t, std::string val) {
 	strval = val;
 }
 
-Value* Value::execMethod(std::string name, Value* val) {
+Value* Value::execMethod(std::string name, std::vector<Value*> val) {
 
 	if (this->type != Type::REFERENCE) {
 		std::cout << "Is not of type REFERENCE\n";
@@ -32,9 +32,7 @@ Value* Value::execMethod(std::string name, Value* val) {
 
 	method m = this->methods[name];
 
-	m(this, val);
-
-	return new Value();
+	return m(this, val);
 }
 
 void Value::add_method(std::string name, method m) {

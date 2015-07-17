@@ -3,8 +3,9 @@
 
 class IO: public Value {
 
-	static void println(Value* self, Value* val) {
-		std::cout << val->print() << "\n";
+	static Value* println(Value* self, std::vector<Value*> val) {
+		std::cout << val[0]->print() << "\n";
+		return new Value();
 	}
 
 	public:

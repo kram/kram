@@ -29,6 +29,7 @@ class VM {
 		// Adressable from libraries and what not
 		Value* run(Instruction);
 		Value* run(std::vector<Instruction>);
+		void set_name(std::string, Value*);
 };
 
 #endif

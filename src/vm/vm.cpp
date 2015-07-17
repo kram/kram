@@ -6,6 +6,10 @@
 #import "libraries/user/function.h"
 #import "libraries/IO/io.h"
 
+void VM::set_name(std::string name, Value* val) {
+	this->names[name] = val;
+}
+
 Value* VM::assign(Instruction ins) {
 	this->names[ins.name] = this->run(ins.right[0]);
 
@@ -83,7 +87,10 @@ Value* VM::function(Instruction ins) {
 	Function* fn = new Function();
 	fn->type = Type::REFERENCE;
 	fn->init();
+	
+	fn->set_parameters(ins.left);
 	fn->set_content(ins.right);
+
 	fn->vm = this;
 
 	return fn;
@@ -99,14 +106,10 @@ Value* VM::call(Instruction ins) {
 	}
 
 	if (ins.right.size() == 1) {
-		fun->execMethod("exec", this->run(ins.right[0]));
-	} else {
-		fun->execMethod("exec", new Value());
+		return fun->execMethod("exec", std::vector<Value*>{ this->run(ins.right[0]) });
 	}
 
-	// TODO: Return values
-
-	return new Value(Type::NUL);
+	return fun->execMethod("exec", std::vector<Value*>{ new Value() });
 }
 
 Value* VM::call_library(Instruction ins) {
@@ -122,11 +125,7 @@ Value* VM::call_library(Instruction ins) {
 	Value* params = this->run(ins.right[0]);
 
 	// Call the method
-	lib->execMethod(name->getString(), params);
-
-	// TODO: Return values
-
-	return new Value(Type::NUL);
+	return lib->execMethod(name->getString(), std::vector<Value*>{ params });
 }
 
 Value* VM::run(Instruction ins) {
@@ -143,19 +142,18 @@ Value* VM::run(Instruction ins) {
 		default: std::cout << "Unknown instruction";        break;
 	}
 
-	// TODO: Return values
-
 	return new Value(Type::NUL);
 }
 
 Value* VM::run(std::vector<Instruction> ins) {
+
+	Value* last;
+
 	for (Instruction i : ins) {
-		this->run(i);
+		last = this->run(i);
 	}
 
-	// TODO: Return values
-
-	return new Value(Type::NUL);
+	return last;
 }
 
 void VM::boot(std::vector<Instruction> ins) {

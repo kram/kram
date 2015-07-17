@@ -60,10 +60,14 @@ std::vector<Instruction> Parser::read_until_eol() {
 std::vector<Instruction> Parser::read_until(std::vector<lexer::Token> until) {
 	std::vector<Instruction> res;
 
+	return this->read_until(until, res);
+}
+
+std::vector<Instruction> Parser::read_until(std::vector<lexer::Token> until, std::vector<Instruction> res) {
 	// Everything can end at a EOF
 	until.push_back(lexer::Token::T_EOF());
 
-	bool first = false;
+	bool first = true;
 
 	while (true) {
 
@@ -88,8 +92,11 @@ std::vector<Instruction> Parser::read_until(std::vector<lexer::Token> until) {
 			}
 		}
 
-		// We may continue
-		res.push_back(this->symbol(next));
+		Instruction sym = this->symbol(next);
+
+		if (sym.instruction != Ins::IGNORE) {
+			res.push_back(sym);	
+		}
 
 		first = false;
 	}
@@ -151,10 +158,8 @@ lexer::Token Parser::get_and_expect_token(lexer::Token expect) {
 	lexer::Token tok = this->get_token();
 
 	if (expect.type != tok.type) {
-		std::cout << "Expected:\n";
-		expect.print();
-		std::cout << "Got:\n";
-		tok.print();
+		std::cout << "Expected: " << expect.print() << "\n";
+		std::cout << "Got: " << tok.print() << "\n";
 		exit(0);
 	}
 
@@ -280,9 +285,14 @@ Instruction Parser::keyword_fn() {
 
 	this->advance();
 	this->get_and_expect_token(lexer::Token::OPERATOR("("));
-	
-	this->advance();
-	this->get_and_expect_token(lexer::Token::OPERATOR(")"));
+
+	// All parameters
+	do {
+		ins.left = this->read_until(std::vector<lexer::Token>{
+			lexer::Token::OPERATOR(")"),
+			lexer::Token::OPERATOR(","),
+		}, ins.left);
+	} while (this->get_token().sub == lexer::Type::OPERATOR_COMMA);
 
 	this->advance();
 	this->get_and_expect_token(lexer::Token::OPERATOR("{"));
