@@ -2,8 +2,12 @@
 #include <iostream>
 
 Parser::Parser(std::vector<lexer::Token*> tokens) {
+
+	// Initialize variables
 	this->tokens = tokens;
 	this->lenght = tokens.size();
+	this->index = 0;
+	this->has_advanced = false;
 
 	// Hashmap of comparisions
 	this->comparisions[lexer::Type::OPERATOR_EQEQ] = true;
