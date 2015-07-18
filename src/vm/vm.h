@@ -1,11 +1,11 @@
 #ifndef VM_H
 #define VM_H
 
-#import <unordered_map>
-#import <vector>
+#include <unordered_map>
+#include <vector>
 
-#import "value.h"
-#import "Instruction.h"
+#include "value.h"
+#include "Instruction.h"
 
 class VM {
 

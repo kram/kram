@@ -1,10 +1,10 @@
-#import "vm.h"
+#include "vm.h"
 
-#import <iostream>
+#include <iostream>
 
-//#import "libraries/user/class.h"
-#import "libraries/user/function.h"
-#import "libraries/IO/io.h"
+//#include "libraries/user/class.h"
+#include "libraries/user/function.h"
+#include "libraries/IO/io.h"
 
 void VM::set_name(std::string name, Value* val) {
 	this->names[name] = val;
