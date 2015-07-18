@@ -8,6 +8,17 @@ Token::Token() {
 	sub = Type::IGNORE;
 }
 
+Token::Token(Type t) {
+	type = t;
+	sub = Type::IGNORE;
+}
+
+Token::Token(Type t, std::string val) {
+	type = t;
+	sub = Token::Trans(val);
+	value = val;
+}
+
 Token Token::T_EOF() {
 	Token tok;
 	tok.type = Type::T_EOF;

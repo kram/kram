@@ -12,8 +12,8 @@ Lexer::Lexer() {
 	keywords["fn"] = true;
 }
 
-std::vector<Token> Lexer::parse_file(std::string filename) {
-	std::vector<Token> result;
+std::vector<Token*> Lexer::parse_file(std::string filename) {
+	std::vector<Token*> result;
 
 	std::ifstream file(filename);
 
@@ -27,29 +27,29 @@ std::vector<Token> Lexer::parse_file(std::string filename) {
     	this->index = 0;
 
     	while (true) {
-        	Token tok = this->next();
+        	Token* tok = this->next();
 
         	this->index++;
 
-        	if (tok.type == Type::IGNORE) {
+        	if (tok->type == Type::IGNORE) {
         		continue;
         	}
 
         	result.push_back(tok);
 
-        	if (tok.type == Type::T_EOF || tok.type == Type::T_EOL) {
+        	if (tok->type == Type::T_EOF || tok->type == Type::T_EOL) {
         		break;
         	}
         }
     }
 
     // Indicate end of file
-    result.push_back(Token::T_EOF());
+    result.push_back(new Token(Type::T_EOF));
 
     return result;
 }
 
-char Lexer::char_at_pos(int index) {
+char Lexer::char_at_pos(size_t index) {
 	// Indicate nothingness
 	if (index >= this->row.size()) {
 		return '\0';
@@ -58,17 +58,17 @@ char Lexer::char_at_pos(int index) {
 	return this->row[index];
 }
 
-Token Lexer::next() {
+Token* Lexer::next() {
 	this->current = this->char_at_pos(this->index);
 
 	// End of row
 	if (this->current == '\0') {
-		return Token::T_EOL();
+		return new Token(Type::T_EOL);
 	}
 
 	// Ignore Whitespace
 	if (iswspace(this->current)) {
-		return Token::IGNORE();
+		return new Token(Type::IGNORE);
 	}
 
 	// Comments
@@ -100,10 +100,10 @@ Token Lexer::next() {
 
 	std::cout << "Ignoring: " << this->current << "(" << str << ")\n";
 
-	return Token::IGNORE();
+	return new Token(Type::IGNORE);
 }
 
-Token Lexer::comment() {
+Token* Lexer::comment() {
 	while(true) {
 		this->index += 1;
 		char current = this->char_at_pos(this->index + 1);
@@ -113,10 +113,10 @@ Token Lexer::comment() {
 		}
 	}
 
-	return Token::T_EOL();
+	return new Token(Type::T_EOL);
 }
 
-Token Lexer::name() {
+Token* Lexer::name() {
 	std::string s(1, this->current);
 
 	while (true) {
@@ -132,17 +132,17 @@ Token Lexer::name() {
 	}
 
 	if (s == "true" || s == "false") {
-		return Token::BOOL(s);
+		return new Token(Type::BOOL, s);
 	}
 
 	if (this->keywords.find(s) != this->keywords.end()) {
-		return Token::KEYWORD(s);
+		return new Token(Type::KEYWORD, s);
 	}
 
-	return Token::NAME(s);
+	return new Token(Type::NAME, s);
 }
 
-Token Lexer::number() {
+Token* Lexer::number() {
 	std::string s(1, this->current);
 
 	// Look for more digits.
@@ -169,10 +169,10 @@ Token Lexer::number() {
 	// TODO Decimal
 	// TODO Verify that it ends with a space?
 
-	return Token::NUMBER(s);
+	return new Token(Type::NUMBER, s);
 }
 
-Token Lexer::string() {
+Token* Lexer::string() {
 	std::string s(1, this->current);
 
 	this->index += 1;
@@ -193,10 +193,10 @@ Token Lexer::string() {
 		this->index += 1;
 	}
 
-	return Token::STRING(s);
+	return new Token(Type::STRING, s);
 }
 
-Token Lexer::oper() {
+Token* Lexer::oper() {
 	std::string s(1, this->current);
 
 	while(true) {
@@ -218,11 +218,11 @@ Token Lexer::oper() {
 		}
 	}
 
-	return Token::OPERATOR(s);
+	return new Token(Type::OPERATOR, s);
 }
 
-void Lexer::print(std::vector<Token> tokens) {
-	for (Token tok : tokens) {
-		std::cout << tok.print() << "\n";
+void Lexer::print(std::vector<Token*> tokens) {
+	for (Token* tok : tokens) {
+		std::cout << tok->print() << "\n";
 	}
 }

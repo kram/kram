@@ -13,8 +13,8 @@ class Function: public Value {
 		}
 
 		int key = 0;
-		for (Instruction param : fn->parameters) {
-			fn->vm->set_name(param.name, val[key]);
+		for (Instruction* param : fn->parameters) {
+			fn->vm->set_name(param->name, val[key]);
 			key++;
 		}
 
@@ -22,19 +22,19 @@ class Function: public Value {
 	}
 
 	public:
-		std::vector<Instruction> content;
-		std::vector<Instruction> parameters;
+		std::vector<Instruction*> content;
+		std::vector<Instruction*> parameters;
 		VM* vm;
 
 		void init() {
 			this->add_method("exec", this->exec);
 		}
 
-		void set_content(std::vector<Instruction> ins) {
+		void set_content(std::vector<Instruction*> ins) {
 			this->content = ins;
 		}
 
-		void set_parameters(std::vector<Instruction> ins) {
+		void set_parameters(std::vector<Instruction*> ins) {
 			this->parameters = ins;
 		}
 };

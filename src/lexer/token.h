@@ -69,8 +69,11 @@ namespace lexer {
 			Type sub;
 			std::string value;
 
-			Token();
+			Token(Type);
+			Token(Type, std::string);
 
+			// TODO: Get rid of the need of these
+			Token();
 			static Token T_EOF();
 			static Token T_EOL();
 			static Token IGNORE();

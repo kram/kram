@@ -47,9 +47,9 @@ class Instruction {
 		Value value;
 		lexer::Type type;
 
-		std::vector<Instruction> left;
-		std::vector<Instruction> right;
-		std::vector<Instruction> center;
+		std::vector<Instruction*> left;
+		std::vector<Instruction*> right;
+		std::vector<Instruction*> center;
 
 		Instruction(Ins i) : instruction(i) {
 			type = lexer::Type::IGNORE;
@@ -87,8 +87,8 @@ class Instruction {
 			if (left.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "left: [\n";
 
-				for (Instruction i : left) {
-					i.print(ident+1);
+				for (Instruction* i : left) {
+					i->print(ident+1);
 				}
 
 				std::cout << std::string(ident + 1, '\t') << "]\n";
@@ -97,8 +97,8 @@ class Instruction {
 			if (center.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "center: [\n";
 
-				for (Instruction i : center) {
-					i.print(ident+1);
+				for (Instruction* i : center) {
+					i->print(ident+1);
 				}
 
 				std::cout << std::string(ident + 1, '\t') << "]\n";
@@ -107,8 +107,8 @@ class Instruction {
 			if (right.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "right: [\n";
 
-				for (Instruction i : right) {
-					i.print(ident+1);
+				for (Instruction* i : right) {
+					i->print(ident+1);
 				}
 
 				std::cout << std::string(ident + 1, '\t') << "]\n";

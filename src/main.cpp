@@ -25,20 +25,20 @@ int main(int argc, char** argv) {
 	}
 
 	lexer::Lexer lexer;
-	std::vector<lexer::Token> tokens = lexer.parse_file(file);
+	std::vector<lexer::Token*> tokens = lexer.parse_file(file);
 
 	if (debug) {
 		lexer::Lexer::print(tokens);
 	}
 
 	Parser parser (tokens);
-	std::vector<Instruction> instructions = parser.run();
+	std::vector<Instruction*> instructions = parser.run();
 
 	if (debug) {
 		std::cout << "Printing ins:\n";
 
-		for (Instruction ins : instructions) {
-			ins.print();
+		for (Instruction* ins : instructions) {
+			ins->print();
 			std::cout << "--------\n";
 		}
 	}

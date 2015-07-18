@@ -10,40 +10,40 @@ void VM::set_name(std::string name, Value* val) {
 	this->names[name] = val;
 }
 
-Value* VM::assign(Instruction ins) {
-	this->names[ins.name] = this->run(ins.right[0]);
+Value* VM::assign(Instruction* ins) {
+	this->names[ins->name] = this->run(ins->right[0]);
 
 	return new Value(Type::NUL);
 }
 
-Value* VM::literal(Instruction ins) {
+Value* VM::literal(Instruction* ins) {
 	// The value is already pre-calcualted by the parser
-	Value* val = new Value(ins.value.type, ins.value.getNumber());
+	Value* val = new Value(ins->value.type, ins->value.getNumber());
 
 	return val;
 }
 
-Value* VM::name(Instruction ins) {
+Value* VM::name(Instruction* ins) {
 
 	// TODO
-	if (this->names.find(ins.name) == this->names.end()) {
-		return new Value(Type::STRING, ins.name);
+	if (this->names.find(ins->name) == this->names.end()) {
+		return new Value(Type::STRING, ins->name);
 	}
 
-	Value* res = this->names[ins.name];
+	Value* res = this->names[ins->name];
 
 	// std::cout << ins.name << " => " << res->print() << "\n";
 
 	return res;
 }
 
-Value* VM::math(Instruction ins) {
+Value* VM::math(Instruction* ins) {
 
 	int res = 0;
-	int l = this->run(ins.left[0])->getNumber();
-	int r = this->run(ins.right[0])->getNumber();
+	int l = this->run(ins->left[0])->getNumber();
+	int r = this->run(ins->right[0])->getNumber();
 
-	switch (ins.type) {
+	switch (ins->type) {
 		case lexer::Type::OPERATOR_PLUS:
 			res = l + r;
 			break;
@@ -64,72 +64,72 @@ Value* VM::math(Instruction ins) {
 	return new Value(Type::NUMBER, res);
 }
 
-Value* VM::if_case(Instruction ins) {
+Value* VM::if_case(Instruction* ins) {
 	return new Value(Type::NUL);
 }
 
-Value* VM::ignore(Instruction ins) {
+Value* VM::ignore(Instruction* ins) {
 	return new Value(Type::NUL);
 }
 
-Value* VM::push_class(Instruction ins) {
+Value* VM::push_class(Instruction* ins) {
 	// Get the name of the class to push
-	Value* name = this->name(ins.left[0]);
+	Value* name = this->name(ins->left[0]);
 
 	// Add a pointer to the class to the back (aka top) of the stack
 	this->lib_stack.push_back(name);
 
 	// Run the right part
-	return this->run(ins.right);
+	return this->run(ins->right);
 }
 
-Value* VM::function(Instruction ins) {
+Value* VM::function(Instruction* ins) {
 	Function* fn = new Function();
 	fn->type = Type::REFERENCE;
 	fn->init();
 	
-	fn->set_parameters(ins.left);
-	fn->set_content(ins.right);
+	fn->set_parameters(ins->left);
+	fn->set_content(ins->right);
 
 	fn->vm = this;
 
 	return fn;
 }
 
-Value* VM::call(Instruction ins) {
+Value* VM::call(Instruction* ins) {
 
 	// Get the method name or function declaration
-	Value* fun = this->name(ins.left[0]);
+	Value* fun = this->name(ins->left[0]);
 
 	if (fun->type != Type::REFERENCE) {
 		return this->call_library(ins);
 	}
 
-	if (ins.right.size() == 1) {
-		return fun->execMethod("exec", std::vector<Value*>{ this->run(ins.right[0]) });
+	if (ins->right.size() == 1) {
+		return fun->execMethod("exec", std::vector<Value*>{ this->run(ins->right[0]) });
 	}
 
 	return fun->execMethod("exec", std::vector<Value*>{ new Value() });
 }
 
-Value* VM::call_library(Instruction ins) {
+Value* VM::call_library(Instruction* ins) {
 
 	// Get the method name
-	Value* name = this->name(ins.left[0]);
+	Value* name = this->name(ins->left[0]);
 
 	// Get the library from the top of the stack
 	Value* lib = this->lib_stack[this->lib_stack.size() - 1];
 
 	// Get the first parameter
 	// TODO: Allow for more parameters (and none)
-	Value* params = this->run(ins.right[0]);
+	Value* params = this->run(ins->right[0]);
 
 	// Call the method
 	return lib->execMethod(name->getString(), std::vector<Value*>{ params });
 }
 
-Value* VM::run(Instruction ins) {
-	switch (ins.instruction) {
+Value* VM::run(Instruction* ins) {
+	switch (ins->instruction) {
 		case Ins::ASSIGN:     return this->assign(ins);     break;
 		case Ins::LITERAL:    return this->literal(ins);    break;
 		case Ins::NAME:       return this->name(ins);       break;
@@ -145,18 +145,18 @@ Value* VM::run(Instruction ins) {
 	return new Value(Type::NUL);
 }
 
-Value* VM::run(std::vector<Instruction> ins) {
+Value* VM::run(std::vector<Instruction*> ins) {
 
 	Value* last;
 
-	for (Instruction i : ins) {
+	for (Instruction* i : ins) {
 		last = this->run(i);
 	}
 
 	return last;
 }
 
-void VM::boot(std::vector<Instruction> ins) {
+void VM::boot(std::vector<Instruction*> ins) {
 	IO* io = new IO();
 	io->type = Type::REFERENCE;
 	io->init();
