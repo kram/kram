@@ -20,8 +20,10 @@ class VM {
 	Value* ignore(Instruction*);
 	Value* push_class(Instruction*);
 	Value* function(Instruction*);
+
 	Value* call(Instruction*);
 	Value* call_library(Instruction*);
+	Value* call_builtin(Instruction*);
 
 	public:
 		void boot(std::vector<Instruction*>);
@@ -29,7 +31,9 @@ class VM {
 		// Adressable from libraries and what not
 		Value* run(Instruction*);
 		Value* run(std::vector<Instruction*>);
+
 		void set_name(std::string, Value*);
+		Value* get_name(std::string);
 };
 
 #endif

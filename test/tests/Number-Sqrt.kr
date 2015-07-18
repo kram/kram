@@ -1,0 +1,2 @@
+IO::Println(100.Sqrt()) // NUMBER<10>
+IO::Println(25.Sqrt()) // NUMBER<5>

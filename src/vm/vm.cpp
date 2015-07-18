@@ -5,9 +5,19 @@
 //#include "libraries/user/class.h"
 #include "libraries/user/function.h"
 #include "libraries/IO/io.h"
+#include "libraries/std/Number.h"
 
 void VM::set_name(std::string name, Value* val) {
 	this->names[name] = val;
+}
+
+Value* VM::get_name(std::string name) {
+	if (this->names.find(name) == this->names.end()) {
+		std::cout << "Unknown name: " << name << "\n";
+		exit(0);
+	}
+
+	return this->names[name];
 }
 
 Value* VM::assign(Instruction* ins) {
@@ -30,11 +40,7 @@ Value* VM::name(Instruction* ins) {
 		return new Value(Type::STRING, ins->name);
 	}
 
-	Value* res = this->names[ins->name];
-
-	// std::cout << ins.name << " => " << res->print() << "\n";
-
-	return res;
+	return this->get_name(ins->name);
 }
 
 Value* VM::math(Instruction* ins) {
@@ -73,11 +79,14 @@ Value* VM::ignore(Instruction* ins) {
 }
 
 Value* VM::push_class(Instruction* ins) {
-	// Get the name of the class to push
-	Value* name = this->name(ins->left[0]);
+	// Run what we should push
+	// Can be a name (name.method() or name::method()),
+	// a literal (100.Sqrt())
+	// or something else
+	Value* push = this->run(ins->left[0]);
 
 	// Add a pointer to the class to the back (aka top) of the stack
-	this->lib_stack.push_back(name);
+	this->lib_stack.push_back(push);
 
 	// Run the right part
 	return this->run(ins->right);
@@ -120,12 +129,43 @@ Value* VM::call_library(Instruction* ins) {
 	// Get the library from the top of the stack
 	Value* lib = this->lib_stack[this->lib_stack.size() - 1];
 
+	if (lib->type == Type::NUMBER) {
+		return this->call_builtin(ins);
+	}
+
 	// Get the first parameter
 	// TODO: Allow for more parameters (and none)
 	Value* params = this->run(ins->right[0]);
 
 	// Call the method
 	return lib->execMethod(name->getString(), std::vector<Value*>{ params });
+}
+
+Value* VM::call_builtin(Instruction* ins) {
+
+	// Get the method name
+	Value* name = this->name(ins->left[0]);
+
+	// Get the value from the top of the stack
+	Value* builtin_value = this->lib_stack[this->lib_stack.size() - 1];
+
+	// Get library
+	Value* lib;
+
+	switch (builtin_value->type) {
+		case Type::NUMBER:
+			lib = this->get_name("Number");
+			break;
+		default:
+			std::cout << "call_builtin(): Can not call on " << builtin_value->print() << "\n";
+			exit(0);
+			break;
+	}
+
+	// TODO: Parameters
+
+	// Call the method
+	return lib->execMethod(name->getString(), std::vector<Value*>{ builtin_value });
 }
 
 Value* VM::run(Instruction* ins) {
@@ -161,6 +201,11 @@ void VM::boot(std::vector<Instruction*> ins) {
 	io->type = Type::REFERENCE;
 	io->init();
 	this->names["IO"] = io;
+
+	Number* number = new Number();
+	number->type = Type::REFERENCE;
+	number->init();
+	this->names["Number"] = number;
 
 	this->run(ins);
 }
