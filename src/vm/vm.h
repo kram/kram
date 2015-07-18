@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "value.h"
-#include "Instruction.h"
+#include "instruction.h"
 
 class VM {
 
