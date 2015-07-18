@@ -2,7 +2,4 @@ SOURCEDIR = src
 SOURCES := $(shell find $(SOURCEDIR) -name '*.cpp')
 
 all:
-	g++ -std=c++14 -o kram $(SOURCES)
-
-debug:
-	g++ -g -std=c++14 -o kram $(SOURCES)
+	g++ -std=c++11 -o kram $(SOURCES)

@@ -19,10 +19,10 @@ class Parser {
 	int lenght;
 	bool has_advanced;
 
-	std::unordered_map<lexer::Type, bool> comparisions;
-	std::unordered_map<lexer::Type, bool> startOperators;
-	std::unordered_map<lexer::Type, bool> leftOnlyInfix;
-	std::unordered_map<lexer::Type, bool> rightOnlyInfix;
+	std::unordered_map<lexer::Type, bool, lexer::EnumClassHash> comparisions;
+	std::unordered_map<lexer::Type, bool, lexer::EnumClassHash> startOperators;
+	std::unordered_map<lexer::Type, bool, lexer::EnumClassHash> leftOnlyInfix;
+	std::unordered_map<lexer::Type, bool, lexer::EnumClassHash> rightOnlyInfix;
 
 	std::vector<Instruction> read_file();
 	std::vector<Instruction> read_until_eol();
