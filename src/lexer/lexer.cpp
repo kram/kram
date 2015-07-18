@@ -12,10 +12,15 @@ Lexer::Lexer() {
 	keywords["fn"] = true;
 }
 
-std::vector<Token> Lexer::parse_file() {
+std::vector<Token> Lexer::parse_file(std::string filename) {
 	std::vector<Token> result;
 
-	std::ifstream file("test.kr");
+	std::ifstream file(filename);
+
+	if (file.fail()) {
+		std::cout << "Could not open " << filename << "\n";
+		exit(0);
+	}
 
     while (std::getline(file, this->row))
     {

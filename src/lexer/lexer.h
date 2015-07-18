@@ -20,7 +20,7 @@ namespace lexer {
 
 		public:
 			Lexer();
-			std::vector<Token> parse_file(void);
+			std::vector<Token> parse_file(std::string);
 			static void print(std::vector<Token>);
 	};
 }
