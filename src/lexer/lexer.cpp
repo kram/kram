@@ -103,7 +103,7 @@ Token Lexer::comment() {
 		this->index += 1;
 		char current = this->char_at_pos(this->index + 1);
 
-		if (current == '\n' || current == '\r') {
+		if (current == '\n' || current == '\r' || current == '\0') {
 			break;
 		}
 	}
