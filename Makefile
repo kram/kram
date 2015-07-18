@@ -12,6 +12,9 @@ clean:
 	-mkdir -p bin
 
 test: clean build build_test
-	./bin/Test $(CURDIR)/test/tests
+	./bin/Test $(CURDIR)/bin $(CURDIR)/test/tests
+
+test_only: build_test
+	./bin/Test $(CURDIR)/bin $(CURDIR)/test/tests
 
 all: build
