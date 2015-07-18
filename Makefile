@@ -2,7 +2,7 @@ SOURCEDIR = src
 SOURCES := $(shell find $(SOURCEDIR) -name '*.cpp')
 
 build:
-	g++ --std=c++11 -o bin/kram $(SOURCES)
+	g++ --std=c++11 -o bin/kram -Wall -Wextra $(SOURCES)
 
 build_test:
 	go build -o bin/Test ./test
