@@ -10,6 +10,8 @@ Lexer::Lexer() {
 	// Initialize all  keywords
 	keywords["class"] = true;
 	keywords["fn"] = true;
+	keywords["if"] = true;
+	keywords["else"] = true;
 }
 
 std::vector<Token*> Lexer::parse_file(std::string filename) {

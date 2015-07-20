@@ -15,7 +15,10 @@ class VM {
 	Value* assign(Instruction*);
 	Value* literal(Instruction*);
 	Value* name(Instruction*);
+
 	Value* math(Instruction*);
+	Value* math_number(Instruction*, Value*, Value*);
+
 	Value* if_case(Instruction*);
 	Value* ignore(Instruction*);
 	Value* push_class(Instruction*);

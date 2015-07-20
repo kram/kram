@@ -6,10 +6,8 @@
 
 enum class ON {
 	DEFAULT,
-	CLASS_BODY,
+	MATH_CONTINUATION,
 	PUSH_CLASS,
-	METHOD_PARAMETERS,
-	ARGUMENTS
 };
 
 class Parser {
@@ -35,23 +33,21 @@ class Parser {
 	lexer::Token* get_and_expect_token(lexer::Token);
 	void advance();
 	void reverse();
-	Instruction* symbol_next();
-	Instruction* symbol(lexer::Token*);
+	Instruction* symbol_next(ON);
+	Instruction* symbol(lexer::Token*, ON);
 
 	Instruction* keyword(lexer::Token*);
 	Instruction* keyword_class();
 	Instruction* keyword_fn();
-	//Instruction* keyword_if();
+	Instruction* keyword_if();
 
-	Instruction* name(lexer::Token*);
+	Instruction* name(lexer::Token*, ON);
 	
-	Instruction* number(lexer::Token*);
+	Instruction* number(lexer::Token*, ON);
 	Instruction* number_init(std::string);
 	Instruction* number_init();
 
-	//Instruction* oper(lexer::Token);
 	Instruction* ignore();
-	//Instruction* bl(lexer::Token);
 	
 	Instruction* assign(Instruction*);
 	Instruction* assign_with_type(Instruction*);

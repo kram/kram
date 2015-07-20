@@ -44,33 +44,118 @@ Value* VM::name(Instruction* ins) {
 }
 
 Value* VM::math(Instruction* ins) {
+	Value* left = this->run(ins->left[0]);
+	Value* right = this->run(ins->right[0]);
 
-	int res = 0;
-	int l = this->run(ins->left[0])->getNumber();
-	int r = this->run(ins->right[0])->getNumber();
-
-	switch (ins->type) {
-		case lexer::Type::OPERATOR_PLUS:
-			res = l + r;
-			break;
-		case lexer::Type::OPERATOR_MINUS:
-			res = l - r;
-			break;
-		case lexer::Type::OPERATOR_DIV:
-			res = l / r;
-			break;
-		case lexer::Type::OPERATOR_MUL:
-			res = l * r;
+	if (left->type != right->type) {
+		std::cout << "math() Can not do math on " << left->print() << " and " << right->print() << "\n";
+		exit(0);
+	}
+	
+	switch (left->type) {
+		case Type::NUMBER:
+			return this->math_number(ins, left, right);
 			break;
 
-		// Ssssh!
+		// Silence the compiler
 		default: break;
 	}
 
-	return new Value(Type::NUMBER, res);
+	std::cout << "math() Does not know how to handle " << left->print() << "\n";
+	exit(0);
+
+	return new Value(Type::NUL);
+}
+
+Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
+
+	int res_int = 0;
+	bool res_bool = false;
+	bool is_bool = false;
+	int l = left->getNumber();
+	int r = right->getNumber();
+
+	switch (ins->type) {
+		case lexer::Type::OPERATOR_PLUS:
+			res_int = l + r;
+			break;
+
+		case lexer::Type::OPERATOR_MINUS:
+			res_int = l - r;
+			break;
+
+		case lexer::Type::OPERATOR_DIV:
+			res_int = l / r;
+			break;
+
+		case lexer::Type::OPERATOR_MUL:
+			res_int = l * r;
+			break;
+
+		case lexer::Type::OPERATOR_LT:
+			res_bool = l < r;
+			is_bool = true;
+			break;
+
+		case lexer::Type::OPERATOR_GTEQ:
+			res_bool = l >= r;
+			is_bool = true;
+			break;
+
+		case lexer::Type::OPERATOR_GT:
+			res_bool = l > r;
+			is_bool = true;
+			break;
+
+		case lexer::Type::OPERATOR_LTEQ:
+			res_bool = l <= r;
+			is_bool = true;
+			break;
+
+		case lexer::Type::OPERATOR_EQEQ:
+			res_bool = l == r;
+			is_bool = true;
+			break;
+
+		case lexer::Type::OPERATOR_NOT_EQ:
+			res_bool = l != r;
+			is_bool = true;
+			break;
+
+		default:
+			std::cout << "Unknown math_number() operator\n";
+			exit(0);
+			break;
+	}
+
+	if (is_bool) {
+		res_int = (res_bool ? 1 : 0);
+		return new Value(Type::BOOL, res_int);
+	}
+
+	return new Value(Type::NUMBER, res_int);
 }
 
 Value* VM::if_case(Instruction* ins) {
+
+	Value* res = this->run(ins->center[0]);
+
+	if (res->type != Type::BOOL) {
+		std::cout << "If-case must evaluate to a BOOL\n";
+		exit(0);
+	}
+
+	// Was true
+	if (res->getBool()) {
+		return this->run(ins->left);
+	}
+
+	// Has else-part
+	if (ins->right.size() > 0) {
+		return this->run(ins->right);
+	}
+
+	// Return NUL otherwise
 	return new Value(Type::NUL);
 }
 

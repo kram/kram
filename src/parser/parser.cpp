@@ -96,7 +96,7 @@ std::vector<Instruction*> Parser::read_until(std::vector<lexer::Token> until, st
 			}
 		}
 
-		Instruction* sym = this->symbol(next);
+		Instruction* sym = this->symbol(next, ON::DEFAULT);
 
 		if (sym->instruction != Ins::IGNORE) {
 			res.push_back(sym);	
@@ -143,7 +143,7 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 		return this->assign_with_type(prev);
 	}
 
-	if (next->type == lexer::Type::OPERATOR) {
+	if (on != ON::MATH_CONTINUATION && next->type == lexer::Type::OPERATOR) {
 		if (this->startOperators.find(next->sub) != this->startOperators.end()) {
 			return this->math(prev);
 		}
@@ -181,16 +181,16 @@ void Parser::reverse() {
 	this->index--;
 }
 
-Instruction* Parser::symbol_next() {
+Instruction* Parser::symbol_next(ON on) {
 	this->advance();
-	return this->symbol(this->get_token());
+	return this->symbol(this->get_token(), on);
 }
 
-Instruction* Parser::symbol(lexer::Token* tok) {
+Instruction* Parser::symbol(lexer::Token* tok, ON on) {
 	switch (tok->type) {
 		case lexer::Type::KEYWORD: return this->keyword(tok); break;
-		case lexer::Type::NUMBER: return this->number(tok); break;
-		case lexer::Type::NAME: return this->name(tok); break;
+		case lexer::Type::NUMBER: return this->number(tok, on); break;
+		case lexer::Type::NAME: return this->name(tok, on); break;
 
 		case lexer::Type::T_EOL:
 		case lexer::Type::T_EOF:
@@ -258,6 +258,7 @@ Instruction* Parser::keyword(lexer::Token* tok) {
 	switch (tok->sub) {
 		case lexer::Type::KEYWORD_CLASS: return this->keyword_class(); break;
 		case lexer::Type::KEYWORD_FN: return this->keyword_fn(); break;
+		case lexer::Type::KEYWORD_IF: return this->keyword_if(); break;
 		default: break;
 	}
 
@@ -302,6 +303,35 @@ Instruction* Parser::keyword_fn() {
 	this->get_and_expect_token(lexer::Token::OPERATOR("{"));
 
 	this->advance();
+	ins->right = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR("}")
+	});
+
+	return ins;
+}
+
+Instruction* Parser::keyword_if() {
+	Instruction* ins = new Instruction(Ins::IF);
+
+	ins->center = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR("{")
+	});
+
+	this->advance();
+	ins->left = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR("}")
+	});
+
+	// Test if there is any "else" part
+	this->advance();
+	if (this->get_token()->sub != lexer::Type::KEYWORD_ELSE) {
+		this->reverse();
+		return ins;
+	}
+
+	this->advance();
+	this->get_and_expect_token(lexer::Token::OPERATOR("{"));
+
 	ins->right = this->read_until(std::vector<lexer::Token>{
 		lexer::Token::OPERATOR("}")
 	});
@@ -356,18 +386,16 @@ Instruction* Parser::assign_with_type(Instruction* prev) {
 	return ins;
 }
 
-//Instruction* Parser::keyword_if(lexer::Token);
-
-Instruction* Parser::name(lexer::Token* tok) {
+Instruction* Parser::name(lexer::Token* tok, ON on) {
 	Instruction* ins = new Instruction(Ins::NAME);
 	ins->name = tok->value;
 
-	return this->lookahead(ins, ON::DEFAULT);
+	return this->lookahead(ins, on);
 }
 
-Instruction* Parser::number(lexer::Token* tok) {
+Instruction* Parser::number(lexer::Token* tok, ON on) {
 	Instruction* ins = this->number_init(tok->value);
-	return this->lookahead(ins, ON::DEFAULT);
+	return this->lookahead(ins, on);
 }
 
 Instruction* Parser::number_init(std::string val) {
@@ -401,44 +429,40 @@ Instruction* Parser::math(Instruction* prev) {
 	// Set the mathematical operator, eg + or -
 	math->type = current->sub;
 
-	if (prev->instruction == Ins::LITERAL || prev->instruction == Ins::NAME) {
-		math->left = std::vector<Instruction*> { prev };
-		math->right = std::vector<Instruction*> { this->symbol_next() };
+	math->left = std::vector<Instruction*> { prev };
+	math->right = std::vector<Instruction*> { this->symbol_next(ON::MATH_CONTINUATION) };
 
-		// Verify that the ordering (infix_priority()) is correct
-		// Left is either a LITERAL or NAME, and right is a (new) MATH
-		if (math->right[0]->instruction == Ins::MATH) {
+	// Verify that the ordering (infix_priority()) is correct
+	if (prev->instruction == Ins::MATH) {
 
-			// The ordering is wrong, and we need to correct this
-			// [a, *, [b, +, c]] -> [[a, *, b], +, c]
-			// This part is a little bit well, confusing and tight. But hey, it is a side-project after all.
-			if (Parser::infix_priority(math->type) > Parser::infix_priority(math->right[0]->type)) {
+		// The ordering is wrong, and we need to correct this
+		// [a, *, [b, +, c]] -> [[a, *, b], +, c]
+		// This part is a little bit well, confusing and tight. But hey, it is a side-project after all.
+		if (Parser::infix_priority(math->type) > Parser::infix_priority(prev->type)) {
 
-				Instruction* right = math->right[0];
-				Instruction* res = new Instruction(Ins::MATH);
-				Instruction* left = new Instruction(Ins::MATH);
+			Instruction* res = new Instruction(Ins::MATH);
+			Instruction* right = new Instruction(Ins::MATH);
 
-				left->type = math->type;
-				left->left = math->left;
-				left->right = right->left;
-				
-				res->left = std::vector<Instruction*> { left };
-				
-				res->type = right->type;
-				res->right = right->right;
+			right->left = prev->right;
+			right->right = math->right;
 
-				return res;
-			}
+			res->left = prev->left;
+			res->right = std::vector<Instruction*> { right };
+
+			res->type = prev->type;
+			right->type = math->type;
+
+			return this->lookahead(res, ON::DEFAULT);
 		}
 	}
 
-	return math;
+	return this->lookahead(math, ON::DEFAULT);
 }
 
 Instruction* Parser::push_class(Instruction* prev) {
 	Instruction* ins = new Instruction(Ins::PUSH_CLASS);
 	ins->left = std::vector<Instruction*>{ prev };
-	ins->right = std::vector<Instruction*>{ this->symbol_next() };
+	ins->right = std::vector<Instruction*>{ this->symbol_next(ON::DEFAULT) };
 
 	return this->lookahead(ins, ON::PUSH_CLASS);
 }

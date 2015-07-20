@@ -2,19 +2,25 @@
 
 Value::Value() {
 	type = Type::NUL;
+	number = 0;
+	strval = "";
 }
 
 Value::Value(Type t) {
 	type = t;
+	number = 0;
+	strval = "";
 }
 
 Value::Value(Type t, int val) {
 	type = t;
 	number = val;
+	strval = "";
 }
 
 Value::Value(Type t, std::string val) {
 	type = t;
+	number = 0;
 	strval = val;
 }
 

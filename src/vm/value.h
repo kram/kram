@@ -12,6 +12,7 @@ enum class Type {
 	NUL,
 	STRING,
 	NUMBER,
+	BOOL,
 	REFERENCE
 };
 
@@ -42,6 +43,7 @@ class Value {
 				case Type::NUL: i = "NUL"; break;
 				case Type::STRING: i = "STRING"; break;
 				case Type::NUMBER: i = "NUMBER"; break;
+				case Type::BOOL: i = "BOOL"; break;
 				case Type::REFERENCE: i = "REFERENCE"; break;
 			}
 
@@ -57,7 +59,14 @@ class Value {
 
 			if (this->type == Type::REFERENCE) {
 				res += this->strval;
-				//res += this->ref->print();
+			}
+
+			if (this->type == Type::BOOL) {
+				if (this->getBool()) {
+					res += "true";
+				} else {
+					res += "false";
+				}
 			}
 
 			res += ">";
@@ -71,6 +80,14 @@ class Value {
 
 		int getNumber() {
 			return this->number;
+		}
+
+		bool getBool() {
+			if (this->number == 0) {
+				return false;
+			}
+
+			return true;
 		}
 
 		// Overwritten by references
