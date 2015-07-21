@@ -7,6 +7,7 @@ Environment::Environment() {
 
 void Environment::set(std::string name, Value* val) {
 	this->names[name] = val;
+	this->all_names[name] = val;
 }
 
 void Environment::set_root(std::string name, Value* val) {
@@ -18,16 +19,13 @@ void Environment::set_root(std::string name, Value* val) {
 }
 
 Value* Environment::get(std::string name) {
-	if (this->names.find(name) == this->names.end()) {
-		if (this->is_root) {
-			std::cout << "Unknown name: " << name << "\n";
-			exit(0);
-		} else {
-			return this->parent->get(name);
-		}
+
+	if (!this->has(name)) {
+		std::cout << "Unknown name: " << name << "\n";
+		exit(0);
 	}
 
-	return this->names[name];
+	return this->all_names[name];
 }
 
 Value* Environment::get_root(std::string name) {
@@ -41,6 +39,7 @@ Value* Environment::get_root(std::string name) {
 Environment* Environment::push() {
 	Environment* env = new Environment();
 	env->parent = this;
+	env->all_names = this->all_names;
 
 	if (this->is_root) {
 		env->root = this;
@@ -61,13 +60,10 @@ Environment* Environment::pop() {
 }
 
 bool Environment::has(std::string name) {
-	if (this->names.find(name) != this->names.end()) {
-		return true;
-	}
 
-	if (this->is_root) {
+	if (this->all_names.find(name) == this->names.end()) {
 		return false;
 	}
 
-	return this->parent->has(name);
+	return true;
 }

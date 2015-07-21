@@ -7,10 +7,10 @@ class Function: public Value {
 	static Value* exec(Value* self, std::vector<Value*> val) {
 		Function* fn = static_cast<Function*>(self);
 
-		/*if (val.size() != fn->parameters.size()) {
+		if (val.size() != fn->parameters.size()) {
 			std::cout << "Argument and parameter count needs to match\n";
 			exit(0);
-		}*/
+		}
 
 		int key = 0;
 		for (Instruction* param : fn->parameters) {
@@ -27,7 +27,7 @@ class Function: public Value {
 		VM* vm;
 
 		void init() {
-			this->add_method("exec", this->exec);
+			this->data.single_method = this->exec;
 		}
 
 		void set_content(std::vector<Instruction*> ins) {

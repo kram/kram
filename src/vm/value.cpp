@@ -2,45 +2,130 @@
 
 Value::Value() {
 	type = Type::NUL;
-	number = 0;
-	strval = "";
 }
 
 Value::Value(Type t) {
 	type = t;
-	number = 0;
-	strval = "";
+
+	switch (type) {
+		case Type::NUL:
+		case Type::BOOL:
+		case Type::NUMBER:
+			data.number = 0;
+			break;
+
+		case Type::STRING:
+			data.strval = new std::string();
+			break;
+
+		case Type::REFERENCE:
+			data.methods = new Methods();
+			break;
+
+		case Type::FUNCTION:
+			// data.single_method = new Method();
+			break;
+	}
 }
 
 Value::Value(Type t, int val) {
 	type = t;
-	number = val;
-	strval = "";
+	data.number = val;
+
+	switch (type) {
+		case Type::NUL:
+		case Type::BOOL:
+		case Type::NUMBER:
+			data.number = val;
+			break;
+
+		default:
+			std::cout << "Value::Value(Type, int) shold not be used with this type!\n";
+			exit(0);
+			break;
+	}
 }
 
 Value::Value(Type t, std::string val) {
 	type = t;
-	number = 0;
-	strval = val;
+
+	switch (type) {
+		/*case Type::NUL:
+		case Type::BOOL:
+		case Type::NUMBER:
+			data.number = 0;
+			break;*/
+
+		case Type::STRING:
+			data.strval = new std::string(val);
+			break;
+
+		case Type::REFERENCE:
+			data.methods = new Methods();
+			break;
+
+		case Type::FUNCTION:
+			// data.single_method = new Method();
+			break;
+
+		default:
+			std::cout << "Value::Value(Type, int) shold not be used with this type!\n";
+			exit(0);
+			break;
+	}
+}
+
+void Value::set_type(Type type) {
+	this->type = type;
+
+	switch (type) {
+		case Type::NUL:
+		case Type::BOOL:
+		case Type::NUMBER:
+			data.number = 0;
+			break;
+
+		case Type::STRING:
+			data.strval = new std::string();
+			break;
+
+		case Type::REFERENCE:
+			data.methods = new Methods();
+			break;
+
+		case Type::FUNCTION:
+			// data.single_method = new Method();
+			break;
+
+		default:
+			std::cout << "Value::Value(Type, int) shold not be used with this type!\n";
+			exit(0);
+			break;
+	}
 }
 
 Value* Value::execMethod(std::string name, std::vector<Value*> val) {
 
-	if (this->type != Type::REFERENCE) {
-		std::cout << "Is not of type REFERENCE\n";
+	if (this->type != Type::REFERENCE && this->type != Type::FUNCTION) {
+		std::cout << "Is not of type REFERENCE or FUNCTION\n";
+		std::cout << this->print() << "\n";
 		exit(0);
 	}
 
-	if (this->methods.find(name) == this->methods.end()) {
+	if (this->type == Type::FUNCTION) {
+		return this->data.single_method(this, val);
+	}
+
+	if (this->data.methods->find(name) == this->data.methods->end()) {
 		std::cout << "UNKNOWN METHOD: " << name << "\n";
 		exit(0);
 	}
 
-	method m = this->methods[name];
+	Method m = this->data.methods->at(name);
 
 	return m(this, val);
 }
 
-void Value::add_method(std::string name, method m) {
-	this->methods[name] = m;
+void Value::add_method(std::string name, Method m) {
+	this->data.methods->insert( {{name, m}} );
 }

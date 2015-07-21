@@ -13,27 +13,33 @@ enum class Type {
 	STRING,
 	NUMBER,
 	BOOL,
-	REFERENCE
+	REFERENCE,
+	FUNCTION,
 };
 
 class Value {
-	
-	// TODO: Union(-ify) this
-	std::string strval;
-	int number;
 
-	typedef Value* (*method)(Value*, std::vector<Value*>);
+	typedef Value* (*Method)(Value*, std::vector<Value*>);
+	typedef std::unordered_map<std::string, Method> Methods;
 
 	protected:
-		std::unordered_map<std::string, method> methods;
+		union {
+			int number;
+			std::string* strval;
+			Methods* methods;
+			Method single_method;
+		} data;
 
 	public:
+
 		Type type;
 
 		Value();
 		Value(Type);
 		Value(Type, std::string);
 		Value(Type, int);
+
+		void set_type(Type);
 
 		std::string print(void) {
 			std::string res = "";
@@ -45,20 +51,17 @@ class Value {
 				case Type::NUMBER: i = "NUMBER"; break;
 				case Type::BOOL: i = "BOOL"; break;
 				case Type::REFERENCE: i = "REFERENCE"; break;
+				case Type::FUNCTION: i = "FUNCTION"; break;
 			}
 
 			res += i + "<";
 
 			if (this->type == Type::STRING) {
-				res += this->strval;
+				res += *this->data.strval;
 			}
 
 			if (this->type == Type::NUMBER) {
-				res += std::to_string(this->number);
-			}
-
-			if (this->type == Type::REFERENCE) {
-				res += this->strval;
+				res += std::to_string(this->data.number);
 			}
 
 			if (this->type == Type::BOOL) {
@@ -75,15 +78,15 @@ class Value {
 		};
 
 		std::string getString() {
-			return this->strval;
+			return *this->data.strval;
 		}
 
 		int getNumber() {
-			return this->number;
+			return this->data.number;
 		}
 
 		bool getBool() {
-			if (this->number == 0) {
+			if (this->data.number == 0) {
 				return false;
 			}
 
@@ -95,7 +98,7 @@ class Value {
 
 		// #justlibrarythings
 		Value* execMethod(std::string, std::vector<Value*>);
-		void add_method(std::string, method);
+		void add_method(std::string, Method);
 };
 
 #endif

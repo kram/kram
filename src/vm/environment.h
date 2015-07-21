@@ -3,6 +3,7 @@
 
 class Environment {
 	std::unordered_map<std::string, Value*> names;
+	std::unordered_map<std::string, Value*> all_names;
 
 	public:
 

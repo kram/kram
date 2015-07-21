@@ -181,7 +181,7 @@ Value* VM::push_class(Instruction* ins) {
 
 Value* VM::function(Instruction* ins) {
 	Function* fn = new Function();
-	fn->type = Type::REFERENCE;
+	fn->set_type(Type::FUNCTION);
 	fn->init();
 	
 	fn->set_parameters(ins->left);
@@ -201,7 +201,7 @@ Value* VM::call(Instruction* ins) {
 
 	Value* res;
 
-	if (fun->type != Type::REFERENCE) {
+	if (fun->type != Type::REFERENCE && fun->type != Type::FUNCTION) {
 		res = this->call_library(ins);
 	} else if (ins->right.size() == 1) {
 		res = fun->execMethod("exec", std::vector<Value*>{ this->run(ins->right[0]) });
@@ -296,12 +296,12 @@ void VM::boot(std::vector<Instruction*> ins) {
 	this->environment->is_root = true;
 
 	IO* io = new IO();
-	io->type = Type::REFERENCE;
+	io->set_type(Type::REFERENCE);
 	io->init();
 	this->environment->set_root("IO", io);
 
 	Number* number = new Number();
-	number->type = Type::REFERENCE;
+	number->set_type(Type::REFERENCE);
 	number->init();
 	this->environment->set_root("Number", number);
 
