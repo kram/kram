@@ -1,0 +1,24 @@
+req := fn(loop) {
+	IO::Println(loop)
+
+	if loop > 0 {
+		req(loop - 1)
+	}
+
+	IO::Println(loop)
+}
+
+req(5)
+
+// NUMBER<5>
+// NUMBER<4>
+// NUMBER<3>
+// NUMBER<2>
+// NUMBER<1>
+// NUMBER<0>
+// NUMBER<0>
+// NUMBER<1>
+// NUMBER<2>
+// NUMBER<3>
+// NUMBER<4>
+// NUMBER<5>

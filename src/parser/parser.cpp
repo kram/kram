@@ -400,13 +400,13 @@ Instruction* Parser::number(lexer::Token* tok, ON on) {
 
 Instruction* Parser::number_init(std::string val) {
 	Instruction* ins = new Instruction(Ins::LITERAL);
-	ins->value = Value(Type::NUMBER, std::stoi(val));
+	ins->value = new Value(Type::NUMBER, std::stoi(val));
 	return ins;
 }
 
 Instruction* Parser::number_init() {
 	Instruction* ins = new Instruction(Ins::LITERAL);
-	ins->value = Value(Type::NUMBER, 0);
+	ins->value = new Value(Type::NUMBER, 0);
 	return ins;
 }
 

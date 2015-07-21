@@ -44,7 +44,7 @@ class Instruction {
 		Ins instruction;
 
 		std::string name;
-		Value value;
+		Value* value;
 		lexer::Type type;
 
 		std::vector<Instruction*> left;
@@ -82,7 +82,9 @@ class Instruction {
 				std::cout << std::string(ident + 1, '\t') << "type: " << lexer::Token::print(this->type) << "\n";
 			}
 
-			std::cout << std::string(ident + 1, '\t') << "value: " << this->value.print() << "\n";
+			if (this->instruction == Ins::LITERAL) {
+				std::cout << std::string(ident + 1, '\t') << "value: " << this->value->print() << "\n";
+			}
 
 			if (left.size() > 0) {
 				std::cout << std::string(ident + 1, '\t') << "left: [\n";

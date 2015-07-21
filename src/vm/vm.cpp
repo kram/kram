@@ -8,39 +8,41 @@
 #include "libraries/std/Number.h"
 
 void VM::set_name(std::string name, Value* val) {
-	this->names[name] = val;
+	this->environment->set(name, val);
 }
 
 Value* VM::get_name(std::string name) {
-	if (this->names.find(name) == this->names.end()) {
-		std::cout << "Unknown name: " << name << "\n";
-		exit(0);
-	}
+	return this->environment->get(name);
+}
 
-	return this->names[name];
+void VM::env_pop() {
+	this->environment = this->environment->pop();
+}
+
+void VM::env_push() {
+	this->environment = this->environment->push();
 }
 
 Value* VM::assign(Instruction* ins) {
-	this->names[ins->name] = this->run(ins->right[0]);
+	this->set_name(ins->name, this->run(ins->right[0]));
 
 	return new Value(Type::NUL);
 }
 
 Value* VM::literal(Instruction* ins) {
 	// The value is already pre-calcualted by the parser
-	Value* val = new Value(ins->value.type, ins->value.getNumber());
-
-	return val;
+	return ins->value;
 }
 
 Value* VM::name(Instruction* ins) {
 
-	// TODO
-	if (this->names.find(ins->name) == this->names.end()) {
-		return new Value(Type::STRING, ins->name);
+	// TODO: This method needs to be reworked to work properly...
+
+	if (this->environment->has(ins->name)) {
+		return this->get_name(ins->name);
 	}
 
-	return this->get_name(ins->name);
+	return new Value(Type::STRING, ins->name);
 }
 
 Value* VM::math(Instruction* ins) {
@@ -192,18 +194,24 @@ Value* VM::function(Instruction* ins) {
 
 Value* VM::call(Instruction* ins) {
 
+	this->env_push();
+
 	// Get the method name or function declaration
 	Value* fun = this->name(ins->left[0]);
 
+	Value* res;
+
 	if (fun->type != Type::REFERENCE) {
-		return this->call_library(ins);
+		res = this->call_library(ins);
+	} else if (ins->right.size() == 1) {
+		res = fun->execMethod("exec", std::vector<Value*>{ this->run(ins->right[0]) });
+	} else {
+		res = fun->execMethod("exec", std::vector<Value*>{ new Value() });		
 	}
 
-	if (ins->right.size() == 1) {
-		return fun->execMethod("exec", std::vector<Value*>{ this->run(ins->right[0]) });
-	}
+	this->env_pop();
 
-	return fun->execMethod("exec", std::vector<Value*>{ new Value() });
+	return res;
 }
 
 Value* VM::call_library(Instruction* ins) {
@@ -272,25 +280,34 @@ Value* VM::run(Instruction* ins) {
 
 Value* VM::run(std::vector<Instruction*> ins) {
 
+	this->env_push();
+
 	Value* last;
 
 	for (Instruction* i : ins) {
 		last = this->run(i);
 	}
 
+	this->env_pop();
+
 	return last;
 }
 
 void VM::boot(std::vector<Instruction*> ins) {
+
+	// Create environment
+	this->environment = new Environment();
+	this->environment->is_root = true;
+
 	IO* io = new IO();
 	io->type = Type::REFERENCE;
 	io->init();
-	this->names["IO"] = io;
+	this->environment->set_root("IO", io);
 
 	Number* number = new Number();
 	number->type = Type::REFERENCE;
 	number->init();
-	this->names["Number"] = number;
+	this->environment->set_root("Number", number);
 
 	this->run(ins);
 }

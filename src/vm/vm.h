@@ -6,11 +6,12 @@
 
 #include "value.h"
 #include "instruction.h"
+#include "environment.h"
 
 class VM {
 
 	std::vector<Value*> lib_stack;
-	std::unordered_map<std::string, Value*> names;
+	Environment* environment;
 
 	Value* assign(Instruction*);
 	Value* literal(Instruction*);
@@ -27,6 +28,9 @@ class VM {
 	Value* call(Instruction*);
 	Value* call_library(Instruction*);
 	Value* call_builtin(Instruction*);
+
+	void env_pop();
+	void env_push();
 
 	public:
 		void boot(std::vector<Instruction*>);
