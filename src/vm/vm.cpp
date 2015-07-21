@@ -280,15 +280,11 @@ Value* VM::run(Instruction* ins) {
 
 Value* VM::run(std::vector<Instruction*> ins) {
 
-	this->env_push();
-
 	Value* last;
 
 	for (Instruction* i : ins) {
 		last = this->run(i);
 	}
-
-	this->env_pop();
 
 	return last;
 }
