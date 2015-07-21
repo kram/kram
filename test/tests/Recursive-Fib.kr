@@ -1,0 +1,9 @@
+fib := fn(num) {
+	if num < 2 {
+		num
+	} else {
+		fib(num - 1) + fib(num - 2)
+	}
+}
+
+IO::Println(fib(15)) // NUMBER<610>
