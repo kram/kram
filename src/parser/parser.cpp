@@ -190,6 +190,7 @@ Instruction* Parser::symbol(lexer::Token* tok, ON on) {
 	switch (tok->type) {
 		case lexer::Type::KEYWORD: return this->keyword(tok); break;
 		case lexer::Type::NUMBER: return this->number(tok, on); break;
+		case lexer::Type::STRING: return this->string(tok, on); break;
 		case lexer::Type::NAME: return this->name(tok, on); break;
 
 		case lexer::Type::T_EOL:
@@ -378,6 +379,8 @@ Instruction* Parser::assign_with_type(Instruction* prev) {
 
 	if (type == "Number") {
 		ins->right.push_back(this->number_init());
+	} else if (type == "String") {
+		ins->right.push_back(this->string_init());
 	} else {
 		std::cout << "Does not know how to init type " << type << " after :";
 		exit(0);
@@ -407,6 +410,23 @@ Instruction* Parser::number_init(std::string val) {
 Instruction* Parser::number_init() {
 	Instruction* ins = new Instruction(Ins::LITERAL);
 	ins->value = new Value(Type::NUMBER, 0);
+	return ins;
+}
+
+Instruction* Parser::string(lexer::Token* tok, ON on) {
+	Instruction* ins = this->string_init(tok->value);
+	return this->lookahead(ins, on);
+}
+
+Instruction* Parser::string_init(std::string val) {
+	Instruction* ins = new Instruction(Ins::LITERAL);
+	ins->value = new Value(Type::STRING, val);
+	return ins;
+}
+
+Instruction* Parser::string_init() {
+	Instruction* ins = new Instruction(Ins::LITERAL);
+	ins->value = new Value(Type::STRING, "");
 	return ins;
 }
 

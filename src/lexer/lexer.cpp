@@ -175,7 +175,7 @@ Token* Lexer::number() {
 }
 
 Token* Lexer::string() {
-	std::string s(1, this->current);
+	std::string s = "";
 
 	this->index += 1;
 

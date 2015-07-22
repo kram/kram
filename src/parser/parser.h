@@ -47,6 +47,10 @@ class Parser {
 	Instruction* number_init(std::string);
 	Instruction* number_init();
 
+	Instruction* string(lexer::Token*, ON);
+	Instruction* string_init(std::string);
+	Instruction* string_init();
+
 	Instruction* ignore();
 	
 	Instruction* assign(Instruction*);
