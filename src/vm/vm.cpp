@@ -166,6 +166,25 @@ Value* VM::if_case(Instruction* ins) {
 	return new Value(Type::NUL);
 }
 
+Value* VM::loop_while(Instruction* ins) {
+
+	while (true) {
+		Value* res = this->run(ins->left[0]);
+
+		if (res->type != Type::BOOL) {
+			std::cout << "While-case must evaluate to a BOOL\n";
+			return new Value(Type::NUL);
+		}
+
+		// Not true anymore
+		if (res->getBool() == false) {
+			return new Value(Type::NUL);
+		}
+
+		this->run(ins->right);
+	}
+}
+
 Value* VM::ignore(Instruction* ins) {
 	return new Value(Type::NUL);
 }
@@ -288,6 +307,7 @@ Value* VM::run(Instruction* ins) {
 		case Ins::CALL:       return this->call(ins);       break;
 		case Ins::FUNCTION:   return this->function(ins);   break;
 		case Ins::CREATE_INSTANCE: return this->create_instance(ins); break;
+		case Ins::WHILE: return this->loop_while(ins); break;
 		default: std::cout << "Unknown instruction";        break;
 	}
 

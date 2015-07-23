@@ -265,6 +265,7 @@ Instruction* Parser::keyword(lexer::Token* tok) {
 		case lexer::Type::KEYWORD_FN: return this->keyword_fn(); break;
 		case lexer::Type::KEYWORD_IF: return this->keyword_if(); break;
 		case lexer::Type::KEYWORD_NEW: return this->keyword_new(); break;
+		case lexer::Type::KEYWORD_WHILE: return this->keyword_while(); break;
 		default: break;
 	}
 
@@ -366,6 +367,21 @@ Instruction* Parser::keyword_new() {
 	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
 
 	return this->lookahead(ins, ON::DEFAULT);
+}
+
+Instruction* Parser::keyword_while() {
+	Instruction* ins = new Instruction(Ins::WHILE);
+
+	ins->left = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR("{")
+	});
+
+	this->advance();
+	ins->right = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR("}")
+	});
+
+	return ins;
 }
 
 Instruction* Parser::assign(Instruction* prev) {

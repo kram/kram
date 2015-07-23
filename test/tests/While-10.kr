@@ -1,0 +1,17 @@
+i := 10
+
+while i > 0 {
+	IO::Println(i)
+	i := i - 1
+}
+
+// NUMBER<10>
+// NUMBER<9>
+// NUMBER<8>
+// NUMBER<7>
+// NUMBER<6>
+// NUMBER<5>
+// NUMBER<4>
+// NUMBER<3>
+// NUMBER<2>
+// NUMBER<1>

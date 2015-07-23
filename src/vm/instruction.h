@@ -44,6 +44,9 @@ enum class Ins {
 
 	// right
 	CREATE_INSTANCE,
+
+	// left (the condition), right (the content)
+	WHILE,
 };
 
 class Instruction {
@@ -77,6 +80,7 @@ class Instruction {
 				case Ins::DEFINE_CLASS: i = "DEFINE_CLASS"; break;
 				case Ins::FUNCTION: i = "FUNCTION"; break;
 				case Ins::CREATE_INSTANCE: i = "CREATE_INSTANCE"; break;
+				case Ins::WHILE: i = "WHILE"; break;
 			}
 
 			std::cout << std::string(ident, '\t') << "{\n";

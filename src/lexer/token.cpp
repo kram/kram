@@ -163,6 +163,7 @@ Type Token::Trans(std::string from) {
 		opTrans["if"] = Type::KEYWORD_IF;
 		opTrans["else"] = Type::KEYWORD_ELSE;
 		opTrans["new"] = Type::KEYWORD_NEW;
+		opTrans["while"] = Type::KEYWORD_WHILE;
 
 		built_op_trans = true;
 	}

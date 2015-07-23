@@ -29,6 +29,7 @@ class VM {
 	Value* push_class(Instruction*);
 	Value* function(Instruction*);
 	Value* create_instance(Instruction*);
+	Value* loop_while(Instruction*);
 
 	Value* call(Instruction*);
 	Value* call_library(Instruction*);
