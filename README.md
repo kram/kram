@@ -1,6 +1,6 @@
 # Kram - A class based scripting language
 
-[![Build Status](https://semaphoreci.com/api/v1/projects/4dd50ed2-e0bd-4694-924e-9d9a14fcae01/487253/shields_badge.svg)](https://semaphoreci.com/zegl/kram-cpp)
+[![Build Status](https://semaphoreci.com/api/v1/projects/e793760f-a344-47ce-bbf4-0af68745f97f/491932/shields_badge.svg)](https://semaphoreci.com/zegl/kram)
 
 **Clarification**, this project is currently just a prototype. Don't actually use it anywhere. Things will break.
 
