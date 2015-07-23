@@ -4,6 +4,8 @@
 
 #include "value.h"
 
+#include <iostream>
+
 Value::Value() {
 	type = Type::NUL;
 }
@@ -26,13 +28,11 @@ Value::Value(Type t) {
 			data.methods = new Methods();
 			break;
 
-		case Type::FUNCTION:
-			// data.single_method = new Method();
-			break;
+		case Type::FUNCTION: break;
 	}
 }
 
-Value::Value(Type t, int val) {
+Value::Value(Type t, double val) {
 	type = t;
 	data.number = val;
 
@@ -44,7 +44,7 @@ Value::Value(Type t, int val) {
 			break;
 
 		default:
-			std::cout << "Value::Value(Type, int) shold not be used with this type!\n";
+			std::cout << "Value::Value(Type, double) shold not be used with this type!\n";
 			exit(0);
 			break;
 	}
@@ -54,12 +54,6 @@ Value::Value(Type t, std::string val) {
 	type = t;
 
 	switch (type) {
-		/*case Type::NUL:
-		case Type::BOOL:
-		case Type::NUMBER:
-			data.number = 0;
-			break;*/
-
 		case Type::STRING:
 			data.strval = new std::string(val);
 			break;
@@ -68,12 +62,10 @@ Value::Value(Type t, std::string val) {
 			data.methods = new Methods();
 			break;
 
-		case Type::FUNCTION:
-			// data.single_method = new Method();
-			break;
+		case Type::FUNCTION: break;
 
 		default:
-			std::cout << "Value::Value(Type, int) shold not be used with this type!\n";
+			std::cout << "Value::Value(Type, std::string) shold not be used with this type!\n";
 			exit(0);
 			break;
 	}
@@ -97,12 +89,10 @@ void Value::set_type(Type type) {
 			data.methods = new Methods();
 			break;
 
-		case Type::FUNCTION:
-			// data.single_method = new Method();
-			break;
+		case Type::FUNCTION: break;
 
 		default:
-			std::cout << "Value::Value(Type, int) shold not be used with this type!\n";
+			std::cout << "Value::Value(Type) shold not be used with this type!\n";
 			exit(0);
 			break;
 	}

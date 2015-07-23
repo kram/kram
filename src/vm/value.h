@@ -6,7 +6,7 @@
 #define VM_VALUE_H
 
 #include <string>
-#include <iostream>
+#include <sstream>
 #include <unordered_map>
 #include <vector>
 
@@ -28,7 +28,7 @@ class Value {
 
 	protected:
 		union {
-			int number;
+			double number;
 			std::string* strval;
 			Methods* methods;
 			Method single_method;
@@ -41,12 +41,12 @@ class Value {
 		Value();
 		Value(Type);
 		Value(Type, std::string);
-		Value(Type, int);
+		Value(Type, double);
 
 		void set_type(Type);
 
 		std::string print(void) {
-			std::string res = "";
+			std::stringstream res;
 
 			std::string i = "UNKNOWN";
 			switch (this->type) {
@@ -58,34 +58,34 @@ class Value {
 				case Type::FUNCTION: i = "FUNCTION"; break;
 			}
 
-			res += i + "<";
+			res << i << "<";
 
 			if (this->type == Type::STRING) {
-				res += *this->data.strval;
+				res << *this->data.strval;
 			}
 
 			if (this->type == Type::NUMBER) {
-				res += std::to_string(this->data.number);
+				res << std::defaultfloat << this->data.number;
 			}
 
 			if (this->type == Type::BOOL) {
 				if (this->getBool()) {
-					res += "true";
+					res << "true";
 				} else {
-					res += "false";
+					res << "false";
 				}
 			}
 
-			res += ">";
+			res << ">";
 
-			return res;
+			return res.str();
 		};
 
 		std::string getString() {
 			return *this->data.strval;
 		}
 
-		int getNumber() {
+		double getNumber() {
 			return this->data.number;
 		}
 
