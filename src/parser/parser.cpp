@@ -260,6 +260,7 @@ Instruction* Parser::keyword(lexer::Token* tok) {
 		case lexer::Type::KEYWORD_CLASS: return this->keyword_class(); break;
 		case lexer::Type::KEYWORD_FN: return this->keyword_fn(); break;
 		case lexer::Type::KEYWORD_IF: return this->keyword_if(); break;
+		case lexer::Type::KEYWORD_NEW: return this->keyword_new(); break;
 		default: break;
 	}
 
@@ -338,6 +339,29 @@ Instruction* Parser::keyword_if() {
 	});
 
 	return ins;
+}
+
+Instruction* Parser::keyword_new() {
+	Instruction* ins = new Instruction(Ins::CREATE_INSTANCE);
+
+	this->advance();
+
+	// The name of the type/class to push
+	lexer::Token* n = this->get_and_expect_token(lexer::Token::NAME(""));
+	ins->name = n->value;
+
+	this->advance();
+	this->get_and_expect_token(lexer::Token::OPERATOR("("));
+
+	// All parameters
+	do {
+		ins->right = this->read_until(std::vector<lexer::Token>{
+			lexer::Token::OPERATOR(")"),
+			lexer::Token::OPERATOR(","),
+		}, ins->right);
+	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
+
+	return this->lookahead(ins, ON::DEFAULT);
 }
 
 Instruction* Parser::assign(Instruction* prev) {
@@ -491,11 +515,13 @@ Instruction* Parser::call(Instruction* prev, ON on) {
 	Instruction* ins = new Instruction(Ins::CALL);
 	ins->left = std::vector<Instruction*>{ prev };
 
-	// Read until ) or ,
-	ins->right = this->read_until(std::vector<lexer::Token>{
-		lexer::Token::OPERATOR(")"),
-		lexer::Token::OPERATOR(","),
-	});
+	// All parameters
+	do {
+		ins->right = this->read_until(std::vector<lexer::Token>{
+			lexer::Token::OPERATOR(")"),
+			lexer::Token::OPERATOR(","),
+		}, ins->right);
+	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
 
 	return this->lookahead(ins, ON::DEFAULT);
 }

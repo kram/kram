@@ -158,6 +158,7 @@ Type Token::Trans(std::string from) {
 		opTrans["fn"] = Type::KEYWORD_FN;
 		opTrans["if"] = Type::KEYWORD_IF;
 		opTrans["else"] = Type::KEYWORD_ELSE;
+		opTrans["new"] = Type::KEYWORD_NEW;
 
 		built_op_trans = true;
 	}

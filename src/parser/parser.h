@@ -40,6 +40,7 @@ class Parser {
 	Instruction* keyword_class();
 	Instruction* keyword_fn();
 	Instruction* keyword_if();
+	Instruction* keyword_new();
 
 	Instruction* name(lexer::Token*, ON);
 	

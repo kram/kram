@@ -24,6 +24,7 @@ namespace lexer {
 		KEYWORD_FN,
 		KEYWORD_IF,
 		KEYWORD_ELSE,
+		KEYWORD_NEW,
 
 		OPERATOR,
 	

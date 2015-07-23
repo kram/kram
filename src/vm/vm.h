@@ -24,10 +24,13 @@ class VM {
 	Value* ignore(Instruction*);
 	Value* push_class(Instruction*);
 	Value* function(Instruction*);
+	Value* create_instance(Instruction*);
 
 	Value* call(Instruction*);
 	Value* call_library(Instruction*);
 	Value* call_builtin(Instruction*);
+
+	std::vector<Value*> run_vector(std::vector<Instruction*>);
 
 	void env_pop();
 	void env_push();

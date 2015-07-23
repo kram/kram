@@ -37,6 +37,9 @@ enum class Ins {
 
 	// right (the content)
 	FUNCTION,
+
+	// right
+	CREATE_INSTANCE,
 };
 
 class Instruction {
@@ -69,6 +72,7 @@ class Instruction {
 				case Ins::CALL: i = "CALL"; break;
 				case Ins::DEFINE_CLASS: i = "DEFINE_CLASS"; break;
 				case Ins::FUNCTION: i = "FUNCTION"; break;
+				case Ins::CREATE_INSTANCE: i = "CREATE_INSTANCE"; break;
 			}
 
 			std::cout << std::string(ident, '\t') << "{\n";

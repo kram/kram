@@ -6,6 +6,7 @@
 #include "libraries/user/function.h"
 #include "libraries/IO/io.h"
 #include "libraries/std/Number.h"
+#include "libraries/std/Map.h"
 
 void VM::set_name(std::string name, Value* val) {
 	this->environment->set(name, val);
@@ -192,6 +193,12 @@ Value* VM::function(Instruction* ins) {
 	return fn;
 }
 
+Value* VM::create_instance(Instruction* ins) {
+	Value* original = this->get_name(ins->name);
+	Value* instance = original->execMethod("new", this->run_vector(ins->right));
+	return instance;
+}
+
 Value* VM::call(Instruction* ins) {
 
 	this->env_push();
@@ -203,10 +210,8 @@ Value* VM::call(Instruction* ins) {
 
 	if (fun->type != Type::REFERENCE && fun->type != Type::FUNCTION) {
 		res = this->call_library(ins);
-	} else if (ins->right.size() == 1) {
-		res = fun->execMethod("exec", std::vector<Value*>{ this->run(ins->right[0]) });
 	} else {
-		res = fun->execMethod("exec", std::vector<Value*>{ new Value() });		
+		res = fun->execMethod("exec", this->run_vector(ins->right));
 	}
 
 	this->env_pop();
@@ -226,12 +231,8 @@ Value* VM::call_library(Instruction* ins) {
 		return this->call_builtin(ins);
 	}
 
-	// Get the first parameter
-	// TODO: Allow for more parameters (and none)
-	Value* params = this->run(ins->right[0]);
-
-	// Call the method
-	return lib->execMethod(name->getString(), std::vector<Value*>{ params });
+	// Execute the parameters and call the method
+	return lib->execMethod(name->getString(), this->run_vector(ins->right));
 }
 
 Value* VM::call_builtin(Instruction* ins) {
@@ -261,6 +262,16 @@ Value* VM::call_builtin(Instruction* ins) {
 	return lib->execMethod(name->getString(), std::vector<Value*>{ builtin_value });
 }
 
+std::vector<Value*> VM::run_vector(std::vector<Instruction*> instructions) {
+	std::vector<Value*> res;
+
+	for (Instruction* i : instructions) {
+		res.push_back(this->run(i));
+	}
+
+	return res;
+}
+
 Value* VM::run(Instruction* ins) {
 	switch (ins->instruction) {
 		case Ins::ASSIGN:     return this->assign(ins);     break;
@@ -272,6 +283,7 @@ Value* VM::run(Instruction* ins) {
 		case Ins::PUSH_CLASS: return this->push_class(ins); break;
 		case Ins::CALL:       return this->call(ins);       break;
 		case Ins::FUNCTION:   return this->function(ins);   break;
+		case Ins::CREATE_INSTANCE: return this->create_instance(ins); break;
 		default: std::cout << "Unknown instruction";        break;
 	}
 
@@ -304,6 +316,11 @@ void VM::boot(std::vector<Instruction*> ins) {
 	number->set_type(Type::REFERENCE);
 	number->init();
 	this->environment->set_root("Number", number);
+
+	Map* map = new Map();
+	map->set_type(Type::REFERENCE);
+	map->init();
+	this->environment->set_root("Map", map);
 
 	this->run(ins);
 }
