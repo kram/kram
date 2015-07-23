@@ -1,0 +1,48 @@
+// Create a new variable
+num := 10
+
+// Update an existing one
+num = 20
+
+// Is not valid since the type is different
+num = false
+
+// Create a new function
+anon := fn() {
+	IO::Println("Anonymous function")
+}
+
+// Execute function
+anon()
+
+class Person {
+	// Public value
+	// The type will automatically be set to "String"
+	pub name := "Unnamed";
+
+	// Private value that is not initialized
+	// The type is "Number"
+	age : Number;
+
+	pub fn setAge(in Number) {
+		self.age = in;
+	}
+
+	pub fn getAge() {
+		// The last value is automatically returned
+		self.age
+	}
+}
+
+author := new Person()
+author.setAge(20)
+author.name = "Gustav"
+
+// Default parameters
+myFun := fn(name = "Harry") {}
+
+// Named arguments
+myFun(name = "Potter")
+
+// Pretty numbers
+huge_number := 1 000 000 // 1000000
