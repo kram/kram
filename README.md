@@ -7,19 +7,20 @@
 ## Example
 
 ```go
-IO::Print("Hello World!")
+IO::Println("Hello World!")
 
-age =: 100
+age := 100
 
 if age > 90 {
-    IO::Print("You're old! :)")
+    IO::Println("You're old! :)")
 }
 
-get_tree := fn() {
-	1 + 2 * 3 - 16.Sqrt()
+get_three := fn() {
+    1 + 2 * 3 - 16.Sqrt()
 }
 
 IO::Println(get_three()) // Prints 3
+
 ```
 
 ## Features
