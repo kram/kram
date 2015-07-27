@@ -19,6 +19,7 @@ enum class Type {
 	BOOL,
 	REFERENCE,
 	FUNCTION,
+	CLASS,
 };
 
 class Value {
@@ -56,6 +57,7 @@ class Value {
 				case Type::BOOL: i = "BOOL"; break;
 				case Type::REFERENCE: i = "REFERENCE"; break;
 				case Type::FUNCTION: i = "FUNCTION"; break;
+				case Type::CLASS: i = "CLASS"; break;
 			}
 
 			res << i << "<";
@@ -75,6 +77,11 @@ class Value {
 					res << "false";
 				}
 			}
+
+			/*if (this->type == Type::CLASS) {
+				Class* cl = static_cast<Class*>(this);
+				res << cl->print_values();
+			}*/
 
 			res << ">";
 

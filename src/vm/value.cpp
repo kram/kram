@@ -28,7 +28,9 @@ Value::Value(Type t) {
 			data.methods = new Methods();
 			break;
 
-		case Type::FUNCTION: break;
+		case Type::FUNCTION:
+		case Type::CLASS:
+			break;
 	}
 }
 
@@ -44,7 +46,7 @@ Value::Value(Type t, double val) {
 			break;
 
 		default:
-			std::cout << "Value::Value(Type, double) shold not be used with this type!\n";
+			std::cout << "Value::Value(Type, double) should not be used with this type!\n";
 			exit(0);
 			break;
 	}
@@ -62,10 +64,12 @@ Value::Value(Type t, std::string val) {
 			data.methods = new Methods();
 			break;
 
-		case Type::FUNCTION: break;
+		case Type::FUNCTION:
+		case Type::CLASS:
+			break;
 
 		default:
-			std::cout << "Value::Value(Type, std::string) shold not be used with this type!\n";
+			std::cout << "Value::Value(Type, std::string) should not be used with this type!\n";
 			exit(0);
 			break;
 	}
@@ -89,10 +93,12 @@ void Value::set_type(Type type) {
 			data.methods = new Methods();
 			break;
 
-		case Type::FUNCTION: break;
+		case Type::FUNCTION:
+		case Type::CLASS:
+			break;
 
 		default:
-			std::cout << "Value::Value(Type) shold not be used with this type!\n";
+			std::cout << "Value::Value(Type) should not be used with this type!\n";
 			exit(0);
 			break;
 	}
@@ -100,9 +106,14 @@ void Value::set_type(Type type) {
 
 Value* Value::execMethod(std::string name, std::vector<Value*> val) {
 
-	if (this->type != Type::REFERENCE && this->type != Type::FUNCTION) {
-		std::cout << "Is not of type REFERENCE or FUNCTION\n";
-		std::cout << this->print() << "\n";
+	if (this->type != Type::REFERENCE && this->type != Type::FUNCTION && this->type != Type::CLASS) {
+		std::cout << "Can not execute method '" << name << "': Parent is not of type REFERENCE, CLASS, or FUNCTION\n";
+		std::cout << this->print() << "\n";	
+		exit(0);
+	}
+
+	if (this->type == Type::CLASS) {
+		std::cout << "Value::execMethod() Should not be used together with Type::CLASS. This is an error, please report it! :)\n";
 		exit(0);
 	}
 

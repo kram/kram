@@ -12,14 +12,21 @@
 #include "instruction.h"
 #include "environment.h"
 
+namespace vm {
+	enum class ON {
+		DEFAULT,
+		PUSHED_CLASS,
+	};
+}
+
 class VM {
 
 	std::vector<Value*> lib_stack;
 	Environment* environment;
 
-	Value* assign(Instruction*);
+	Value* assign(Instruction*, vm::ON);
 	Value* literal(Instruction*);
-	Value* name(Instruction*);
+	Value* name(Instruction*, vm::ON);
 
 	Value* math(Instruction*);
 	Value* math_number(Instruction*, Value*, Value*);
@@ -31,7 +38,9 @@ class VM {
 	Value* create_instance(Instruction*);
 	Value* loop_while(Instruction*);
 
-	Value* call(Instruction*);
+	Value* define_class(Instruction*);
+
+	Value* call(Instruction*, vm::ON);
 	Value* call_library(Instruction*);
 	Value* call_builtin(Instruction*);
 
@@ -45,10 +54,13 @@ class VM {
 
 		// Adressable from libraries and what not
 		Value* run(Instruction*);
+		Value* run(Instruction*, vm::ON);
 		Value* run(std::vector<Instruction*>);
 
 		void set_name(std::string, Value*);
+		void set_name_root(std::string, Value*);
 		Value* get_name(std::string);
+		Value* get_name_root(std::string);
 };
 
 #endif

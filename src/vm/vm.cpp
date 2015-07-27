@@ -6,30 +6,28 @@
 
 #include <iostream>
 
-//#include "libraries/user/class.h"
+#include "libraries/user/class.h"
 #include "libraries/user/function.h"
 #include "libraries/IO/io.h"
 #include "libraries/std/Number.h"
 #include "libraries/std/Map.h"
 
-void VM::set_name(std::string name, Value* val) {
-	this->environment->set(name, val);
-}
+Value* VM::assign(Instruction* ins, vm::ON on) {
 
-Value* VM::get_name(std::string name) {
-	return this->environment->get(name);
-}
+	if (on == vm::ON::PUSHED_CLASS) {
+		Value* top = this->lib_stack.back();
 
-void VM::env_pop() {
-	this->environment = this->environment->pop();
-}
+		if (top->type != Type::CLASS) {
+			std::cout << "Class-assignment is not allowed on anythign other than user-defined classes\n";
+			exit(0);
+		}
 
-void VM::env_push() {
-	this->environment = this->environment->push();
-}
-
-Value* VM::assign(Instruction* ins) {
-	this->set_name(ins->name, this->run(ins->right[0]));
+		// Convert top to a Class*
+		Class* cl = static_cast<Class*>(top);
+		cl->set_value(ins->name, this->run(ins->right[0]));
+	} else {
+		this->set_name(ins->name, this->run(ins->right[0]));
+	}
 
 	return new Value(Type::NUL);
 }
@@ -39,7 +37,20 @@ Value* VM::literal(Instruction* ins) {
 	return ins->value;
 }
 
-Value* VM::name(Instruction* ins) {
+Value* VM::name(Instruction* ins, vm::ON on) {
+
+	if (on == vm::ON::PUSHED_CLASS) {
+		Value* top = this->lib_stack.back();
+
+		if (top->type != Type::CLASS) {
+			std::cout << "Class-retreiving is not allowed on anythign other than user-defined classes\n";
+			exit(0);
+		}
+
+		// Convert top to a Class*
+		Class* cl = static_cast<Class*>(top);
+		return cl->get_value(ins->name);
+	}
 
 	// TODO: This method needs to be reworked to work properly...
 
@@ -199,8 +210,17 @@ Value* VM::push_class(Instruction* ins) {
 	// Add a pointer to the class to the back (aka top) of the stack
 	this->lib_stack.push_back(push);
 
+	if (ins->right.size() != 1) {
+		std::cout << "push_class() expects exactly 1 child. This is a bug, please report it! :)\n";
+		exit(0);
+	}
+
 	// Run the right part
-	return this->run(ins->right);
+	auto res = this->run(ins->right[0], vm::ON::PUSHED_CLASS);
+
+	this->lib_stack.pop_back();
+
+	return res;
 }
 
 Value* VM::function(Instruction* ins) {
@@ -216,18 +236,48 @@ Value* VM::function(Instruction* ins) {
 	return fn;
 }
 
+Value* VM::define_class(Instruction* ins) {
+	Class* cl = new Class();
+	cl->set_type(Type::CLASS);
+	cl->init();
+
+	cl->vm = this;
+
+	for (Instruction* sub : ins->right) {
+		if (sub->instruction != Ins::ASSIGN) {
+			std::cout << "Class definitions can only contain assignments\n";
+			exit(0);
+		}
+
+		cl->set_value(sub->name, this->run(sub->right[0]));
+	}
+
+	// Set in the global scope
+	this->set_name_root(ins->name, cl);
+
+	return cl;
+}
+
 Value* VM::create_instance(Instruction* ins) {
 	Value* original = this->get_name(ins->name);
+
+	// Kram-defined classes
+	if (original->type == Type::CLASS) {
+		// Cast as class
+		Class* cl = static_cast<Class*>(original);
+		return cl->new_instance();
+	}
+
 	Value* instance = original->execMethod("new", this->run_vector(ins->right));
 	return instance;
 }
 
-Value* VM::call(Instruction* ins) {
+Value* VM::call(Instruction* ins, vm::ON on) {
 
 	this->env_push();
 
 	// Get the method name or function declaration
-	Value* fun = this->name(ins->left[0]);
+	Value* fun = this->name(ins->left[0], vm::ON::DEFAULT);
 
 	Value* res;
 
@@ -245,7 +295,7 @@ Value* VM::call(Instruction* ins) {
 Value* VM::call_library(Instruction* ins) {
 
 	// Get the method name
-	Value* name = this->name(ins->left[0]);
+	Value* name = this->name(ins->left[0], vm::ON::DEFAULT);
 
 	// Get the library from the top of the stack
 	Value* lib = this->lib_stack[this->lib_stack.size() - 1];
@@ -261,7 +311,7 @@ Value* VM::call_library(Instruction* ins) {
 Value* VM::call_builtin(Instruction* ins) {
 
 	// Get the method name
-	Value* name = this->name(ins->left[0]);
+	Value* name = this->name(ins->left[0], vm::ON::DEFAULT);
 
 	// Get the value from the top of the stack
 	Value* builtin_value = this->lib_stack[this->lib_stack.size() - 1];
@@ -296,18 +346,23 @@ std::vector<Value*> VM::run_vector(std::vector<Instruction*> instructions) {
 }
 
 Value* VM::run(Instruction* ins) {
+	return this->run(ins, vm::ON::DEFAULT);
+}
+
+Value* VM::run(Instruction* ins, vm::ON on) {
 	switch (ins->instruction) {
-		case Ins::ASSIGN:     return this->assign(ins);     break;
+		case Ins::ASSIGN:     return this->assign(ins, on);     break;
 		case Ins::LITERAL:    return this->literal(ins);    break;
-		case Ins::NAME:       return this->name(ins);       break;
+		case Ins::NAME:       return this->name(ins, on);       break;
 		case Ins::MATH:       return this->math(ins);       break;
 		case Ins::IF:         return this->if_case(ins);    break;
 		case Ins::IGNORE:     return this->ignore(ins);     break;
 		case Ins::PUSH_CLASS: return this->push_class(ins); break;
-		case Ins::CALL:       return this->call(ins);       break;
+		case Ins::CALL:       return this->call(ins, on);       break;
 		case Ins::FUNCTION:   return this->function(ins);   break;
 		case Ins::CREATE_INSTANCE: return this->create_instance(ins); break;
 		case Ins::WHILE: return this->loop_while(ins); break;
+		case Ins::DEFINE_CLASS: return this->define_class(ins); break;
 		default: std::cout << "Unknown instruction";        break;
 	}
 
@@ -319,7 +374,7 @@ Value* VM::run(std::vector<Instruction*> ins) {
 	Value* last;
 
 	for (Instruction* i : ins) {
-		last = this->run(i);
+		last = this->run(i, vm::ON::DEFAULT);
 	}
 
 	return last;

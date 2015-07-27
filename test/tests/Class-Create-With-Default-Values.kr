@@ -1,0 +1,14 @@
+class Human {
+	name := "Default"
+	age : Number
+}
+
+gus := new Human()
+gus.name := "Gustav"
+
+IO::Println(gus.name) // STRING<Gustav>
+IO::Println(gus.age) // NUMBER<0>
+
+gus.age := 20
+
+IO::Println(gus.age) // NUMBER<20>

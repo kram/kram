@@ -1,0 +1,9 @@
+class Empty {
+
+}
+
+cl := new Empty()
+
+cl.a := "Test"
+
+IO::Println(cl.a) // STRING<Test>
