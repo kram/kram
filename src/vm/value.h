@@ -67,7 +67,7 @@ class Value {
 			}
 
 			if (this->type == Type::NUMBER) {
-				res << std::defaultfloat << this->data.number;
+				res << this->data.number;
 			}
 
 			if (this->type == Type::BOOL) {
