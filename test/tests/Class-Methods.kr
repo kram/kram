@@ -1,0 +1,16 @@
+class Yolo {
+	swag := fn() {
+		IO::Println("YOLOSWAG")
+	}
+}
+
+swag := fn() {
+	IO::Println("swag")
+}
+
+yolo := new Yolo()
+
+swag() // STRING<swag>
+yolo.swag() // STRING<YOLOSWAG>
+swag() // STRING<swag>
+yolo.swag() // STRING<YOLOSWAG>

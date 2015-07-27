@@ -42,7 +42,7 @@ class VM {
 
 	Value* call(Instruction*, vm::ON);
 	Value* call_library(Instruction*);
-	Value* call_builtin(Instruction*);
+	Value* call_builtin(Instruction*, Value*);
 
 	std::vector<Value*> run_vector(std::vector<Instruction*>);
 

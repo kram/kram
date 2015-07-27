@@ -20,6 +20,7 @@ enum class Type {
 	REFERENCE,
 	FUNCTION,
 	CLASS,
+	NAME,
 };
 
 class Value {
@@ -58,6 +59,7 @@ class Value {
 				case Type::REFERENCE: i = "REFERENCE"; break;
 				case Type::FUNCTION: i = "FUNCTION"; break;
 				case Type::CLASS: i = "CLASS"; break;
+				case Type::NAME: i = "NAME"; break;
 			}
 
 			res << i << "<";
@@ -108,8 +110,9 @@ class Value {
 		void init(void) {}
 
 		// #justlibrarythings
-		Value* execMethod(std::string, std::vector<Value*>);
+		Value* exec_method(std::string, std::vector<Value*>);
 		void add_method(std::string, Method);
+		bool has_method(std::string);
 };
 
 #endif

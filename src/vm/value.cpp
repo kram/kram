@@ -21,6 +21,7 @@ Value::Value(Type t) {
 			break;
 
 		case Type::STRING:
+		case Type::NAME:
 			data.strval = new std::string();
 			break;
 
@@ -57,6 +58,7 @@ Value::Value(Type t, std::string val) {
 
 	switch (type) {
 		case Type::STRING:
+		case Type::NAME:
 			data.strval = new std::string(val);
 			break;
 
@@ -86,6 +88,7 @@ void Value::set_type(Type type) {
 			break;
 
 		case Type::STRING:
+		case Type::NAME:
 			data.strval = new std::string();
 			break;
 
@@ -104,7 +107,7 @@ void Value::set_type(Type type) {
 	}
 }
 
-Value* Value::execMethod(std::string name, std::vector<Value*> val) {
+Value* Value::exec_method(std::string name, std::vector<Value*> val) {
 
 	if (this->type != Type::REFERENCE && this->type != Type::FUNCTION && this->type != Type::CLASS) {
 		std::cout << "Can not execute method '" << name << "': Parent is not of type REFERENCE, CLASS, or FUNCTION\n";
@@ -113,7 +116,7 @@ Value* Value::execMethod(std::string name, std::vector<Value*> val) {
 	}
 
 	if (this->type == Type::CLASS) {
-		std::cout << "Value::execMethod() Should not be used together with Type::CLASS. This is an error, please report it! :)\n";
+		std::cout << "Value::exec_method() Should not be used together with Type::CLASS. This is an error, please report it! :)\n";
 		exit(0);
 	}
 
@@ -133,4 +136,13 @@ Value* Value::execMethod(std::string name, std::vector<Value*> val) {
 
 void Value::add_method(std::string name, Method m) {
 	this->data.methods->insert( {{name, m}} );
+}
+
+bool Value::has_method(std::string name) {
+
+	if (this->data.methods->find(name) == this->data.methods->end()) {
+		return false;
+	}
+
+	return true;
 }

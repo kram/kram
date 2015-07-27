@@ -39,26 +39,39 @@ Value* VM::literal(Instruction* ins) {
 
 Value* VM::name(Instruction* ins, vm::ON on) {
 
+	// Check if the value exists on the pushed class
 	if (on == vm::ON::PUSHED_CLASS) {
 		Value* top = this->lib_stack.back();
 
-		if (top->type != Type::CLASS) {
-			std::cout << "Class-retreiving is not allowed on anything other than user-defined classes\n";
+		// Get value from Class directly
+		if (top->type == Type::CLASS) {
+			Class* cl = static_cast<Class*>(top);
+			return cl->get_value(ins->name);
+		}
+
+		// Create a Value of type NAME that can be used later
+		if (top->type == Type::REFERENCE) {
+
+			if (top->has_method(ins->name)) {
+				return new Value(Type::NAME, ins->name);
+			}
+
+			std::cout << "REFERENCE: Undefined name: " << ins->name << "\n";
 			exit(0);
 		}
 
-		// Convert top to a Class*
-		Class* cl = static_cast<Class*>(top);
-		return cl->get_value(ins->name);
+		// The type is something else, usually a builtin (eg. NUMBER)
+
+		return new Value(Type::NAME, ins->name);
 	}
 
-	// TODO: This method needs to be reworked to work properly...
-
+	// Check if the value exists on the stack
 	if (this->environment->has(ins->name)) {
 		return this->get_name(ins->name);
 	}
 
-	return new Value(Type::STRING, ins->name);
+	std::cout << "DEFAULT: Undefined name: " << ins->name << "\n";
+	exit(0);
 }
 
 Value* VM::math(Instruction* ins) {
@@ -268,7 +281,7 @@ Value* VM::create_instance(Instruction* ins) {
 		return cl->new_instance();
 	}
 
-	Value* instance = original->execMethod("new", this->run_vector(ins->right));
+	Value* instance = original->exec_method("new", this->run_vector(ins->right));
 	return instance;
 }
 
@@ -279,12 +292,32 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 	// Get the method name or function declaration
 	Value* fun = this->name(ins->left[0], on);
 
+	// Result pointer
 	Value* res;
 
-	if (fun->type != Type::REFERENCE && fun->type != Type::FUNCTION) {
-		res = this->call_library(ins);
+	// Function
+	if (fun->type == Type::FUNCTION) {
+		res = fun->exec_method("exec", this->run_vector(ins->right));
+
+	// Pushed classes (the class has to be fetched from the stack)
+	} else if (on == vm::ON::PUSHED_CLASS && fun->type == Type::NAME) {
+		Value* top = this->lib_stack.back();
+
+		switch (top->type) {
+			case Type::NUMBER:
+			case Type::STRING:
+			case Type::BOOL:
+				res = this->call_builtin(ins, fun);
+				break;
+
+			default:
+				res = top->exec_method(fun->getString(), this->run_vector(ins->right));
+				break;
+		}
+
+	// Default action is built in libraries
 	} else {
-		res = fun->execMethod("exec", this->run_vector(ins->right));
+		res = this->call_library(ins);
 	}
 
 	this->env_pop();
@@ -298,23 +331,16 @@ Value* VM::call_library(Instruction* ins) {
 	Value* name = this->name(ins->left[0], vm::ON::DEFAULT);
 
 	// Get the library from the top of the stack
-	Value* lib = this->lib_stack[this->lib_stack.size() - 1];
-
-	if (lib->type == Type::NUMBER) {
-		return this->call_builtin(ins);
-	}
+	Value* lib = this->lib_stack.back();
 
 	// Execute the parameters and call the method
-	return lib->execMethod(name->getString(), this->run_vector(ins->right));
+	return lib->exec_method(name->getString(), this->run_vector(ins->right));
 }
 
-Value* VM::call_builtin(Instruction* ins) {
-
-	// Get the method name
-	Value* name = this->name(ins->left[0], vm::ON::DEFAULT);
+Value* VM::call_builtin(Instruction* ins, Value* name) {
 
 	// Get the value from the top of the stack
-	Value* builtin_value = this->lib_stack[this->lib_stack.size() - 1];
+	Value* builtin_value = this->lib_stack.back();
 
 	// Get library
 	Value* lib;
@@ -332,7 +358,7 @@ Value* VM::call_builtin(Instruction* ins) {
 	// TODO: Parameters
 
 	// Call the method
-	return lib->execMethod(name->getString(), std::vector<Value*>{ builtin_value });
+	return lib->exec_method(name->getString(), std::vector<Value*>{ builtin_value });
 }
 
 std::vector<Value*> VM::run_vector(std::vector<Instruction*> instructions) {
