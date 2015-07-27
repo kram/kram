@@ -18,7 +18,7 @@ Value* VM::assign(Instruction* ins, vm::ON on) {
 		Value* top = this->lib_stack.back();
 
 		if (top->type != Type::CLASS) {
-			std::cout << "Class-assignment is not allowed on anythign other than user-defined classes\n";
+			std::cout << "Class-assignment is not allowed on anything other than user-defined classes\n";
 			exit(0);
 		}
 
@@ -43,7 +43,7 @@ Value* VM::name(Instruction* ins, vm::ON on) {
 		Value* top = this->lib_stack.back();
 
 		if (top->type != Type::CLASS) {
-			std::cout << "Class-retreiving is not allowed on anythign other than user-defined classes\n";
+			std::cout << "Class-retreiving is not allowed on anything other than user-defined classes\n";
 			exit(0);
 		}
 
@@ -277,7 +277,7 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 	this->env_push();
 
 	// Get the method name or function declaration
-	Value* fun = this->name(ins->left[0], vm::ON::DEFAULT);
+	Value* fun = this->name(ins->left[0], on);
 
 	Value* res;
 
