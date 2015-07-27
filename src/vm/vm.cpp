@@ -66,12 +66,7 @@ Value* VM::name(Instruction* ins, vm::ON on) {
 	}
 
 	// Check if the value exists on the stack
-	if (this->environment->has(ins->name)) {
-		return this->get_name(ins->name);
-	}
-
-	std::cout << "DEFAULT: Undefined name: " << ins->name << "\n";
-	exit(0);
+	return this->get_name(ins->name);
 }
 
 Value* VM::math(Instruction* ins) {
@@ -343,17 +338,22 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 	Value* builtin_value = this->lib_stack.back();
 
 	// Get library
-	Value* lib;
+	std::string lib_name;// = new std::string;
 
 	switch (builtin_value->type) {
 		case Type::NUMBER:
-			lib = this->get_name("Number");
+			//lib_name = new std::string("Number");
+			lib_name = "Number";
 			break;
 		default:
 			std::cout << "call_builtin(): Can not call on " << builtin_value->print() << "\n";
 			exit(0);
 			break;
 	}
+
+	Value* lib = this->get_name(lib_name);
+
+	//delete lib_name;
 
 	// TODO: Parameters
 

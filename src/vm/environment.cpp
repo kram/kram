@@ -7,11 +7,11 @@
 
 Environment::Environment() {
 	is_root = false;
+	names = new std::unordered_map<std::string, Value*>;
 }
 
-void Environment::set(std::string name, Value* val) {
-	this->names[name] = val;
-	this->all_names[name] = val;
+void Environment::set(const std::string &name, Value* val) {
+	(*this->names)[name] = val;
 }
 
 void Environment::set_root(std::string name, Value* val) {
@@ -22,17 +22,21 @@ void Environment::set_root(std::string name, Value* val) {
 	}
 }
 
-Value* Environment::get(std::string name) {
+Value* Environment::get(const std::string &name) {
 
-	if (!this->has(name)) {
+	if (this->has(name)) {
+		return (*this->names)[name];
+	}
+
+	if (this->is_root) {
 		std::cout << "Unknown name: " << name << "\n";
 		exit(0);
 	}
 
-	return this->all_names[name];
+	return this->parent->get(name);
 }
 
-Value* Environment::get_root(std::string name) {
+Value* Environment::get_root(const std::string &name) {
 	if (this->is_root) {
 		return this->get(name);
 	}
@@ -43,7 +47,6 @@ Value* Environment::get_root(std::string name) {
 Environment* Environment::push() {
 	Environment* env = new Environment();
 	env->parent = this;
-	env->all_names = this->all_names;
 
 	if (this->is_root) {
 		env->root = this;
@@ -63,9 +66,9 @@ Environment* Environment::pop() {
 	return this->parent;
 }
 
-bool Environment::has(std::string name) {
+bool Environment::has(const std::string &name) {
 
-	if (this->all_names.find(name) == this->names.end()) {
+	if (this->names->count(name) == 0) {
 		return false;
 	}
 

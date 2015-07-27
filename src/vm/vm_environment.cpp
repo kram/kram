@@ -4,7 +4,7 @@
 
 #include "vm.h"
 
-void VM::set_name(std::string name, Value* val) {
+void VM::set_name(const std::string& name, Value* val) {
 	this->environment->set(name, val);
 }
 
@@ -12,11 +12,11 @@ void VM::set_name_root(std::string name, Value* val) {
 	this->environment->set_root(name, val);
 }
 
-Value* VM::get_name(std::string name) {
+Value* VM::get_name(const std::string& name) {
 	return this->environment->get(name);
 }
 
-Value* VM::get_name_root(std::string name) {
+Value* VM::get_name_root(const std::string& name) {
 	return this->environment->get_root(name);
 }
 

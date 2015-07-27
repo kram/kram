@@ -6,8 +6,7 @@
 #include "value.h"
 
 class Environment {
-	std::unordered_map<std::string, Value*> names;
-	std::unordered_map<std::string, Value*> all_names;
+	std::unordered_map<std::string, Value*>* names;
 
 	public:
 
@@ -17,13 +16,13 @@ class Environment {
 		Environment* root;
 		bool is_root;
 
-		void set(std::string, Value*);
+		void set(const std::string&, Value*);
 		void set_root(std::string, Value*);
 
-		Value* get(std::string);
-		Value* get_root(std::string);
+		Value* get(const std::string&);
+		Value* get_root(const std::string&);
 
-		bool has(std::string);
+		bool has(const std::string&);
 
 		Environment* push();
 		Environment* pop();
