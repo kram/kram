@@ -196,6 +196,7 @@ Instruction* Parser::symbol(lexer::Token* tok, ON on) {
 		case lexer::Type::NUMBER: return this->number(tok, on); break;
 		case lexer::Type::STRING: return this->string(tok, on); break;
 		case lexer::Type::NAME: return this->name(tok, on); break;
+		case lexer::Type::BOOL: return this->boolean(tok, on); break;
 
 		case lexer::Type::T_EOL:
 		case lexer::Type::T_EOF:
@@ -425,6 +426,8 @@ Instruction* Parser::assign_with_type(Instruction* prev) {
 		ins->right.push_back(this->number_init());
 	} else if (type == "String") {
 		ins->right.push_back(this->string_init());
+	} else if (type == "Bool") {
+		ins->right.push_back(this->boolean_init());
 	} else {
 		std::cout << "Does not know how to init type " << type << " after :";
 		exit(0);
@@ -438,6 +441,29 @@ Instruction* Parser::name(lexer::Token* tok, ON on) {
 	ins->name = tok->value;
 
 	return this->lookahead(ins, on);
+}
+
+Instruction* Parser::boolean(lexer::Token* tok, ON on) {
+	Instruction* ins = this->boolean_init(tok->value);
+	return this->lookahead(ins, on);
+}
+
+Instruction* Parser::boolean_init(std::string val) {
+	Instruction* ins = new Instruction(Ins::LITERAL);
+
+	if (val == "true") {
+		ins->value = new Value(Type::BOOL, 1);
+	} else {
+		ins->value = new Value(Type::BOOL, 0);
+	}
+
+	return ins;
+}
+
+Instruction* Parser::boolean_init() {
+	Instruction* ins = new Instruction(Ins::LITERAL);
+	ins->value = new Value(Type::BOOL, 0);
+	return ins;
 }
 
 Instruction* Parser::number(lexer::Token* tok, ON on) {

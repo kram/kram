@@ -49,6 +49,10 @@ class Parser {
 
 	Instruction* name(lexer::Token*, ON);
 	
+	Instruction* boolean(lexer::Token*, ON);
+	Instruction* boolean_init(std::string);
+	Instruction* boolean_init();
+	
 	Instruction* number(lexer::Token*, ON);
 	Instruction* number_init(std::string);
 	Instruction* number_init();
