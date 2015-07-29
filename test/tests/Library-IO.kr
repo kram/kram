@@ -1,0 +1,8 @@
+// PrintPrintln
+// STRING<Debug>
+
+IO::Print("Print")
+
+IO::Println("Println")
+
+IO::Debug("Debug")

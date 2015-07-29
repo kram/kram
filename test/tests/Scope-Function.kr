@@ -1,11 +1,11 @@
 req := fn(loop) {
-	IO::Println(loop)
+	IO::Debug(loop)
 
 	if loop > 0 {
 		req(loop - 1)
 	}
 
-	IO::Println(loop)
+	IO::Debug(loop)
 }
 
 req(5)

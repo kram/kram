@@ -1,3 +1,3 @@
 num := 100
 
-IO::Println(100) // NUMBER<100>
+IO::Debug(100) // NUMBER<100>

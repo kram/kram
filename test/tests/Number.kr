@@ -1,4 +1,4 @@
-IO::Println(1) // NUMBER<1>
-IO::Println(12) // NUMBER<12>
-IO::Println(12.3) // NUMBER<12.3>
-IO::Println(12.34) // NUMBER<12.34>
+IO::Debug(1) // NUMBER<1>
+IO::Debug(12) // NUMBER<12>
+IO::Debug(12.3) // NUMBER<12.3>
+IO::Debug(12.34) // NUMBER<12.34>

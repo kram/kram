@@ -1,11 +1,11 @@
 class Yolo {
 	swag := fn() {
-		IO::Println("YOLOSWAG")
+		IO::Debug("YOLOSWAG")
 	}
 }
 
 swag := fn() {
-	IO::Println("swag")
+	IO::Debug("swag")
 }
 
 yolo := new Yolo()

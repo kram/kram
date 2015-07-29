@@ -47,48 +47,7 @@ class Value {
 
 		void set_type(Type);
 
-		std::string print(void) {
-			std::stringstream res;
-
-			std::string i = "UNKNOWN";
-			switch (this->type) {
-				case Type::NUL: i = "NUL"; break;
-				case Type::STRING: i = "STRING"; break;
-				case Type::NUMBER: i = "NUMBER"; break;
-				case Type::BOOL: i = "BOOL"; break;
-				case Type::REFERENCE: i = "REFERENCE"; break;
-				case Type::FUNCTION: i = "FUNCTION"; break;
-				case Type::CLASS: i = "CLASS"; break;
-				case Type::NAME: i = "NAME"; break;
-			}
-
-			res << i << "<";
-
-			if (this->type == Type::STRING) {
-				res << *this->data.strval;
-			}
-
-			if (this->type == Type::NUMBER) {
-				res << this->data.number;
-			}
-
-			if (this->type == Type::BOOL) {
-				if (this->getBool()) {
-					res << "true";
-				} else {
-					res << "false";
-				}
-			}
-
-			/*if (this->type == Type::CLASS) {
-				Class* cl = static_cast<Class*>(this);
-				res << cl->print_values();
-			}*/
-
-			res << ">";
-
-			return res.str();
-		};
+		std::string print(bool print_type = false);
 
 		std::string getString() {
 			return *this->data.strval;

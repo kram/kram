@@ -4,4 +4,4 @@ animals.Set("a", "ant")
 animals.Set("b", "baboon")
 animals.Set("c", "cobra")
 
-IO::Println(animals.Get("b")) // STRING<baboon>
+IO::Debug(animals.Get("b")) // STRING<baboon>

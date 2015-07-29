@@ -6,4 +6,4 @@ fib := fn(num) {
 	}
 }
 
-IO::Println(fib(15)) // NUMBER<610>
+IO::Debug(fib(15)) // NUMBER<610>

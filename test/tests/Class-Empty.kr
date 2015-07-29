@@ -6,4 +6,4 @@ cl := new Empty()
 
 cl.a := "Test"
 
-IO::Println(cl.a) // STRING<Test>
+IO::Debug(cl.a) // STRING<Test>

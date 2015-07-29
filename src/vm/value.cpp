@@ -146,3 +146,58 @@ bool Value::has_method(std::string name) {
 
 	return true;
 }
+
+std::string Value::print(bool print_type) {
+	std::stringstream res;
+
+	if (print_type) {
+		std::string i = "UNKNOWN";
+		switch (this->type) {
+			case Type::NUL: i = "NUL"; break;
+			case Type::STRING: i = "STRING"; break;
+			case Type::NUMBER: i = "NUMBER"; break;
+			case Type::BOOL: i = "BOOL"; break;
+			case Type::REFERENCE: i = "REFERENCE"; break;
+			case Type::FUNCTION: i = "FUNCTION"; break;
+			case Type::CLASS: i = "CLASS"; break;
+			case Type::NAME: i = "NAME"; break;
+		}
+
+		res << i << "<";
+	}
+
+	switch (this->type) {
+		case Type::NUL:
+			res << "NULL";
+			break;
+
+		case Type::STRING:
+			res << *this->data.strval;
+			break;
+
+		case Type::NUMBER: 
+			res << this->data.number;
+			break;
+
+		case Type::BOOL:
+			if (this->getBool()) {
+				res << "true";
+			} else {
+				res << "false";
+			}
+			break;
+
+		// We can probably prettify these even further, eg print what a REFERENCE is actually pointing to.
+		// But that is for another time.
+		case Type::REFERENCE: res << "REFERENCE"; break;
+		case Type::FUNCTION: res << "FUNCTION"; break;
+		case Type::CLASS: res << "CLASS"; break;
+		case Type::NAME: res << "NAME"; break;
+	}
+
+	if (print_type) {
+		res << ">";
+	}
+
+	return res.str();
+};

@@ -1,7 +1,7 @@
 i := 10
 
 while i > 0 {
-	IO::Println(i)
+	IO::Debug(i)
 	i := i - 1
 }
 

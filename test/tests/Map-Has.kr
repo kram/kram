@@ -4,5 +4,5 @@ animals.Set("a", "ant")
 animals.Set("b", "baboon")
 animals.Set("c", "cobra")
 
-IO::Println(animals.Has("b")) // BOOL<true>
-IO::Println(animals.Has("d")) // BOOL<false>
+IO::Debug(animals.Has("b")) // BOOL<true>
+IO::Debug(animals.Has("d")) // BOOL<false>

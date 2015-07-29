@@ -7,13 +7,25 @@
 
 class IO: public Value {
 
+	static Value* debug(Value* self, std::vector<Value*> val) {
+		std::cout << val[0]->print(true) << "\n";
+		return new Value();
+	}
+
 	static Value* println(Value* self, std::vector<Value*> val) {
 		std::cout << val[0]->print() << "\n";
 		return new Value();
 	}
 
+	static Value* print(Value* self, std::vector<Value*> val) {
+		std::cout << val[0]->print();
+		return new Value();
+	}
+
 	public:
 		void init() {
+			this->add_method("Debug", this->debug);
 			this->add_method("Println", this->println);
+			this->add_method("Print", this->print);
 		}
 };

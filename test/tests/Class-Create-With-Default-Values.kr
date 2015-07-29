@@ -6,9 +6,9 @@ class Human {
 gus := new Human()
 gus.name := "Gustav"
 
-IO::Println(gus.name) // STRING<Gustav>
-IO::Println(gus.age) // NUMBER<0>
+IO::Debug(gus.name) // STRING<Gustav>
+IO::Debug(gus.age) // NUMBER<0>
 
 gus.age := 20
 
-IO::Println(gus.age) // NUMBER<20>
+IO::Debug(gus.age) // NUMBER<20>
