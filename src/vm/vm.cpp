@@ -61,7 +61,6 @@ Value* VM::name(Instruction* ins, vm::ON on) {
 		}
 
 		// The type is something else, usually a builtin (eg. NUMBER)
-
 		return new Value(Type::NAME, ins->name);
 	}
 
@@ -290,9 +289,18 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 	// Result pointer
 	Value* res;
 
-	// Function
+	// Function and class methods
 	if (fun->type == Type::FUNCTION) {
-		res = fun->exec_method("exec", this->run_vector(ins->right));
+		// Parse arguments first
+		auto arguments = this->run_vector(ins->right);
+
+		// Assign "self" to the parent
+		if (on == vm::ON::PUSHED_CLASS) {
+			this->set_name("self", this->lib_stack.back());
+		}
+
+		// Execute function
+		res = fun->exec_method("exec", arguments);
 
 	// Pushed classes (the class has to be fetched from the stack)
 	} else if (on == vm::ON::PUSHED_CLASS && fun->type == Type::NAME) {
@@ -352,8 +360,6 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 	}
 
 	Value* lib = this->get_name(lib_name);
-
-	//delete lib_name;
 
 	// TODO: Parameters
 
