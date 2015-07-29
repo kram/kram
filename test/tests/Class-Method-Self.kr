@@ -1,0 +1,11 @@
+class Wizard {
+	name : String
+
+	talk := fn() {
+		IO::Println(self.name) // STRING<Ronny Vässla>
+	}
+}
+
+ron := new Wizard()
+ron.name := "Ronny Vässla"
+ron.talk()
