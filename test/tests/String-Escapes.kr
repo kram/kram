@@ -1,0 +1,15 @@
+// I
+// Am
+// On
+// Multiple
+// Lines
+// A	Tab
+
+IO::Println("I\nAm\nOn\nMultiple\nLines")
+IO::Println("A\tTab")
+
+// "
+// \
+
+IO::Println("\"")
+IO::Println("\\")

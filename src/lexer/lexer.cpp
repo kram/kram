@@ -194,7 +194,20 @@ Token* Lexer::string() {
 
 		// Escaping
 		if (this->char_at_pos(this->index) == '\\') {
-			this->index += 1;
+
+			// In case of eg. \n or \t
+
+			switch (this->char_at_pos(this->index + 1)) {
+				case 't': s += '\t'; break;
+				case 'n': s += '\n'; break;
+				case 'r': s += '\r'; break;
+				default: 
+					s += this->char_at_pos(this->index + 1);
+					break;
+			}
+
+			this->index += 2;
+			continue;
 		}
 
 		s += this->char_at_pos(this->index);
