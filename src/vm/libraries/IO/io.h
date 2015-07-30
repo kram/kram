@@ -8,17 +8,29 @@
 class IO: public Value {
 
 	static Value* debug(Value* self, std::vector<Value*> val) {
-		std::cout << val[0]->print(true) << "\n";
+		
+		for (auto i : val) {
+			std::cout << i->print(true) << "\n";
+		}
+
 		return new Value();
 	}
 
 	static Value* println(Value* self, std::vector<Value*> val) {
-		std::cout << val[0]->print() << "\n";
+		
+		for (auto i : val) {
+			std::cout << i->print() << "\n";
+		}
+
 		return new Value();
 	}
 
 	static Value* print(Value* self, std::vector<Value*> val) {
-		std::cout << val[0]->print();
+		
+		for (auto i : val) {
+			std::cout << i->print();
+		}
+
 		return new Value();
 	}
 
