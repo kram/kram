@@ -1,0 +1,30 @@
+// first
+// second
+// first
+// second
+// third
+
+class Test {
+	name : String
+	talk := fn() {
+		IO::Println(self.name)
+	}
+}
+
+a := new Test()
+
+a.name := "first"
+
+b := new Test()
+c := new Test()
+
+b.name := "second"
+
+a.talk()
+b.talk()
+
+c.name := "third"
+
+a.talk()
+b.talk()
+c.talk()

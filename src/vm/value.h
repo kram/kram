@@ -49,21 +49,11 @@ class Value {
 
 		std::string print(bool print_type = false);
 
-		std::string getString() {
-			return *this->data.strval;
-		}
+		Value* clone();
 
-		double getNumber() {
-			return this->data.number;
-		}
-
-		bool getBool() {
-			if (this->data.number == 0) {
-				return false;
-			}
-
-			return true;
-		}
+		std::string getString();
+		double getNumber();
+		bool getBool();
 
 		// Overwritten by references
 		void init(void) {}

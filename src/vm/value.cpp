@@ -201,3 +201,50 @@ std::string Value::print(bool print_type) {
 
 	return res.str();
 };
+
+std::string Value::getString() {
+	return *this->data.strval;
+}
+
+double Value::getNumber() {
+	return this->data.number;
+}
+
+bool Value::getBool() {
+	if (this->data.number == 0) {
+		return false;
+	}
+
+	return true;
+}
+
+Value* Value::clone() {
+
+	Value* val = new Value();
+	val->type = this->type;
+
+	switch (val->type) {
+		case Type::NUMBER:
+		case Type::BOOL:
+			val->data.number = this->data.number;
+			break;
+
+		case Type::STRING:
+			val->data.strval = new std::string(*this->data.strval);
+			break;
+
+		case Type::REFERENCE:
+		case Type::FUNCTION:
+		case Type::CLASS:
+			delete val;
+			return this;
+			break;
+
+		default:
+			std::cout << "Unable to clone value\n";
+			exit(0);
+			break;
+	}
+
+	return val;
+}

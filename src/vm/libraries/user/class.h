@@ -13,11 +13,22 @@ class Class: public Value {
 
 		std::unordered_map<std::string, Value*> values;
 
+		/**
+		 * Value::new_instance()
+		 *
+		 * Creates a new Class and clones this->values
+		 */
 		Value* new_instance() {
-			
-			// TODO: Clone this->values
 
-			return this;
+			Class* cl = new Class();
+			cl->type = Type::CLASS;
+			cl->vm = this->vm;
+
+			for (auto i : this->values) {
+				cl->values.insert( {{ i.first, i.second->clone() }} );
+			}
+
+			return cl;
 		}
 
 		void set_value(std::string name, Value* val) {
