@@ -11,10 +11,7 @@ IO::Debug("Debug")
 // STRING<b>
 // STRING<c>
 // STRING<d>
-// abcda
-// b
-// c
-// d
+// abcdabcd
 
 IO::Debug("a", "b", "c", "d")
 IO::Print("a", "b", "c", "d")

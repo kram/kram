@@ -19,8 +19,10 @@ class IO: public Value {
 	static Value* println(Value* self, std::vector<Value*> val) {
 		
 		for (auto i : val) {
-			std::cout << i->print() << "\n";
+			std::cout << i->print();
 		}
+
+		std::cout << "\n";
 
 		return new Value();
 	}
