@@ -1,0 +1,8 @@
+li := new List()
+li.Push("a", "b", "c")
+
+IO::Println(li.At(1)) // b
+IO::Println(li.At(2)) // c
+IO::Println(li.At(0)) // a
+
+IO::Println(li.At(100)) // List.At() out of bounds

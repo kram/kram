@@ -1,0 +1,7 @@
+li := new List()
+li.Push("a", "b", "c")
+
+IO::Println(li.Pop()) // c
+IO::Println(li.Pop()) // b
+IO::Println(li.Pop()) // a
+IO::Println(li.Pop()) // List.Pop() requires the list to contain at least 1 item

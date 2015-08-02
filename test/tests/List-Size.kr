@@ -1,0 +1,20 @@
+li := new List()
+
+IO::Println(li.Size()) // 0
+
+li.Push(1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
+
+IO::Println(li.Size()) // 10
+
+li.Push(1)
+
+IO::Println(li.Size()) // 11
+
+li.Pop()
+
+IO::Println(li.Size()) // 10
+
+li.Pop()
+li.Pop()
+
+IO::Println(li.Size()) // 8

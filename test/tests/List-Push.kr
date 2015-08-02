@@ -1,0 +1,8 @@
+li := new List()
+li.Push("first")
+li.Push("second", "third")
+li.Push("fourth", "fifth", "sixth", "seventh")
+
+IO::Println(li.At(0)) // first
+IO::Println(li.At(2)) // third
+IO::Println(li.At(6)) // seventh

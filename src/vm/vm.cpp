@@ -11,6 +11,7 @@
 #include "libraries/IO/io.h"
 #include "libraries/std/Number.h"
 #include "libraries/std/Map.h"
+#include "libraries/std/List.h"
 
 Value* VM::assign(Instruction* ins, vm::ON on) {
 
@@ -432,6 +433,11 @@ void VM::boot(std::vector<Instruction*> ins) {
 	map->set_type(Type::REFERENCE);
 	map->init();
 	this->environment->set_root("Map", map);
+
+	List* list = new List();
+	list->set_type(Type::REFERENCE);
+	list->init();
+	this->environment->set_root("List", list);
 
 	this->run(ins);
 }
