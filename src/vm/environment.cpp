@@ -7,22 +7,31 @@
 
 Environment::Environment() {
 	is_root = false;
-	names = new std::unordered_map<std::string, Value*>;
+	names = new Kram_Map::map;
 }
 
-void Environment::set(const std::string &name, Value* val) {
+void Environment::set(const char * name, Value* val, bool root) {
+
+	if (root && !this->is_root) {
+		return this->root->set(name, val);
+	}
+
 	(*this->names)[name] = val;
 }
 
-void Environment::set_root(std::string name, Value* val) {
+/*void Environment::set_root(const char * name, Value* val) {
 	if (this->is_root) {
 		this->set(name, val);
 	} else {
 		this->root->set(name, val);
 	}
 }
+*/
+Value* Environment::get(const char * name, bool root) {
 
-Value* Environment::get(const std::string &name) {
+	if (root && !this->is_root) {
+		return this->root->get(name);
+	}
 
 	if (this->has(name)) {
 		return (*this->names)[name];
@@ -36,13 +45,13 @@ Value* Environment::get(const std::string &name) {
 	return this->parent->get(name);
 }
 
-Value* Environment::get_root(const std::string &name) {
+/*Value* Environment::get_root(const char * name) {
 	if (this->is_root) {
 		return this->get(name);
 	}
 
 	return this->root->get(name);
-}
+}*/
 
 Environment* Environment::push() {
 	Environment* env = new Environment();
@@ -66,7 +75,7 @@ Environment* Environment::pop() {
 	return this->parent;
 }
 
-bool Environment::has(const std::string &name) {
+bool Environment::has(const char * name) {
 
 	if (this->names->count(name) == 0) {
 		return false;

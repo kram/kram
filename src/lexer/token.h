@@ -75,7 +75,9 @@ namespace lexer {
 		public:
 			Type type;
 			Type sub;
+
 			std::string value;
+			char* value_char;
 
 			Token(Type);
 			Token(Type, std::string);

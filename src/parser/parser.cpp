@@ -280,7 +280,7 @@ Instruction* Parser::keyword_class() {
 	this->advance();
 
 	lexer::Token* n = this->get_and_expect_token(lexer::Token::NAME(""));
-	ins->name = n->value;
+	ins->name = n->value_char;
 
 	this->advance();
 	this->get_and_expect_token(lexer::Token::OPERATOR("{"));
@@ -354,7 +354,7 @@ Instruction* Parser::keyword_new() {
 
 	// The name of the type/class to push
 	lexer::Token* n = this->get_and_expect_token(lexer::Token::NAME(""));
-	ins->name = n->value;
+	ins->name = n->value_char;
 
 	this->advance();
 	this->get_and_expect_token(lexer::Token::OPERATOR("("));
@@ -438,7 +438,7 @@ Instruction* Parser::assign_with_type(Instruction* prev) {
 
 Instruction* Parser::name(lexer::Token* tok, ON on) {
 	Instruction* ins = new Instruction(Ins::NAME);
-	ins->name = tok->value;
+	ins->name = tok->value_char;
 
 	return this->lookahead(ins, on);
 }

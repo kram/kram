@@ -53,7 +53,8 @@ class Instruction {
 	public:
 		Ins instruction;
 
-		std::string name;
+		//std::string name;
+		char* name;
 		Value* value;
 		lexer::Type type;
 

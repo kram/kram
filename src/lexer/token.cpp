@@ -7,6 +7,14 @@
 
 using namespace lexer;
 
+char* string_to_char(std::string str) {
+	char * writable = new char[str.size() + 1];
+	std::copy(str.begin(), str.end(), writable);
+	writable[str.size()] = '\0'; // don't forget the terminating 0
+
+	return writable;
+}
+
 Token::Token() {
 	type = Type::IGNORE;
 	sub = Type::IGNORE;
@@ -21,6 +29,7 @@ Token::Token(Type t, std::string val) {
 	type = t;
 	sub = Token::Trans(val);
 	value = val;
+	value_char = string_to_char(val);
 }
 
 Token Token::T_EOF() {
@@ -42,48 +51,51 @@ Token Token::IGNORE() {
 }
 
 Token Token::STRING(std::string val) {
-	Token tok;
-	tok.type = Type::STRING;
-	tok.value = val;
+	Token tok(Type::STRING, val);
+	//tok.type = Type::STRING;
+	//tok.value = val;
 	return tok;
 }
 
 Token Token::NUMBER(std::string val) {
-	Token tok;
-	tok.type = Type::NUMBER;
-	tok.value = val;
+	Token tok(Type::NUMBER, val);
+	//tok.type = Type::NUMBER;
+	//tok.value = val;
 	return tok;
 }
 
 Token Token::KEYWORD(std::string val) {
-	Token tok;
-	tok.type = Type::KEYWORD;
-	tok.value = val;
+	Token tok(Type::KEYWORD, val);
+	//tok.type = Type::KEYWORD;
+	//tok.value = val;
 	tok.sub = Token::Trans(val);
 
 	return tok;
 }
 
 Token Token::OPERATOR(std::string val) {
-	Token tok;
-	tok.type = Type::OPERATOR;
-	tok.value = val;
+	Token tok(Type::OPERATOR, val);
+	//Token tok;
+	//tok.type = Type::OPERATOR;
+	//tok.value = val;
 	tok.sub = Token::Trans(val);
 
 	return tok;
 }
 
 Token Token::NAME(std::string val) {
-	Token tok;
+	Token tok(Type::NAME, val);
+	/*Token tok;
 	tok.type = Type::NAME;
-	tok.value = val;
+	tok.value = val;*/
 	return tok;
 }
 
 Token Token::BOOL(std::string val) {
-	Token tok;
+	Token tok(Type::BOOL, val);
+	/*Token tok;
 	tok.type = Type::BOOL;
-	tok.value = val;
+	tok.value = val;*/
 	return tok;
 }
 

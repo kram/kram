@@ -88,10 +88,10 @@ class VM {
 
 		// Set and get values from the environment
 		// See environment
-		void set_name(const std::string&, Value*);
-		void set_name_root(std::string, Value*);
-		Value* get_name(const std::string&);
-		Value* get_name_root(const std::string&);
+		void set_name(const char *, Value*);
+		void set_name_root(const char *, Value*);
+		Value* get_name(const char *);
+		Value* get_name_root(const char *);
 };
 
 #endif

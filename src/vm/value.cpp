@@ -21,8 +21,11 @@ Value::Value(Type t) {
 			break;
 
 		case Type::STRING:
-		case Type::NAME:
 			data.strval = new std::string();
+			break;
+
+		case Type::NAME:
+			data.charval = "";
 			break;
 
 		case Type::REFERENCE:
@@ -58,8 +61,11 @@ Value::Value(Type t, std::string val) {
 
 	switch (type) {
 		case Type::STRING:
+			data.strval = new std::string();
+			break;
+
 		case Type::NAME:
-			data.strval = new std::string(val);
+			data.charval = "";
 			break;
 
 		case Type::REFERENCE:
@@ -88,8 +94,11 @@ void Value::set_type(Type type) {
 			break;
 
 		case Type::STRING:
-		case Type::NAME:
 			data.strval = new std::string();
+			break;
+
+		case Type::NAME:
+			data.charval = "";
 			break;
 
 		case Type::REFERENCE:
@@ -107,7 +116,7 @@ void Value::set_type(Type type) {
 	}
 }
 
-Value* Value::exec_method(std::string name, std::vector<Value*> val) {
+Value* Value::exec_method(const char * name, std::vector<Value*> val) {
 
 	if (this->type != Type::REFERENCE && this->type != Type::FUNCTION && this->type != Type::CLASS) {
 		std::cout << "Can not execute method '" << name << "': Parent is not of type REFERENCE, CLASS, or FUNCTION\n";
@@ -134,11 +143,11 @@ Value* Value::exec_method(std::string name, std::vector<Value*> val) {
 	return m(this, val);
 }
 
-void Value::add_method(std::string name, Method m) {
+void Value::add_method(const char * name, Method m) {
 	this->data.methods->insert( {{name, m}} );
 }
 
-bool Value::has_method(std::string name) {
+bool Value::has_method(const char * name) {
 
 	if (this->data.methods->find(name) == this->data.methods->end()) {
 		return false;
@@ -204,6 +213,10 @@ std::string Value::print(bool print_type) {
 
 std::string Value::getString() {
 	return *this->data.strval;
+}
+
+const char * Value::getCharArray() {
+	return this->data.charval;
 }
 
 double Value::getNumber() {

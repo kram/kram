@@ -4,20 +4,20 @@
 
 #include "vm.h"
 
-void VM::set_name(const std::string& name, Value* val) {
+void VM::set_name(const char * name, Value* val) {
 	this->environment->set(name, val);
 }
 
-void VM::set_name_root(std::string name, Value* val) {
-	this->environment->set_root(name, val);
+void VM::set_name_root(const char * name, Value* val) {
+	this->environment->set(name, val, true);
 }
 
-Value* VM::get_name(const std::string& name) {
+Value* VM::get_name(const char * name) {
 	return this->environment->get(name);
 }
 
-Value* VM::get_name_root(const std::string& name) {
-	return this->environment->get_root(name);
+Value* VM::get_name_root(const char * name) {
+	return this->environment->get(name, true);
 }
 
 void VM::env_pop() {

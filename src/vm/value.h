@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "map.h"
+
 class VM;
 
 enum class Type {
@@ -26,12 +28,15 @@ enum class Type {
 class Value {
 
 	typedef Value* (*Method)(Value*, std::vector<Value*>);
-	typedef std::unordered_map<std::string, Method> Methods;
+	// typedef std::unordered_map<std::string, Method> Methods;
+
+	typedef std::unordered_map<const char*, Method, Kram_Map::Hasher, Kram_Map::Equals<const char*> > Methods;
 
 	protected:
 		union {
 			double number;
 			std::string* strval;
+			char* charval;
 			Methods* methods;
 			Method single_method;
 		} data;
@@ -52,6 +57,7 @@ class Value {
 		Value* clone();
 
 		std::string getString();
+		const char * getCharArray();
 		double getNumber();
 		bool getBool();
 
@@ -59,9 +65,9 @@ class Value {
 		void init(void) {}
 
 		// #justlibrarythings
-		Value* exec_method(std::string, std::vector<Value*>);
-		void add_method(std::string, Method);
-		bool has_method(std::string);
+		Value* exec_method(const char *, std::vector<Value*>);
+		void add_method(const char *, Method);
+		bool has_method(const char *);
 };
 
 #endif

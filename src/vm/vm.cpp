@@ -315,7 +315,7 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 				break;
 
 			default:
-				res = top->exec_method(fun->getString(), this->run_vector(ins->right));
+				res = top->exec_method(fun->getCharArray(), this->run_vector(ins->right));
 				break;
 		}
 
@@ -338,7 +338,7 @@ Value* VM::call_library(Instruction* ins) {
 	Value* lib = this->lib_stack.back();
 
 	// Execute the parameters and call the method
-	return lib->exec_method(name->getString(), this->run_vector(ins->right));
+	return lib->exec_method(name->getCharArray(), this->run_vector(ins->right));
 }
 
 Value* VM::call_builtin(Instruction* ins, Value* name) {
@@ -347,11 +347,10 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 	Value* builtin_value = this->lib_stack.back();
 
 	// Get library
-	std::string lib_name;// = new std::string;
+	const char * lib_name;
 
 	switch (builtin_value->type) {
 		case Type::NUMBER:
-			//lib_name = new std::string("Number");
 			lib_name = "Number";
 			break;
 		default:
@@ -365,7 +364,7 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 	// TODO: Parameters
 
 	// Call the method
-	return lib->exec_method(name->getString(), std::vector<Value*>{ builtin_value });
+	return lib->exec_method(name->getCharArray(), std::vector<Value*>{ builtin_value });
 }
 
 std::vector<Value*> VM::run_vector(std::vector<Instruction*> instructions) {
@@ -422,22 +421,22 @@ void VM::boot(std::vector<Instruction*> ins) {
 	IO* io = new IO();
 	io->set_type(Type::REFERENCE);
 	io->init();
-	this->environment->set_root("IO", io);
+	this->set_name_root("IO", io);
 
 	Number* number = new Number();
 	number->set_type(Type::REFERENCE);
 	number->init();
-	this->environment->set_root("Number", number);
+	this->set_name_root("Number", number);
 
 	Map* map = new Map();
 	map->set_type(Type::REFERENCE);
 	map->init();
-	this->environment->set_root("Map", map);
+	this->set_name_root("Map", map);
 
 	List* list = new List();
 	list->set_type(Type::REFERENCE);
 	list->init();
-	this->environment->set_root("List", list);
+	this->set_name_root("List", list);
 
 	this->run(ins);
 }

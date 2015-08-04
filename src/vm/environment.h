@@ -3,10 +3,12 @@
 // This file may not be copied, modified, or distributed except according to those terms.
 
 #include <unordered_map>
+
 #include "value.h"
+#include "map.h"
 
 class Environment {
-	std::unordered_map<std::string, Value*>* names;
+	Kram_Map::map * names;
 
 	public:
 
@@ -16,13 +18,13 @@ class Environment {
 		Environment* root;
 		bool is_root;
 
-		void set(const std::string&, Value*);
-		void set_root(std::string, Value*);
+		void set(const char *, Value*, bool root = false);
+		//void set_root(const char *, Value*);
 
-		Value* get(const std::string&);
-		Value* get_root(const std::string&);
+		Value* get(const char *, bool root = false);
+		//Value* get_root(const char *);
 
-		bool has(const std::string&);
+		bool has(const char *);
 
 		Environment* push();
 		Environment* pop();
