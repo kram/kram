@@ -266,6 +266,24 @@ Value* VM::define_class(Instruction* ins) {
 	return cl;
 }
 
+Value* VM::list_create(Instruction* ins) {
+	List* list = new List();
+	list->set_type(Type::REFERENCE);
+	list->init();
+
+	if (ins->right.size() > 0) {
+		std::vector<Value*> values;
+
+		for (Instruction* i : ins->right) {
+			values.push_back(this->run(i));
+		}
+
+		list->push(values);
+	}
+
+	return list;
+}
+
 Value* VM::create_instance(Instruction* ins) {
 	Value* original = this->get_name(ins->name);
 
@@ -384,18 +402,20 @@ Value* VM::run(Instruction* ins) {
 
 Value* VM::run(Instruction* ins, vm::ON on) {
 	switch (ins->instruction) {
-		case Ins::ASSIGN:     return this->assign(ins, on);     break;
-		case Ins::LITERAL:    return this->literal(ins);    break;
-		case Ins::NAME:       return this->name(ins, on);       break;
-		case Ins::MATH:       return this->math(ins);       break;
-		case Ins::IF:         return this->if_case(ins);    break;
-		case Ins::IGNORE:     return this->ignore(ins);     break;
-		case Ins::PUSH_CLASS: return this->push_class(ins); break;
-		case Ins::CALL:       return this->call(ins, on);       break;
-		case Ins::FUNCTION:   return this->function(ins);   break;
+		case Ins::ASSIGN:          return this->assign(ins, on);      break;
+		case Ins::LITERAL:         return this->literal(ins);         break;
+		case Ins::NAME:            return this->name(ins, on);        break;
+		case Ins::MATH:            return this->math(ins);            break;
+		case Ins::IF:              return this->if_case(ins);         break;
+		case Ins::IGNORE:          return this->ignore(ins);          break;
+		case Ins::PUSH_CLASS:      return this->push_class(ins);      break;
+		case Ins::CALL:            return this->call(ins, on);        break;
+		case Ins::FUNCTION:        return this->function(ins);        break;
 		case Ins::CREATE_INSTANCE: return this->create_instance(ins); break;
-		case Ins::WHILE: return this->loop_while(ins); break;
-		case Ins::DEFINE_CLASS: return this->define_class(ins); break;
+		case Ins::WHILE:           return this->loop_while(ins);      break;
+		case Ins::DEFINE_CLASS:    return this->define_class(ins);    break;
+		case Ins::LIST_CREATE:     return this->list_create(ins);     break;
+
 		default: std::cout << "Unknown instruction";        break;
 	}
 

@@ -1,0 +1,5 @@
+li := new List().Push("a", "b", "c", "d")
+
+IO::Debug(li.At(0))  // STRING<a>
+IO::Debug(li.At(2))  // STRING<c>
+IO::Debug(li.Size()) // NUMBER<4>

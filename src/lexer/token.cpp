@@ -145,6 +145,8 @@ Type Token::Trans(std::string from) {
 		opTrans[")"] = Type::OPERATOR_PAREN_R;
 		opTrans["{"] = Type::OPERATOR_CURLYPAREN_L;
 		opTrans["}"] = Type::OPERATOR_CURLYPAREN_R;
+		opTrans["["] = Type::OPERATOR_SQUARE_PAREN_LEFT;
+		opTrans["]"] = Type::OPERATOR_SQUARE_PAREN_RIGHT;
 
 		opTrans["T_EOF"] = Type::T_EOF;
 		opTrans["T_EOL"] = Type::T_EOL;

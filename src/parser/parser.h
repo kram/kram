@@ -40,6 +40,9 @@ class Parser {
 	Instruction* symbol_next(ON);
 	Instruction* symbol(lexer::Token*, ON);
 
+	Instruction* oper(lexer::Token*);
+	Instruction* oper_list_creation();
+
 	Instruction* keyword(lexer::Token*);
 	Instruction* keyword_class();
 	Instruction* keyword_fn();

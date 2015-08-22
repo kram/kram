@@ -60,6 +60,9 @@ namespace lexer {
 		OPERATOR_CURLYPAREN_L,  // {
 		OPERATOR_CURLYPAREN_R,  // }
 		OPERATOR_COLON_EQ,      // :=
+
+		OPERATOR_SQUARE_PAREN_LEFT,  // [
+		OPERATOR_SQUARE_PAREN_RIGHT, // ]
 	};
 
 	// Used to hash lexer::Type for useage in std::unordered_map

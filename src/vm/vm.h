@@ -67,6 +67,12 @@ class VM {
 	// Will execute assignment instructions (other instructions are illegal and will stop the program)
 	Value* define_class(Instruction*);
 
+	// Shortcut for creating lists with an optional list of values
+	// ["a", "b", "c", "d"]
+	// evaluates to what in the longer version is
+	// new List().Push("a", "b", "c", "d")
+	Value* list_create(Instruction*);
+
 	// call(), call_library(), and call_builtin() will each call and execute methods of different types
 	Value* call(Instruction*, vm::ON);
 	Value* call_library(Instruction*);

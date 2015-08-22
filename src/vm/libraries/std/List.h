@@ -9,7 +9,7 @@
 
 class List: public Value {
 
-	static Value* constructor(Value* self, std::vector<Value*> val) {
+	static Value* kr_constructor(Value* self, std::vector<Value*> val) {
 		List* instance = new List();
 		instance->set_type(Type::REFERENCE);
 		instance->init();
@@ -17,7 +17,7 @@ class List: public Value {
 		return instance;
 	}
 
-	static Value* push(Value* self, std::vector<Value*> val) {
+	static Value* kr_push(Value* self, std::vector<Value*> val) {
 
 		if (val.size() == 0) {
 			std::cout << "List.Push() expects at least 1 parameter\n";
@@ -33,7 +33,7 @@ class List: public Value {
 		return list;
 	}
 
-	static Value* pop(Value* self, std::vector<Value*> val) {
+	static Value* kr_pop(Value* self, std::vector<Value*> val) {
 
 		if (val.size() != 0) {
 			std::cout << "List.Pop() takes no parameters\n";
@@ -54,7 +54,7 @@ class List: public Value {
 		return res;
 	}
 
-	static Value* at(Value* self, std::vector<Value*> val) {
+	static Value* kr_at(Value* self, std::vector<Value*> val) {
 
 		if (val.size() == 0) {
 			std::cout << "List.At() expects exactly 1 parameter\n";
@@ -78,7 +78,7 @@ class List: public Value {
 		return list->content.at(at);
 	}
 
-	static Value* size(Value* self, std::vector<Value*> val) {
+	static Value* kr_size(Value* self, std::vector<Value*> val) {
 
 		if (val.size() != 0) {
 			std::cout << "List.Size() takes no parameters\n";
@@ -94,11 +94,15 @@ class List: public Value {
 		std::vector<Value*> content;
 
 		void init() {
-			this->add_method("new", this->constructor);
+			this->add_method("new", this->kr_constructor);
 
-			this->add_method("Push", this->push);
-			this->add_method("Pop", this->pop);
-			this->add_method("At", this->at);
-			this->add_method("Size", this->size);
+			this->add_method("Push", this->kr_push);
+			this->add_method("Pop", this->kr_pop);
+			this->add_method("At", this->kr_at);
+			this->add_method("Size", this->kr_size);
+		}
+
+		void push(std::vector<Value*> val) {
+			this->kr_push(this, val);
 		}
 };

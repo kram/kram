@@ -47,6 +47,8 @@ Parser::Parser(std::vector<lexer::Token*> tokens) {
 	this->startOperators[lexer::Type::OPERATOR_EQ] = true;
 	this->startOperators[lexer::Type::OPERATOR_2DOT] = true;
 	this->startOperators[lexer::Type::OPERATOR_3DOT] = true;
+
+	this->startOperators[lexer::Type::OPERATOR_SQUARE_PAREN_LEFT] = true;
 }
 
 std::vector<Instruction*> Parser::run() {
@@ -192,7 +194,14 @@ Instruction* Parser::symbol_next(ON on) {
 
 Instruction* Parser::symbol(lexer::Token* tok, ON on) {
 	switch (tok->type) {
+
+		// Keywords have yet another switch, go there.
 		case lexer::Type::KEYWORD: return this->keyword(tok); break;
+
+		// Operators also have another switch, go there.
+		case lexer::Type::OPERATOR: return this->oper(tok); break;
+
+		// Literals
 		case lexer::Type::NUMBER: return this->number(tok, on); break;
 		case lexer::Type::STRING: return this->string(tok, on); break;
 		case lexer::Type::NAME: return this->name(tok, on); break;
@@ -258,6 +267,30 @@ int Parser::infix_priority(lexer::Type in) {
 	}
 
 	return 0;
+}
+
+Instruction* Parser::oper(lexer::Token* tok) {
+	switch (tok->sub) {
+		case lexer::Type::OPERATOR_SQUARE_PAREN_LEFT: return this->oper_list_creation(); break;
+		default: break;
+	}
+
+	std::cout << "Unknown operator: " << tok->print() << "\n";
+	exit(0);
+}
+
+Instruction* Parser::oper_list_creation() {
+	Instruction* ins = new Instruction(Ins::LIST_CREATE);
+
+	// Get all peices (seperated by commas)
+	do {
+		ins->right = this->read_until(std::vector<lexer::Token>{
+			lexer::Token::OPERATOR("]"),
+			lexer::Token::OPERATOR(","),
+		}, ins->right);
+	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
+
+	return ins;
 }
 
 Instruction* Parser::keyword(lexer::Token* tok) {
