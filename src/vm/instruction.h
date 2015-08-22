@@ -50,6 +50,9 @@ enum class Ins {
 
 	// right (the content)
 	LIST_CREATE,
+
+	// left (the list), right (what to extract)
+	LIST_EXTRACT,
 };
 
 class Instruction {
@@ -72,19 +75,20 @@ class Instruction {
 			std::string i = "UNKNOWN";
 
 			switch (this->instruction) {
-				case Ins::ASSIGN: i = "ASSIGN"; break;
-				case Ins::LITERAL: i = "LITERAL"; break;
-				case Ins::NAME: i = "NAME"; break;
-				case Ins::MATH: i = "MATH"; break;
-				case Ins::IF: i = "IF"; break;
-				case Ins::IGNORE: i = "IGNORE"; break;
-				case Ins::PUSH_CLASS: i = "PUSH_CLASS"; break;
-				case Ins::CALL: i = "CALL"; break;
-				case Ins::DEFINE_CLASS: i = "DEFINE_CLASS"; break;
-				case Ins::FUNCTION: i = "FUNCTION"; break;
+				case Ins::ASSIGN:          i = "ASSIGN";          break;
+				case Ins::LITERAL:         i = "LITERAL";         break;
+				case Ins::NAME:            i = "NAME";            break;
+				case Ins::MATH:            i = "MATH";            break;
+				case Ins::IF:              i = "IF";              break;
+				case Ins::IGNORE:          i = "IGNORE";          break;
+				case Ins::PUSH_CLASS:      i = "PUSH_CLASS";      break;
+				case Ins::CALL:            i = "CALL";            break;
+				case Ins::DEFINE_CLASS:    i = "DEFINE_CLASS";    break;
+				case Ins::FUNCTION:        i = "FUNCTION";        break;
 				case Ins::CREATE_INSTANCE: i = "CREATE_INSTANCE"; break;
-				case Ins::WHILE: i = "WHILE"; break;
-				case Ins::LIST_CREATE: i = "LIST_CREATE"; break;
+				case Ins::WHILE:           i = "WHILE";           break;
+				case Ins::LIST_CREATE:     i = "LIST_CREATE";     break;
+				case Ins::LIST_EXTRACT:    i = "LIST_EXTRACT";    break;
 			}
 
 			std::cout << std::string(ident, '\t') << "{\n";

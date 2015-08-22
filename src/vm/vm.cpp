@@ -284,6 +284,13 @@ Value* VM::list_create(Instruction* ins) {
 	return list;
 }
 
+Value* VM::list_extract(Instruction* ins) {
+	Value* list     = this->run(ins->left[0]);
+	Value* position = this->run(ins->right[0]);
+
+	return list->exec_method("At", std::vector<Value *> { position });
+}
+
 Value* VM::create_instance(Instruction* ins) {
 	Value* original = this->get_name(ins->name);
 
@@ -415,6 +422,7 @@ Value* VM::run(Instruction* ins, vm::ON on) {
 		case Ins::WHILE:           return this->loop_while(ins);      break;
 		case Ins::DEFINE_CLASS:    return this->define_class(ins);    break;
 		case Ins::LIST_CREATE:     return this->list_create(ins);     break;
+		case Ins::LIST_EXTRACT:    return this->list_extract(ins);    break;
 
 		default: std::cout << "Unknown instruction";        break;
 	}

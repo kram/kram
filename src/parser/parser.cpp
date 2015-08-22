@@ -47,8 +47,6 @@ Parser::Parser(std::vector<lexer::Token*> tokens) {
 	this->startOperators[lexer::Type::OPERATOR_EQ] = true;
 	this->startOperators[lexer::Type::OPERATOR_2DOT] = true;
 	this->startOperators[lexer::Type::OPERATOR_3DOT] = true;
-
-	this->startOperators[lexer::Type::OPERATOR_SQUARE_PAREN_LEFT] = true;
 }
 
 std::vector<Instruction*> Parser::run() {
@@ -130,7 +128,7 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 
 	// Call
 	// IO::Println("123")
-	//           ^
+	//            ^
 	if (next->type == lexer::Type::OPERATOR && next->sub == lexer::Type::OPERATOR_PAREN_L) {
 		return this->call(prev, on);
 	}
@@ -144,7 +142,7 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 
 	// Create new variable of type
 	// num : Number
-	//           ^
+	//     ^
 	if (next->type == lexer::Type::OPERATOR && next->sub == lexer::Type::OPERATOR_COLON) {
 		return this->assign_with_type(prev);
 	}
@@ -153,6 +151,13 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 		if (this->startOperators.find(next->sub) != this->startOperators.end()) {
 			return this->math(prev);
 		}
+	}
+
+	// List extraction
+	// li[123]
+	//   ^
+	if (next->type == lexer::Type::OPERATOR && next->sub == lexer::Type::OPERATOR_SQUARE_PAREN_LEFT) {
+		return this->oper_list_extraction(prev);
 	}
 
 	this->reverse();
@@ -289,6 +294,25 @@ Instruction* Parser::oper_list_creation() {
 			lexer::Token::OPERATOR(","),
 		}, ins->right);
 	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
+
+	return ins;
+}
+
+Instruction* Parser::oper_list_extraction(Instruction* prev) {
+	Instruction* ins = new Instruction(Ins::LIST_EXTRACT);
+
+	/*if (prev->size() != 1) {
+		std::cout << "oper_list_extraction: There can only be one list to extract from\n";
+		exit(0);
+	}*/
+
+	ins->left = std::vector<Instruction*>{ prev };
+	ins->right = this->read_until(std::vector<lexer::Token>{ lexer::Token::OPERATOR("]"), });
+
+	if (ins->right.size() != 1) {
+		std::cout << "oper_list_extraction: Only one value can be extracted\n";
+		exit(0);
+	}
 
 	return ins;
 }

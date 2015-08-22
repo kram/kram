@@ -73,6 +73,10 @@ class VM {
 	// new List().Push("a", "b", "c", "d")
 	Value* list_create(Instruction*);
 
+	// Shortcut for extracing a value form a list
+	// li[123] instead of li.At(123)
+	Value* list_extract(Instruction*);
+
 	// call(), call_library(), and call_builtin() will each call and execute methods of different types
 	Value* call(Instruction*, vm::ON);
 	Value* call_library(Instruction*);

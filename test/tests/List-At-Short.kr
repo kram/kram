@@ -1,0 +1,6 @@
+li := ["aa", "bb", "cc"]
+
+IO::Debug(li[0]) // STRING<aa>
+IO::Debug(li[1]) // STRING<bb>
+IO::Debug(li[2]) // STRING<cc>
+IO::Debug(li[3]) // List.At() out of bounds

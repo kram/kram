@@ -1,0 +1,3 @@
+li := []
+
+IO::Debug(li.Size()) // NUMBER<0>
