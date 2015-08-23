@@ -1,0 +1,19 @@
+start := 4
+end := 10
+
+range := start...end
+
+i := 0
+
+while i < range.Size() {
+	IO::Debug(range[i])
+	i := i + 1
+}
+
+// NUMBER<4>
+// NUMBER<5>
+// NUMBER<6>
+// NUMBER<7>
+// NUMBER<8>
+// NUMBER<9>
+// NUMBER<10>

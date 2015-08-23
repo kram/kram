@@ -1,0 +1,2 @@
+// math() expects equal types, got STRING<test> and BOOL<true>
+range := "test"...true

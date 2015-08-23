@@ -74,7 +74,7 @@ Value* VM::math(Instruction* ins) {
 	Value* right = this->run(ins->right[0]);
 
 	if (left->type != right->type) {
-		std::cout << "math() Can not do math on " << left->print() << " and " << right->print() << "\n";
+		std::cout << "math() expects equal types, got " << left->print(true) << " and " << right->print(true) << "\n";
 		exit(0);
 	}
 	
