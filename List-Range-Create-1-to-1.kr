@@ -1,0 +1,6 @@
+lia := 1...1
+
+IO::Debug(lia.Size()) // NUMBER<1>
+IO::Debug(lia[0]) // NUMBER<1>
+
+lib := 1..1 // Range: End needs to be bigger or equal to Start

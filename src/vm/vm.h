@@ -77,6 +77,8 @@ class VM {
 	// li[123] instead of li.At(123)
 	Value* list_extract(Instruction*);
 
+	Value* list_range(int start, int end, bool inclusive);
+
 	// call(), call_library(), and call_builtin() will each call and execute methods of different types
 	Value* call(Instruction*, vm::ON);
 	Value* call_library(Instruction*);

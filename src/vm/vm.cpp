@@ -148,6 +148,10 @@ Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
 			is_bool = true;
 			break;
 
+		case lexer::Type::OPERATOR_2DOT:
+		case lexer::Type::OPERATOR_3DOT:
+			return this->list_range(l, r, ins->type == lexer::Type::OPERATOR_3DOT);
+
 		default:
 			std::cout << "Unknown math_number() operator\n";
 			exit(0);
@@ -289,6 +293,31 @@ Value* VM::list_extract(Instruction* ins) {
 	Value* position = this->run(ins->right[0]);
 
 	return list->exec_method("At", std::vector<Value *> { position });
+}
+
+Value* VM::list_range(int start, int end, bool inclusive) {
+	List* list = new List();
+	list->set_type(Type::REFERENCE);
+	list->init();
+
+	if (!inclusive) {
+		end--;
+	}
+
+	if (end < start) {
+		std::cout << "Range: End needs to be bigger or equal to Start\n";
+		exit(0);
+	}
+
+	std::vector<Value*> items;
+
+	for (int i = start; i <= end; i++) {
+		items.push_back(new Value(Type::NUMBER, i));
+	}
+
+	list->push(items);
+
+	return list;
 }
 
 Value* VM::create_instance(Instruction* ins) {

@@ -1,0 +1,13 @@
+li := 1...5
+
+IO::Debug(li[1]) // NUMBER<2>
+IO::Debug(li[2]) // NUMBER<3>
+
+IO::Debug(li.Size()) // NUMBER<5>
+
+li := 1..5
+
+IO::Debug(li[1]) // NUMBER<2>
+IO::Debug(li[2]) // NUMBER<3>
+
+IO::Debug(li.Size()) // NUMBER<4>

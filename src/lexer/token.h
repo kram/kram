@@ -53,14 +53,17 @@ namespace lexer {
 		OPERATOR_MUL,           // *
 		OPERATOR_DIV,           // /
 		OPERATOR_DOT,           // .
-		OPERATOR_2DOT,          // ..
-		OPERATOR_3DOT,          // ...
 		OPERATOR_PAREN_L,       // (
 		OPERATOR_PAREN_R,       // )
 		OPERATOR_CURLYPAREN_L,  // {
 		OPERATOR_CURLYPAREN_R,  // }
 		OPERATOR_COLON_EQ,      // :=
 
+		// Ranges
+		OPERATOR_2DOT,          // ..
+		OPERATOR_3DOT,          // ...
+
+		// List operations
 		OPERATOR_SQUARE_PAREN_LEFT,  // [
 		OPERATOR_SQUARE_PAREN_RIGHT, // ]
 	};
