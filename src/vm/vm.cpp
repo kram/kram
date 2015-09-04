@@ -19,7 +19,7 @@ Value* VM::assign(Instruction* ins, vm::ON on) {
 		Value* top = this->lib_stack.back();
 
 		if (top->type != Type::CLASS) {
-			std::cout << "Class-assignment is not allowed on anything other than user-defined classes\n";
+			std::cout << "The assign operation (:=) is not allowed on this object (userland classes only)\n";
 			exit(0);
 		}
 
@@ -35,8 +35,16 @@ Value* VM::assign(Instruction* ins, vm::ON on) {
 
 Value* VM::set(Instruction* ins, vm::ON on) {
 	if (on == vm::ON::PUSHED_CLASS) {
-		std::cout << "TODO: Handle VM::set() on pushed classes...\n";
-		exit(0);
+		Value* top = this->lib_stack.back();
+
+		if (top->type != Type::CLASS) {
+			std::cout << "The set operation (=) is not allowed on this object (userland classes only)\n";
+			exit(0);
+		}
+
+		// Convert top to a Class*
+		Class* cl = static_cast<Class*>(top);
+		cl->update_value(ins->name, this->run(ins->right[0]));
 	} else {
 		this->name_update(ins->name, this->run(ins->right[0]));
 	}

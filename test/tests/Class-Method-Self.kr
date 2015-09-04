@@ -7,5 +7,5 @@ class Wizard {
 }
 
 ron := new Wizard()
-ron.name := "Ronny Vässla"
+ron.name = "Ronny Vässla"
 ron.talk()

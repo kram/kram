@@ -1,0 +1,9 @@
+class Foo {
+	val := "bar"
+}
+
+a := new Foo()
+
+IO::Println(a.val) // bar
+
+a.val = 4 // Can not update (with =) a variable of type STRING<bar> to NUMBER<4>

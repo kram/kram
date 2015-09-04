@@ -1,0 +1,11 @@
+class Foo {
+	val := "bar"
+}
+
+a := new Foo()
+
+IO::Println(a.val) // bar
+
+a.extra := "baaar"
+
+IO::Println(a.extra) // baaar

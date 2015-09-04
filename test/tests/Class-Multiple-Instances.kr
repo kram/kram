@@ -13,17 +13,17 @@ class Test {
 
 a := new Test()
 
-a.name := "first"
+a.name = "first"
 
 b := new Test()
 c := new Test()
 
-b.name := "second"
+b.name = "second"
 
 a.talk()
 b.talk()
 
-c.name := "third"
+c.name = "third"
 
 a.talk()
 b.talk()

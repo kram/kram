@@ -1,0 +1,9 @@
+class Foo {
+	val := "bar"
+}
+
+a := new Foo()
+
+IO::Println(a.val) // bar
+
+a.val := "baz" // The value, val, already exists in this Class. Did you mean to use = ?
