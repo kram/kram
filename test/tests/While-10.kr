@@ -2,7 +2,7 @@ i := 10
 
 while i > 0 {
 	IO::Debug(i)
-	i := i - 1
+	i = i - 1
 }
 
 // NUMBER<10>

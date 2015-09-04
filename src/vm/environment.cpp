@@ -22,6 +22,22 @@ void Environment::set_root(std::string name, Value* val) {
 	}
 }
 
+void Environment::update(const std::string &name, Value* val) {
+
+	if (this->has(name)) {
+		(*this->names)[name] = val;
+		return;
+	}
+
+	if (this->is_root) {
+		std::cout << "Unknown name: " << name << "\n";
+		exit(0);
+	}
+
+	this->parent->update(name, val);
+	return;
+}
+
 Value* Environment::get(const std::string &name) {
 
 	if (this->has(name)) {
@@ -73,4 +89,17 @@ bool Environment::has(const std::string &name) {
 	}
 
 	return true;
+}
+
+bool Environment::exists(const std::string &name) {
+
+	if (this->names->count(name) == 1) {
+		return true;
+	}
+
+	if (this->is_root) {
+		return false;
+	}
+
+	return this->parent->exists(name);
 }

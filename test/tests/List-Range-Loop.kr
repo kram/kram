@@ -7,7 +7,7 @@ i := 0
 
 while i < range.Size() {
 	IO::Debug(range[i])
-	i := i + 1
+	i = i + 1
 }
 
 // NUMBER<4>

@@ -19,10 +19,13 @@ class Environment {
 		void set(const std::string&, Value*);
 		void set_root(std::string, Value*);
 
+		void update(const std::string&, Value*);
+
 		Value* get(const std::string&);
 		Value* get_root(const std::string&);
 
 		bool has(const std::string&);
+		bool exists(const std::string&);
 
 		Environment* push();
 		Environment* pop();

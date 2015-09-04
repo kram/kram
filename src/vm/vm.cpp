@@ -27,7 +27,18 @@ Value* VM::assign(Instruction* ins, vm::ON on) {
 		Class* cl = static_cast<Class*>(top);
 		cl->set_value(ins->name, this->run(ins->right[0]));
 	} else {
-		this->set_name(ins->name, this->run(ins->right[0]));
+		this->name_create(ins->name, this->run(ins->right[0]));
+	}
+
+	return new Value(Type::NUL);
+}
+
+Value* VM::set(Instruction* ins, vm::ON on) {
+	if (on == vm::ON::PUSHED_CLASS) {
+		std::cout << "TODO: Handle VM::set() on pushed classes...\n";
+		exit(0);
+	} else {
+		this->name_update(ins->name, this->run(ins->right[0]));
 	}
 
 	return new Value(Type::NUL);
@@ -66,7 +77,7 @@ Value* VM::name(Instruction* ins, vm::ON on) {
 	}
 
 	// Check if the value exists on the stack
-	return this->get_name(ins->name);
+	return this->name_get(ins->name);
 }
 
 Value* VM::math(Instruction* ins) {
@@ -168,6 +179,8 @@ Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
 
 Value* VM::if_case(Instruction* ins) {
 
+	this->env_push();
+
 	Value* res = this->run(ins->center[0]);
 
 	if (res->type != Type::BOOL) {
@@ -177,13 +190,19 @@ Value* VM::if_case(Instruction* ins) {
 
 	// Was true
 	if (res->getBool()) {
-		return this->run(ins->left);
+		auto res = this->run(ins->left);
+		this->env_pop();
+		return res;
 	}
 
 	// Has else-part
 	if (ins->right.size() > 0) {
-		return this->run(ins->right);
+		auto res = this->run(ins->right);
+		this->env_pop();
+		return res;
 	}
+
+	this->env_pop();
 
 	// Return NUL otherwise
 	return new Value(Type::NUL);
@@ -204,7 +223,9 @@ Value* VM::loop_while(Instruction* ins) {
 			return new Value(Type::NUL);
 		}
 
+		this->env_push();
 		this->run(ins->right);
+		this->env_pop();
 	}
 }
 
@@ -265,7 +286,7 @@ Value* VM::define_class(Instruction* ins) {
 	}
 
 	// Set in the global scope
-	this->set_name_root(ins->name, cl);
+	this->name_create_root(ins->name, cl);
 
 	return cl;
 }
@@ -321,7 +342,7 @@ Value* VM::list_range(int start, int end, bool inclusive) {
 }
 
 Value* VM::create_instance(Instruction* ins) {
-	Value* original = this->get_name(ins->name);
+	Value* original = this->name_get(ins->name);
 
 	// Kram-defined classes
 	if (original->type == Type::CLASS) {
@@ -351,7 +372,7 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 
 		// Assign "self" to the parent
 		if (on == vm::ON::PUSHED_CLASS) {
-			this->set_name("self", this->lib_stack.back());
+			this->name_create("self", this->lib_stack.back());
 		}
 
 		// Execute function
@@ -414,7 +435,7 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 			break;
 	}
 
-	Value* lib = this->get_name(lib_name);
+	Value* lib = this->name_get(lib_name);
 
 	// TODO: Parameters
 
@@ -439,6 +460,7 @@ Value* VM::run(Instruction* ins) {
 Value* VM::run(Instruction* ins, vm::ON on) {
 	switch (ins->instruction) {
 		case Ins::ASSIGN:          return this->assign(ins, on);      break;
+		case Ins::SET:             return this->set(ins, on);         break;
 		case Ins::LITERAL:         return this->literal(ins);         break;
 		case Ins::NAME:            return this->name(ins, on);        break;
 		case Ins::MATH:            return this->math(ins);            break;

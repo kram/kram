@@ -1,0 +1,5 @@
+foo := "a"
+
+IO::Println(foo) // a
+
+foo = 123 // Can not update (with =) a variable of type STRING<a> to NUMBER<123>

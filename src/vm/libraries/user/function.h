@@ -16,9 +16,10 @@ class Function: public Value {
 			exit(0);
 		}
 
+		// Assign function parameters as variables
 		int key = 0;
 		for (Instruction* param : fn->parameters) {
-			fn->vm->set_name(param->name, val[key]);
+			fn->vm->name_create(param->name, val[key]);
 			++key;
 		}
 

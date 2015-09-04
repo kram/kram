@@ -31,7 +31,9 @@ class VM {
 	Environment* environment;
 
 	// Assigns a Value* to the environment, or to the most recently pushed class on lib_stack
+	// Set does the same, but can only update old values
 	Value* assign(Instruction*, vm::ON);
+	Value* set(Instruction*, vm::ON);
 
 	// Literal values are values such as "Hello", 1337, and false.
 	// This metod converts them to a Value* that can be used in the VM
@@ -100,10 +102,11 @@ class VM {
 
 		// Set and get values from the environment
 		// See environment
-		void set_name(const std::string&, Value*);
-		void set_name_root(std::string, Value*);
-		Value* get_name(const std::string&);
-		Value* get_name_root(const std::string&);
+		void name_create(const std::string&, Value*);
+		void name_update(const std::string&, Value*);
+		void name_create_root(std::string, Value*);
+		Value* name_get(const std::string&);
+		Value* name_get_root(const std::string&);
 };
 
 #endif

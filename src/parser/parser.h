@@ -67,6 +67,7 @@ class Parser {
 
 	Instruction* ignore();
 	
+	Instruction* set(Instruction*);
 	Instruction* assign(Instruction*);
 	Instruction* assign_with_type(Instruction*);
 

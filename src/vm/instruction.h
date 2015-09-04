@@ -14,6 +14,7 @@
 enum class Ins {
 	// name, right
 	ASSIGN,
+	SET,
 
 	// value
 	LITERAL,
@@ -76,6 +77,7 @@ class Instruction {
 
 			switch (this->instruction) {
 				case Ins::ASSIGN:          i = "ASSIGN";          break;
+				case Ins::SET:             i = "SET";             break;
 				case Ins::LITERAL:         i = "LITERAL";         break;
 				case Ins::NAME:            i = "NAME";            break;
 				case Ins::MATH:            i = "MATH";            break;

@@ -1,0 +1,7 @@
+foo := "a"
+
+IO::Println(foo) // a
+
+foo = "b"
+
+IO::Println(foo) // b

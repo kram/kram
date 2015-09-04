@@ -140,6 +140,13 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 		return this->assign(prev);
 	}
 
+	// Set
+	// num = 100
+	//     ^
+	if (next->type == lexer::Type::OPERATOR && next->sub == lexer::Type::OPERATOR_EQ) {
+		return this->set(prev);
+	}
+
 	// Create new variable of type
 	// num : Number
 	//     ^
@@ -438,6 +445,21 @@ Instruction* Parser::keyword_while() {
 	ins->right = this->read_until(std::vector<lexer::Token>{
 		lexer::Token::OPERATOR("}")
 	});
+
+	return ins;
+}
+
+Instruction* Parser::set(Instruction* prev) {
+	Instruction* ins = new Instruction(Ins::SET);
+
+	if (prev->instruction != Ins::NAME) {
+		std::cout << "= expects previous instruction to be of type NAME";
+		exit(0);
+	}
+
+	// Get name from previous OP
+	ins->name = prev->name;
+	ins->right = this->read_until_eol();
 
 	return ins;
 }
