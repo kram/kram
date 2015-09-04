@@ -1,0 +1,9 @@
+var1 := 2.Add(2)
+IO::Println(var1) // 4
+
+var2 := 3
+IO::Println(var2) // 3
+var3 := var2.Add(2)
+IO::Println(var2) // 3
+
+IO::Println(var3) // 5

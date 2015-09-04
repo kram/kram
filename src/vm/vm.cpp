@@ -445,10 +445,15 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 
 	Value* lib = this->name_get(lib_name);
 
-	// TODO: Parameters
+	// Initialize parameter vector with the first value beeing the bultin itself
+	std::vector<Value*> params { builtin_value };
+
+	for (auto param : ins->right) {
+		params.push_back(this->run(param));
+	}
 
 	// Call the method
-	return lib->exec_method(name->getString(), std::vector<Value*>{ builtin_value });
+	return lib->exec_method(name->getString(), params);
 }
 
 std::vector<Value*> VM::run_vector(std::vector<Instruction*> instructions) {

@@ -13,8 +13,30 @@ class Number: public Value {
 		return new Value(Type::NUMBER, ::sqrt(val[0]->getNumber()));
 	}
 
+	static Value* add(Value* self, std::vector<Value*> val) {
+
+		if (val.size() != 2) {
+			std::cout << val.size();
+			std::cout << "Number::Add(Number) Excepts exactly 1 parameter\n";
+			exit(0);
+		}
+
+		if (val[1]->type != Type::NUMBER) {
+			std::cout << "Number::Add() Expects the first parameter to be of type Number\n";
+			exit(0);
+		}
+
+		auto num = val[0]->getNumber();
+
+		num += val[1]->getNumber();
+
+		return new Value(Type::NUMBER, num);
+
+	}
+
 	public:
 		void init() {
 			this->add_method("Sqrt", this->sqrt);
+			this->add_method("Add", this->add);
 		}
 };
