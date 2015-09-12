@@ -3,6 +3,7 @@
 // This file may not be copied, modified, or distributed except according to those terms.
 
 #include <iostream>
+#include <string.h>
 
 #include "../../../third_party/utf8/utf8.h"
 #include "../../value.h"
