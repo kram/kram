@@ -1,0 +1,4 @@
+IO::Println("".Length()) // 0
+IO::Println("abc".Length()) // 3
+IO::Println("Räksmörgås".Length()) // 10
+IO::Println("Hello, 🌍".Length()) // 8

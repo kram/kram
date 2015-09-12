@@ -12,6 +12,7 @@
 #include "libraries/std/Number.h"
 #include "libraries/std/Map.h"
 #include "libraries/std/List.h"
+#include "libraries/std/String.h"
 
 Value* VM::assign(Instruction* ins, vm::ON on) {
 
@@ -433,10 +434,8 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 	std::string lib_name;// = new std::string;
 
 	switch (builtin_value->type) {
-		case Type::NUMBER:
-			//lib_name = new std::string("Number");
-			lib_name = "Number";
-			break;
+		case Type::NUMBER: lib_name = "Number"; break;
+		case Type::STRING: lib_name = "String"; break;
 		default:
 			std::cout << "call_builtin(): Can not call on " << builtin_value->print() << "\n";
 			exit(0);
@@ -520,6 +519,11 @@ void VM::boot(std::vector<Instruction*> ins) {
 	number->set_type(Type::REFERENCE);
 	number->init();
 	this->environment->set_root("Number", number);
+
+	String* str = new String();
+	str->set_type(Type::REFERENCE);
+	str->init();
+	this->environment->set_root("String", str);
 
 	Map* map = new Map();
 	map->set_type(Type::REFERENCE);

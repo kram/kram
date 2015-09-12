@@ -1,0 +1,4 @@
+IO::Println("Räksmörgås".At(0)) // R
+IO::Println("Räksmörgås".At(1)) // ä
+IO::Println("Räksmörgås".At(2)) // k
+IO::Println("Räksmörgås".At(8)) // å

@@ -1,0 +1,3 @@
+IO::Println("A🌍B".At(0)) // A
+IO::Println("A🌍B".At(1)) // 🌍
+IO::Println("A🌍B".At(2)) // B

@@ -1,0 +1,4 @@
+IO::Println("".Bytes()) // 0
+IO::Println("abc".Bytes()) // 3
+IO::Println("Räksmörgås".Bytes()) // 13
+IO::Println("Hello, 🌍".Bytes()) // 11

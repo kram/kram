@@ -1,0 +1,4 @@
+IO::Println("abc".At(0)) // a
+IO::Println("abc".At(1)) // b
+IO::Println("abc".At(2)) // c
+IO::Println("abc".At(3)) // String::At() expects a number smaller than the lenght of the string
