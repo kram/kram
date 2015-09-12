@@ -2,7 +2,7 @@ SOURCEDIR = src
 SOURCES := $(shell find $(SOURCEDIR) -name '*.cpp')
 
 build: clean
-	g++ -Ofast --std=c++11 -o bin/kram -Wall -Wextra $(SOURCES)
+	g++ -Ofast --std=c++11 -o bin/kram -Wall -Wextra -Wno-unused-parameter $(SOURCES)
 
 clean:
 	mkdir -p bin
