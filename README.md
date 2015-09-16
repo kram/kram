@@ -7,46 +7,19 @@
 ## Example
 
 ```go
-IO::Println("Hello World!")
+IO::Println("Hello, 🌍")
 
-age := 100
-
-if age > 90 {
-    IO::Println("You're old! :)")
-}
-
-get_three := fn() {
-    1 + 2 * 3 - 16.Sqrt()
-}
-
-IO::Println(get_three()) // Prints 3
-
-```
-
-## Features
-
-### Variables
-
-```go
-str := "Hi, there!"
-```
-
-### If-cases
-
-```go
-if first > second {
-    IO::Println("first is bigger than second")
-} else {
-    IO::Println("first is tiny!")
-}
-```
-
-### Everything is a class
-
-In kram, everything is a class, that means that you can do stuff like
-
-```go
+// Everything is a class
 150.Sqrt()
+
+class Dog {
+	Bark := fn() {
+		IO::Println("Woff!")
+	}
+}
+
+snoopy := new Dog()
+snoopy.Bark()
 ```
 
 ## The future of kram
