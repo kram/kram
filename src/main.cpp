@@ -8,6 +8,9 @@
 #include "parser/parser.h"
 #include "vm/instruction.h"
 #include "vm/vm.h"
+#include "vm/output.h"
+
+Output* kram_output_stream;
 
 int main(int argc, char** argv) {
 
@@ -27,6 +30,9 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
+
+	// Define output stream
+	kram_output_stream = new Output(std::cout);
 
 	lexer::Lexer lexer;
 	std::vector<lexer::Token*> tokens = lexer.parse_file(file);

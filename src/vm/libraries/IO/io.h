@@ -2,15 +2,18 @@
 // See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
-#include <iostream>
+// #include <iostream>
+#include "../../output.h"
 #include "../../value.h"
+
+extern Output * kram_output_stream;
 
 class IO: public Value {
 
 	static Value* debug(Value* self, std::vector<Value*> val) {
 		
 		for (auto i : val) {
-			std::cout << i->print(true) << "\n";
+			(*kram_output_stream) << i->print(true) << "\n";
 		}
 
 		return new Value();
@@ -19,10 +22,10 @@ class IO: public Value {
 	static Value* println(Value* self, std::vector<Value*> val) {
 		
 		for (auto i : val) {
-			std::cout << i->print();
+			(*kram_output_stream) << i->print();
 		}
 
-		std::cout << "\n";
+		(*kram_output_stream) << "\n";
 
 		return new Value();
 	}
@@ -30,7 +33,7 @@ class IO: public Value {
 	static Value* print(Value* self, std::vector<Value*> val) {
 		
 		for (auto i : val) {
-			std::cout << i->print();
+			(*kram_output_stream) << i->print();
 		}
 
 		return new Value();
