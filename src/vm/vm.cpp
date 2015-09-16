@@ -31,7 +31,7 @@ Value* VM::assign(Instruction* ins, vm::ON on) {
 		this->name_create(ins->name, this->run(ins->right[0]));
 	}
 
-	return new Value(Type::NUL);
+	return this->KR_NULL;
 }
 
 Value* VM::set(Instruction* ins, vm::ON on) {
@@ -50,7 +50,7 @@ Value* VM::set(Instruction* ins, vm::ON on) {
 		this->name_update(ins->name, this->run(ins->right[0]));
 	}
 
-	return new Value(Type::NUL);
+	return this->KR_NULL;
 }
 
 Value* VM::literal(Instruction* ins) {
@@ -110,7 +110,7 @@ Value* VM::math(Instruction* ins) {
 	std::cout << "math() Does not know how to handle " << left->print() << "\n";
 	exit(0);
 
-	return new Value(Type::NUL);
+	return this->KR_NULL;
 }
 
 Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
@@ -214,7 +214,7 @@ Value* VM::if_case(Instruction* ins) {
 	this->env_pop();
 
 	// Return NUL otherwise
-	return new Value(Type::NUL);
+	return this->KR_NULL;
 }
 
 Value* VM::loop_while(Instruction* ins) {
@@ -224,12 +224,12 @@ Value* VM::loop_while(Instruction* ins) {
 
 		if (res->type != Type::BOOL) {
 			std::cout << "While-case must evaluate to a BOOL\n";
-			return new Value(Type::NUL);
+			return this->KR_NULL;
 		}
 
 		// Not true anymore
 		if (res->getBool() == false) {
-			return new Value(Type::NUL);
+			return this->KR_NULL;
 		}
 
 		this->env_push();
@@ -239,7 +239,7 @@ Value* VM::loop_while(Instruction* ins) {
 }
 
 Value* VM::ignore(Instruction* ins) {
-	return new Value(Type::NUL);
+	return this->KR_NULL;
 }
 
 Value* VM::push_class(Instruction* ins) {
@@ -490,7 +490,7 @@ Value* VM::run(Instruction* ins, vm::ON on) {
 		default: std::cout << "Unknown instruction";        break;
 	}
 
-	return new Value(Type::NUL);
+	return this->KR_NULL;
 }
 
 Value* VM::run(std::vector<Instruction*> ins) {
@@ -505,6 +505,8 @@ Value* VM::run(std::vector<Instruction*> ins) {
 }
 
 void VM::boot(std::vector<Instruction*> ins) {
+
+	this->KR_NULL = new Value(Type::NUL);
 
 	// Create environment
 	this->environment = new Environment();

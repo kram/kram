@@ -90,6 +90,9 @@ class VM {
 	void env_pop();
 	void env_push();
 
+	// Easy access to the NULL value
+	Value* KR_NULL;
+
 	public:
 		// Initialize the VM
 		void boot(std::vector<Instruction*>);
