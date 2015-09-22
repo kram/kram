@@ -536,12 +536,15 @@ Instruction* Parser::boolean_init(std::string val) {
 		ins->value = new Value(Type::BOOL, 0);
 	}
 
+	ins->value->refcount = -1;
+
 	return ins;
 }
 
 Instruction* Parser::boolean_init() {
 	Instruction* ins = new Instruction(Ins::LITERAL);
 	ins->value = new Value(Type::BOOL, 0);
+	ins->value->refcount = -1;
 	return ins;
 }
 
@@ -553,12 +556,14 @@ Instruction* Parser::number(lexer::Token* tok, ON on) {
 Instruction* Parser::number_init(std::string val) {
 	Instruction* ins = new Instruction(Ins::LITERAL);
 	ins->value = new Value(Type::NUMBER, std::stod(val));
+	ins->value->refcount = -1;
 	return ins;
 }
 
 Instruction* Parser::number_init() {
 	Instruction* ins = new Instruction(Ins::LITERAL);
 	ins->value = new Value(Type::NUMBER, 0);
+	ins->value->refcount = -1;
 	return ins;
 }
 
@@ -570,12 +575,14 @@ Instruction* Parser::string(lexer::Token* tok, ON on) {
 Instruction* Parser::string_init(std::string val) {
 	Instruction* ins = new Instruction(Ins::LITERAL);
 	ins->value = new Value(Type::STRING, val);
+	ins->value->refcount = -1;
 	return ins;
 }
 
 Instruction* Parser::string_init() {
 	Instruction* ins = new Instruction(Ins::LITERAL);
 	ins->value = new Value(Type::STRING, "");
+	ins->value->refcount = -1;
 	return ins;
 }
 

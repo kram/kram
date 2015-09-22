@@ -6,9 +6,9 @@
 #include "value.h"
 
 class Environment {
-	std::unordered_map<std::string, Value*>* names;
 
 	public:
+		std::unordered_map<std::string, Value*>* names;
 
 		Environment();
 

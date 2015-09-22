@@ -40,6 +40,9 @@ class Value {
 
 		Type type;
 
+		// Garbage Collection
+		int refcount;
+
 		Value();
 		Value(Type);
 		Value(Type, std::string);

@@ -97,20 +97,32 @@ Value* VM::math(Instruction* ins) {
 		std::cout << "math() expects equal types, got " << left->print(true) << " and " << right->print(true) << "\n";
 		exit(0);
 	}
+
+	Value* res;
 	
 	switch (left->type) {
 		case Type::NUMBER:
-			return this->math_number(ins, left, right);
+			res = this->math_number(ins, left, right);
 			break;
 
 		// Silence the compiler
-		default: break;
+		default:
+			std::cout << "math() Does not know how to handle " << left->print() << "\n";
+			exit(0);
+			break;
 	}
 
-	std::cout << "math() Does not know how to handle " << left->print() << "\n";
-	exit(0);
+	this->gc_add_object(res);
 
-	return this->KR_NULL;
+	std::cout << "VM::math(): ";
+	this->gc_print();
+
+	return res;
+
+	// std::cout << "math() Does not know how to handle " << left->print() << "\n";
+	// exit(0);
+// 
+	// return this->KR_NULL;
 }
 
 Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
@@ -384,8 +396,13 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 			this->name_create("self", this->lib_stack.back());
 		}
 
+		this->gc_increase_refcount(arguments);
+
 		// Execute function
 		res = fun->exec_method("exec", arguments);
+
+		this->gc_increase_refcount(res);
+		this->gc_decrease_refcount(arguments);
 
 	// Pushed classes (the class has to be fetched from the stack)
 	} else if (on == vm::ON::PUSHED_CLASS && fun->type == Type::NAME) {
@@ -402,6 +419,12 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 				res = top->exec_method(fun->getString(), this->run_vector(ins->right));
 				break;
 		}
+
+		// Free up the function
+		// This is done because when the type is Type::NAME
+		// we're just dealing with a reference
+		delete fun;
+		fun = nullptr;
 
 	// Default action is built in libraries
 	} else {
@@ -537,5 +560,10 @@ void VM::boot(std::vector<Instruction*> ins) {
 	list->init();
 	this->environment->set_root("List", list);
 
+	std::cout << "Booted VM: \n";
+
 	this->run(ins);
+
+	std::cout << "End of VM: \n";
+	this->gc_print();
 }

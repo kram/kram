@@ -6,6 +6,9 @@
 
 void VM::name_create(const std::string& name, Value* val) {
 	this->environment->set(name, val);
+
+	// Add to garbage collection
+	this->gc_add_object(val);
 }
 
 void VM::name_create_root(std::string name, Value* val) {
@@ -39,6 +42,14 @@ Value* VM::name_get_root(const std::string& name) {
 }
 
 void VM::env_pop() {
+
+	// Decrease refcount
+	for(auto kv : *this->environment->names) {
+		this->gc_decrease_refcount(kv.second);
+	}
+
+	this->gc_clean();
+
 	this->environment = this->environment->pop();
 }
 

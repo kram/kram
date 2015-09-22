@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <list>
 
 #include "value.h"
 #include "instruction.h"
@@ -92,6 +93,16 @@ class VM {
 
 	// Easy access to the NULL value
 	Value* KR_NULL;
+
+	// Garbage collection
+	std::list<Value*> gc_all_objects;
+	void gc_add_object(Value*);
+	void gc_decrease_refcount(Value*);
+	void gc_decrease_refcount(std::vector<Value*>);
+	void gc_increase_refcount(Value*);
+	void gc_increase_refcount(std::vector<Value*>);
+	void gc_clean();
+	void gc_print();
 
 	public:
 		// Initialize the VM
