@@ -460,15 +460,14 @@ Instruction* Parser::keyword_fn() {
 	return ins;
 }
 
-Instruction* Parser::function_parameter_with_default_value(Instruction* prev) {
-	Instruction* ins = new Instruction(Ins::FUNCTION_PARAMETER);
+Instruction* Parser::function_parameter_with_default_value(Instruction* ins) {
 
-	if (prev->instruction != Ins::NAME) {
-		std::cout << "= expects previous instruction to be of type NAME";
-		exit(0);
+	if (ins->instruction != Ins::FUNCTION_PARAMETER) {
+		std::cout << "Parameter default value expected Ins::FUNCTION_PARAMETER before =, got:\n";
+		ins->print();
+		exit(1);
 	}
 
-	ins->name = prev->name;
 	ins->right = this->read_until(std::vector<lexer::Token>{
 		lexer::Token::OPERATOR(")"),
 		lexer::Token::OPERATOR(","),
@@ -547,7 +546,15 @@ Instruction* Parser::assign_with_type(Instruction* prev) {
 }
 
 Instruction* Parser::name(lexer::Token* tok, ON on) {
-	Instruction* ins = new Instruction(Ins::NAME);
+
+	Instruction* ins;
+
+	if (on == ON::FUNCTION_PARAMETER_LIST) {
+		ins = new Instruction(Ins::FUNCTION_PARAMETER);
+	} else {
+		ins = new Instruction(Ins::NAME);
+	}
+	
 	ins->name = tok->value;
 
 	return this->lookahead(ins, on);

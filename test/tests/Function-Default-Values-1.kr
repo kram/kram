@@ -1,0 +1,5 @@
+foo := fn(name = "Alice", age) {
+	IO::Println(name, " = ", age)
+}
+
+foo() // Got fewer arguments than the required count

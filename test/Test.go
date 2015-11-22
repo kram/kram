@@ -61,8 +61,10 @@ func Test(bindir, path string) bool {
 	stdout, err := cmd.Output()
 
 	if err != nil {
-		println(path, err.Error())
-		return false
+		if err.Error() != "exit status 1" {
+			println(path, err.Error())
+			return false
+		}
 	}
 
 	if expect == string(stdout) {

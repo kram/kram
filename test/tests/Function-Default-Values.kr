@@ -1,0 +1,7 @@
+foo := fn(name = "Alice", age = 22) {
+	IO::Println(name, " = ", age)
+}
+
+foo() // Alice = 22
+foo("Bob") // Bob = 22
+foo("Bob", 40) // Bob = 40
