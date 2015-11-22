@@ -67,11 +67,14 @@ std::vector<Instruction*> Parser::read_until_eol() {
 
 std::vector<Instruction*> Parser::read_until(std::vector<lexer::Token> until) {
 	std::vector<Instruction*> res;
-
-	return this->read_until(until, res);
+	return this->read_until(until, res, ON::DEFAULT);
 }
 
 std::vector<Instruction*> Parser::read_until(std::vector<lexer::Token> until, std::vector<Instruction*> res) {
+	return this->read_until(until, res, ON::DEFAULT);
+}
+
+std::vector<Instruction*> Parser::read_until(std::vector<lexer::Token> until, std::vector<Instruction*> res, ON on) {
 	// Everything can end at a EOF
 	until.push_back(lexer::Token::T_EOF());
 
@@ -100,7 +103,7 @@ std::vector<Instruction*> Parser::read_until(std::vector<lexer::Token> until, st
 			}
 		}
 
-		Instruction* sym = this->symbol(next, ON::DEFAULT);
+		Instruction* sym = this->symbol(next, on);
 
 		if (sym->instruction != Ins::IGNORE) {
 			res.push_back(sym);	
@@ -143,8 +146,16 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 	// Set
 	// num = 100
 	//     ^
+	//
+	// Parameter with default value
+	// fn (a = 100)
+	//
 	if (next->type == lexer::Type::OPERATOR && next->sub == lexer::Type::OPERATOR_EQ) {
-		return this->set(prev);
+		if (on == ON::FUNCTION_PARAMETER_LIST) {
+			return this->function_parameter_with_default_value(prev);
+		} else {
+			return this->set(prev);
+		}
 	}
 
 	// Create new variable of type
@@ -357,31 +368,6 @@ Instruction* Parser::keyword_class() {
 	return ins;
 }
 
-Instruction* Parser::keyword_fn() {
-	Instruction* ins = new Instruction(Ins::FUNCTION);
-
-	this->advance();
-	this->get_and_expect_token(lexer::Token::OPERATOR("("));
-
-	// All parameters
-	do {
-		ins->left = this->read_until(std::vector<lexer::Token>{
-			lexer::Token::OPERATOR(")"),
-			lexer::Token::OPERATOR(","),
-		}, ins->left);
-	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
-
-	this->advance();
-	this->get_and_expect_token(lexer::Token::OPERATOR("{"));
-
-	this->advance();
-	ins->right = this->read_until(std::vector<lexer::Token>{
-		lexer::Token::OPERATOR("}")
-	});
-
-	return ins;
-}
-
 Instruction* Parser::keyword_if() {
 	Instruction* ins = new Instruction(Ins::IF);
 
@@ -445,6 +431,54 @@ Instruction* Parser::keyword_while() {
 	ins->right = this->read_until(std::vector<lexer::Token>{
 		lexer::Token::OPERATOR("}")
 	});
+
+	return ins;
+}
+
+Instruction* Parser::keyword_fn() {
+	Instruction* ins = new Instruction(Ins::FUNCTION);
+
+	this->advance();
+	this->get_and_expect_token(lexer::Token::OPERATOR("("));
+
+	// All parameters
+	do {
+		ins->left = this->read_until(std::vector<lexer::Token>{
+			lexer::Token::OPERATOR(")"),
+			lexer::Token::OPERATOR(","),
+		}, ins->left, ON::FUNCTION_PARAMETER_LIST);
+
+		std::cout << this->get_token()->print() << "\n";
+
+	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
+
+	this->advance();
+	this->get_and_expect_token(lexer::Token::OPERATOR("{"));
+
+	this->advance();
+	ins->right = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR("}")
+	});
+
+	return ins;
+}
+
+Instruction* Parser::function_parameter_with_default_value(Instruction* prev) {
+	Instruction* ins = new Instruction(Ins::FUNCTION_PARAMETER);
+
+	if (prev->instruction != Ins::NAME) {
+		std::cout << "= expects previous instruction to be of type NAME";
+		exit(0);
+	}
+
+	ins->name = prev->name;
+	ins->right = this->read_until(std::vector<lexer::Token>{
+		lexer::Token::OPERATOR(")"),
+		lexer::Token::OPERATOR(","),
+	});
+
+	// Reverse one step because Parser::keyword_fn() is consuming the same tokens
+	this->reverse();
 
 	return ins;
 }

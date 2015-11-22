@@ -12,6 +12,7 @@ enum class ON {
 	DEFAULT,
 	MATH_CONTINUATION,
 	PUSH_CLASS,
+	FUNCTION_PARAMETER_LIST,
 };
 
 class Parser {
@@ -31,6 +32,7 @@ class Parser {
 	
 	std::vector<Instruction*> read_until(std::vector<lexer::Token>);
 	std::vector<Instruction*> read_until(std::vector<lexer::Token>, std::vector<Instruction*>);
+	std::vector<Instruction*> read_until(std::vector<lexer::Token>, std::vector<Instruction*>, ON);
 
 	Instruction* lookahead(Instruction*, ON);
 	lexer::Token* get_token();
@@ -46,10 +48,12 @@ class Parser {
 
 	Instruction* keyword(lexer::Token*);
 	Instruction* keyword_class();
-	Instruction* keyword_fn();
 	Instruction* keyword_if();
 	Instruction* keyword_new();
 	Instruction* keyword_while();
+
+	Instruction* keyword_fn();
+	Instruction* function_parameter_with_default_value(Instruction*);
 
 	Instruction* name(lexer::Token*, ON);
 	

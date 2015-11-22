@@ -43,6 +43,9 @@ enum class Ins {
 	// right (the content)
 	FUNCTION,
 
+	// name (the name), right (the default value)
+	FUNCTION_PARAMETER,
+
 	// right
 	CREATE_INSTANCE,
 
@@ -76,21 +79,22 @@ class Instruction {
 			std::string i = "UNKNOWN";
 
 			switch (this->instruction) {
-				case Ins::ASSIGN:          i = "ASSIGN";          break;
-				case Ins::SET:             i = "SET";             break;
-				case Ins::LITERAL:         i = "LITERAL";         break;
-				case Ins::NAME:            i = "NAME";            break;
-				case Ins::MATH:            i = "MATH";            break;
-				case Ins::IF:              i = "IF";              break;
-				case Ins::IGNORE:          i = "IGNORE";          break;
-				case Ins::PUSH_CLASS:      i = "PUSH_CLASS";      break;
-				case Ins::CALL:            i = "CALL";            break;
-				case Ins::DEFINE_CLASS:    i = "DEFINE_CLASS";    break;
-				case Ins::FUNCTION:        i = "FUNCTION";        break;
-				case Ins::CREATE_INSTANCE: i = "CREATE_INSTANCE"; break;
-				case Ins::WHILE:           i = "WHILE";           break;
-				case Ins::LIST_CREATE:     i = "LIST_CREATE";     break;
-				case Ins::LIST_EXTRACT:    i = "LIST_EXTRACT";    break;
+				case Ins::ASSIGN:              i = "ASSIGN";              break;
+				case Ins::SET:                 i = "SET";                 break;
+				case Ins::LITERAL:             i = "LITERAL";             break;
+				case Ins::NAME:                i = "NAME";                break;
+				case Ins::MATH:                i = "MATH";                break;
+				case Ins::IF:                  i = "IF";                  break;
+				case Ins::IGNORE:              i = "IGNORE";              break;
+				case Ins::PUSH_CLASS:          i = "PUSH_CLASS";          break;
+				case Ins::CALL:                i = "CALL";                break;
+				case Ins::DEFINE_CLASS:        i = "DEFINE_CLASS";        break;
+				case Ins::FUNCTION:            i = "FUNCTION";            break;
+				case Ins::FUNCTION_PARAMETER:  i = "FUNCTION_PARAMETER";  break;
+				case Ins::CREATE_INSTANCE:     i = "CREATE_INSTANCE";     break;
+				case Ins::WHILE:               i = "WHILE";               break;
+				case Ins::LIST_CREATE:         i = "LIST_CREATE";         break;
+				case Ins::LIST_EXTRACT:        i = "LIST_EXTRACT";        break;
 			}
 
 			std::cout << std::string(ident, '\t') << "{\n";
