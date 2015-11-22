@@ -68,7 +68,7 @@ class List: public Value {
 
 		List* list = static_cast<List*>(self);
 
-		size_t at = val[0]->getNumber();
+		auto at = val[0]->getNumber();
 
 		if (at < 0 || at >= list->content.size()) {
 			std::cout << "List.At() out of bounds\n";
