@@ -447,9 +447,6 @@ Instruction* Parser::keyword_fn() {
 			lexer::Token::OPERATOR(")"),
 			lexer::Token::OPERATOR(","),
 		}, ins->left, ON::FUNCTION_PARAMETER_LIST);
-
-		std::cout << this->get_token()->print() << "\n";
-
 	} while (this->get_token()->sub == lexer::Type::OPERATOR_COMMA);
 
 	this->advance();
