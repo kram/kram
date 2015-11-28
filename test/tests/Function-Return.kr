@@ -1,0 +1,17 @@
+foo := fn(in) {
+	if in > 10 {
+		if in > 50 {
+			return 100
+		}
+
+		return in
+	}
+
+	return 2
+}
+
+IO::Println(foo(2)) // 2
+IO::Println(foo(8)) // 2
+IO::Println(foo(25)) // 25
+IO::Println(foo(26)) // 26
+IO::Println(foo(70)) // 100

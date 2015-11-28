@@ -38,7 +38,11 @@ class Function: public Value {
 			++key;
 		}
 
-		return fn->vm->run(fn->content);
+		fn->vm->in_function_push();
+		auto res = fn->vm->run(fn->content);
+		fn->vm->in_function_pop();
+
+		return res;
 	}
 
 	public:

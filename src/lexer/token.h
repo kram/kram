@@ -30,6 +30,7 @@ namespace lexer {
 		KEYWORD_ELSE,
 		KEYWORD_NEW,
 		KEYWORD_WHILE,
+		KEYWORD_RETURN,
 
 		OPERATOR,
 	

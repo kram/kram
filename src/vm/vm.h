@@ -65,6 +65,8 @@ class VM {
 	// Execute right for as long as left executes to true
 	Value* loop_while(Instruction*);
 
+	Value* kw_return(Instruction*);
+
 	// Defines a new class on the root level of environment
 	// Will execute assignment instructions (other instructions are illegal and will stop the program)
 	Value* define_class(Instruction*);
@@ -90,6 +92,8 @@ class VM {
 	void env_pop();
 	void env_push();
 
+	bool function_should_return();
+
 	public:
 		// Initialize the VM
 		void boot(std::vector<Instruction*>);
@@ -107,6 +111,13 @@ class VM {
 		void name_create_root(std::string, Value*);
 		Value* name_get(const std::string&);
 		Value* name_get_root(const std::string&);
+
+		// Stack for functions, used together with the return keyword
+		void in_function_push();
+		void in_function_pop();
+
+	private:
+		std::vector<bool> function_return_stack;
 };
 
 #endif

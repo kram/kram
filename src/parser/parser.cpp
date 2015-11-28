@@ -342,6 +342,7 @@ Instruction* Parser::keyword(lexer::Token* tok) {
 		case lexer::Type::KEYWORD_IF: return this->keyword_if(); break;
 		case lexer::Type::KEYWORD_NEW: return this->keyword_new(); break;
 		case lexer::Type::KEYWORD_WHILE: return this->keyword_while(); break;
+		case lexer::Type::KEYWORD_RETURN: return this->keyword_return(); break;
 		default: break;
 	}
 
@@ -432,6 +433,12 @@ Instruction* Parser::keyword_while() {
 		lexer::Token::OPERATOR("}")
 	});
 
+	return ins;
+}
+
+Instruction* Parser::keyword_return() {
+	Instruction* ins = new Instruction(Ins::RETURN);
+	ins->right = this->read_until_eol();
 	return ins;
 }
 

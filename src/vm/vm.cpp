@@ -238,6 +238,28 @@ Value* VM::loop_while(Instruction* ins) {
 	}
 }
 
+Value* VM::kw_return(Instruction* ins) {
+
+	auto res = this->run(ins->right);
+
+	this->function_return_stack.pop_back();
+	this->function_return_stack.push_back(true);
+
+	return res;
+}
+
+void VM::in_function_push() {
+	this->function_return_stack.push_back(false);
+}
+
+void VM::in_function_pop() {
+	this->function_return_stack.pop_back();
+}
+
+bool VM::function_should_return() {
+	return this->function_return_stack.back();
+}
+
 Value* VM::ignore(Instruction* ins) {
 	return new Value(Type::NUL);
 }
@@ -486,8 +508,12 @@ Value* VM::run(Instruction* ins, vm::ON on) {
 		case Ins::DEFINE_CLASS:    return this->define_class(ins);    break;
 		case Ins::LIST_CREATE:     return this->list_create(ins);     break;
 		case Ins::LIST_EXTRACT:    return this->list_extract(ins);    break;
+		case Ins::RETURN:          return this->kw_return(ins);       break;
 
-		default: std::cout << "Unknown instruction";        break;
+		case Ins::FUNCTION_PARAMETER:
+			std::cout << "Could not evaluate FUNCTION_PARAMETER\n";
+			exit(1);
+			break;
 	}
 
 	return new Value(Type::NUL);
@@ -498,7 +524,16 @@ Value* VM::run(std::vector<Instruction*> ins) {
 	Value* last;
 
 	for (Instruction* i : ins) {
+
 		last = this->run(i, vm::ON::DEFAULT);
+
+		if (i->instruction == Ins::RETURN) {
+			return last;
+		}
+
+		if (this->function_should_return()) {
+			return last;
+		}
 	}
 
 	return last;
@@ -534,6 +569,8 @@ void VM::boot(std::vector<Instruction*> ins) {
 	list->set_type(Type::REFERENCE);
 	list->init();
 	this->environment->set_root("List", list);
+
+	this->function_return_stack = std::vector<bool>{false};
 
 	this->run(ins);
 }

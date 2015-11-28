@@ -57,6 +57,9 @@ enum class Ins {
 
 	// left (the list), right (what to extract)
 	LIST_EXTRACT,
+
+	// right (what to return)
+	RETURN,
 };
 
 class Instruction {
@@ -95,6 +98,7 @@ class Instruction {
 				case Ins::WHILE:               i = "WHILE";               break;
 				case Ins::LIST_CREATE:         i = "LIST_CREATE";         break;
 				case Ins::LIST_EXTRACT:        i = "LIST_EXTRACT";        break;
+				case Ins::RETURN:              i = "RETURN";              break;
 			}
 
 			std::cout << std::string(ident, '\t') << "{\n";

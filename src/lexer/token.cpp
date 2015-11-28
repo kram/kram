@@ -166,6 +166,7 @@ Type Token::Trans(std::string from) {
 		opTrans["else"] = Type::KEYWORD_ELSE;
 		opTrans["new"] = Type::KEYWORD_NEW;
 		opTrans["while"] = Type::KEYWORD_WHILE;
+		opTrans["return"] = Type::KEYWORD_RETURN;
 
 		built_op_trans = true;
 	}

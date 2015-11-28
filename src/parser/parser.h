@@ -51,6 +51,7 @@ class Parser {
 	Instruction* keyword_if();
 	Instruction* keyword_new();
 	Instruction* keyword_while();
+	Instruction* keyword_return();
 
 	Instruction* keyword_fn();
 	Instruction* function_parameter_with_default_value(Instruction*);
