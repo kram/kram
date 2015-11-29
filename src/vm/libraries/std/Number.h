@@ -3,7 +3,7 @@
 // This file may not be copied, modified, or distributed except according to those terms.
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
 #include "../../value.h"
 
