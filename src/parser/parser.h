@@ -11,6 +11,7 @@
 enum class ON {
 	DEFAULT,
 	MATH_CONTINUATION,
+	MATH_NEG,
 	PUSH_CLASS,
 	FUNCTION_PARAMETER_LIST,
 };
@@ -78,6 +79,7 @@ class Parser {
 	Instruction* assign_with_type(Instruction*);
 
 	Instruction* math(Instruction*);
+	Instruction* math(Instruction*, ON);
 	Instruction* push_class(Instruction*);
 	Instruction* call(Instruction*, ON);
 

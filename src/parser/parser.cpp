@@ -125,8 +125,10 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 	//   ^^
 	// IO.Println("123")
 	//   ^
-	if (next->type == lexer::Type::OPERATOR && (next->sub == lexer::Type::OPERATOR_DOT || next->sub == lexer::Type::OPERATOR_DOUBLE_COLON)) {
-		return this->push_class(prev);
+	if (on != ON::MATH_NEG) {
+		if (next->type == lexer::Type::OPERATOR && (next->sub == lexer::Type::OPERATOR_DOT || next->sub == lexer::Type::OPERATOR_DOUBLE_COLON)) {
+			return this->push_class(prev);
+		}
 	}
 
 	// Call
@@ -165,9 +167,11 @@ Instruction* Parser::lookahead(Instruction* prev, ON on) {
 		return this->assign_with_type(prev);
 	}
 
-	if (on != ON::MATH_CONTINUATION && next->type == lexer::Type::OPERATOR) {
-		if (this->startOperators.find(next->sub) != this->startOperators.end()) {
-			return this->math(prev);
+	if (on != ON::MATH_CONTINUATION && on != ON::MATH_NEG) {
+		if (next->type == lexer::Type::OPERATOR) {
+			if (this->startOperators.find(next->sub) != this->startOperators.end()) {
+				return this->math(prev);
+			}
 		}
 	}
 
@@ -261,19 +265,9 @@ int Parser::infix_priority(lexer::Type in) {
 			return 40;
 			break;
 
-		case lexer::Type::OPERATOR_PLUS:
-		case lexer::Type::OPERATOR_MINUS:
-			return 50;
-			break;
-
-		case lexer::Type::OPERATOR_MUL:
-		case lexer::Type::OPERATOR_DIV:
-			return 60;
-			break;
-
 		case lexer::Type::OPERATOR_2DOT:
 		case lexer::Type::OPERATOR_3DOT:
-			return 70;
+			return 50;
 			break;
 
 		case lexer::Type::OPERATOR_DOT:
@@ -281,6 +275,16 @@ int Parser::infix_priority(lexer::Type in) {
 		case lexer::Type::OPERATOR_EQ:
 		case lexer::Type::OPERATOR_PLUS_PLUS:
 		case lexer::Type::OPERATOR_MINUS_MINUS:
+			return 60;
+			break;
+
+		case lexer::Type::OPERATOR_PLUS:
+		case lexer::Type::OPERATOR_MINUS:
+			return 70;
+			break;
+
+		case lexer::Type::OPERATOR_MUL:
+		case lexer::Type::OPERATOR_DIV:
 			return 80;
 			break;
 
@@ -338,7 +342,7 @@ Instruction* Parser::oper_list_extraction(Instruction* prev) {
 
 Instruction* Parser::oper_minus() {
 	auto zero = this->number_init();
-	return this->math(zero);
+	return this->math(zero, ON::MATH_NEG);
 }
 
 Instruction* Parser::keyword(lexer::Token* tok) {
@@ -639,6 +643,10 @@ Instruction* Parser::ignore() {
 //Instruction* Parser::bl(lexer::Token);
 
 Instruction* Parser::math(Instruction* prev) {
+	return this->math(prev, ON::DEFAULT);
+}
+
+Instruction* Parser::math(Instruction* prev, ON on) {
 
 	// Get the current token
 	lexer::Token* current = this->get_token();
@@ -650,7 +658,12 @@ Instruction* Parser::math(Instruction* prev) {
 	math->type = current->sub;
 
 	math->left = std::vector<Instruction*> { prev };
-	math->right = std::vector<Instruction*> { this->symbol_next(ON::MATH_CONTINUATION) };
+
+	if (on == ON::DEFAULT) {
+		math->right = std::vector<Instruction*> { this->symbol_next(ON::MATH_CONTINUATION) };
+	} else {
+		math->right = std::vector<Instruction*> { this->symbol_next(ON::MATH_NEG) };
+	}
 
 	// Verify that the ordering (infix_priority()) is correct
 	if (prev->instruction == Ins::MATH) {

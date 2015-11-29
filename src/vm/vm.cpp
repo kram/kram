@@ -115,27 +115,27 @@ Value* VM::math(Instruction* ins) {
 
 Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
 
-	int res_int = 0;
+	double res_number = 0;
 	bool res_bool = false;
 	bool is_bool = false;
-	int l = left->getNumber();
-	int r = right->getNumber();
+	double l = left->getNumber();
+	double r = right->getNumber();
 
 	switch (ins->type) {
 		case lexer::Type::OPERATOR_PLUS:
-			res_int = l + r;
+			res_number = l + r;
 			break;
 
 		case lexer::Type::OPERATOR_MINUS:
-			res_int = l - r;
+			res_number = l - r;
 			break;
 
 		case lexer::Type::OPERATOR_DIV:
-			res_int = l / r;
+			res_number = l / r;
 			break;
 
 		case lexer::Type::OPERATOR_MUL:
-			res_int = l * r;
+			res_number = l * r;
 			break;
 
 		case lexer::Type::OPERATOR_LT:
@@ -179,11 +179,10 @@ Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
 	}
 
 	if (is_bool) {
-		res_int = (res_bool ? 1 : 0);
-		return new Value(Type::BOOL, res_int);
+		return new Value(Type::BOOL, (res_bool ? 1 : 0));
 	}
 
-	return new Value(Type::NUMBER, res_int);
+	return new Value(Type::NUMBER, res_number);
 }
 
 Value* VM::if_case(Instruction* ins) {
