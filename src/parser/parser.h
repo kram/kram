@@ -45,6 +45,7 @@ class Parser {
 	Instruction* oper(lexer::Token*);
 	Instruction* oper_list_creation();
 	Instruction* oper_list_extraction(Instruction*);
+	Instruction* oper_minus();
 
 	Instruction* keyword(lexer::Token*);
 	Instruction* keyword_class();

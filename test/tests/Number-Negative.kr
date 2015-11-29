@@ -1,0 +1,4 @@
+IO::Debug(-13) // NUMBER<-13>
+IO::Debug(-0) // NUMBER<0>
+IO::Debug(-500) // NUMBER<-500>
+IO::Debug(-500 + 14) // NUMBER<-486>

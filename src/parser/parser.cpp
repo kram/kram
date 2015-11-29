@@ -295,6 +295,7 @@ int Parser::infix_priority(lexer::Type in) {
 Instruction* Parser::oper(lexer::Token* tok) {
 	switch (tok->sub) {
 		case lexer::Type::OPERATOR_SQUARE_PAREN_LEFT: return this->oper_list_creation(); break;
+		case lexer::Type::OPERATOR_MINUS:             return this->oper_minus();         break;
 		default: break;
 	}
 
@@ -333,6 +334,11 @@ Instruction* Parser::oper_list_extraction(Instruction* prev) {
 	}
 
 	return ins;
+}
+
+Instruction* Parser::oper_minus() {
+	auto zero = this->number_init();
+	return this->math(zero);
 }
 
 Instruction* Parser::keyword(lexer::Token* tok) {
