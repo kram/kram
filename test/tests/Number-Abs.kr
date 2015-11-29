@@ -1,0 +1,7 @@
+IO::Println(10.Abs()) // 10
+IO::Println(-10.Abs()) // 10
+
+IO::Println(0.Abs()) // 0
+IO::Println(-0.Abs()) // 0
+
+IO::Println(-123.Abs()) // 123

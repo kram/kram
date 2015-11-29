@@ -9,9 +9,9 @@
 
 class Number: public Value {
 
-	static Value* sqrt(Value* self, std::vector<Value*> val) {
-		return new Value(Type::NUMBER, ::sqrt(val[0]->getNumber()));
-	}
+	static Value* abs(Value* self, std::vector<Value*> val) {
+		return new Value(Type::NUMBER, std::abs(val[0]->getNumber()));
+	}	
 
 	static Value* add(Value* self, std::vector<Value*> val) {
 
@@ -34,9 +34,36 @@ class Number: public Value {
 
 	}
 
+	static Value* pow(Value* self, std::vector<Value*> val) {
+		return new Value(Type::NUMBER, std::pow(val[0]->getNumber(), val[1]->getNumber()));
+	}
+
+	static Value* sqrt(Value* self, std::vector<Value*> val) {
+		return new Value(Type::NUMBER, std::sqrt(val[0]->getNumber()));
+	}
+
+	static Value* sin(Value* self, std::vector<Value*> val) {
+		return new Value(Type::NUMBER, std::sin(val[0]->getNumber()));
+	}
+
+	static Value* cos(Value* self, std::vector<Value*> val) {
+		return new Value(Type::NUMBER, std::cos(val[0]->getNumber()));
+	}
+
+	static Value* tan(Value* self, std::vector<Value*> val) {
+		return new Value(Type::NUMBER, std::tan(val[0]->getNumber()));
+	}
+
 	public:
 		void init() {
-			this->add_method("Sqrt", this->sqrt);
 			this->add_method("Add", this->add);
+
+			this->add_method("Abs", this->abs);
+			this->add_method("Pow", this->pow);
+			this->add_method("Sqrt", this->sqrt);
+
+			this->add_method("Sin", this->sin);
+			this->add_method("Cos", this->cos);
+			this->add_method("Tan", this->tan);
 		}
 };
