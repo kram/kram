@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstdio>
 #include <iomanip>
+#include <limits>
 
 Value::Value() {
 	type = Type::NUL;
