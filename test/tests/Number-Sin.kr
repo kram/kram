@@ -1,6 +1,6 @@
 IO::Println(0.Sin()) // 0
-IO::Println(0.1.Sin()) // 0.0998334
-IO::Println(0.2.Sin()) // 0.198669
-IO::Println(0.9.Sin()) // 0.783327
-IO::Println(2.3.Sin()) // 0.745705
-IO::Println(-2.3.Sin()) // -0.745705
+IO::Println(0.1.Sin()) // 0.09983341664682815
+IO::Println(0.2.Sin()) // 0.1986693307950612
+IO::Println(0.9.Sin()) // 0.7833269096274833
+IO::Println(2.3.Sin()) // 0.7457052121767203
+IO::Println(-2.3.Sin()) // -0.7457052121767203

@@ -56,7 +56,7 @@ class Value {
 		bool getBool();
 
 		// Overwritten by references
-		void init(void) {}
+		void init() {};
 
 		// #justlibrarythings
 		Value* exec_method(std::string, std::vector<Value*>);

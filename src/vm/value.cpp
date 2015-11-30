@@ -5,6 +5,8 @@
 #include "value.h"
 
 #include <iostream>
+#include <cstdio>
+#include <iomanip>
 
 Value::Value() {
 	type = Type::NUL;
@@ -175,7 +177,8 @@ std::string Value::print(bool print_type) {
 			res << *this->data.strval;
 			break;
 
-		case Type::NUMBER: 
+		case Type::NUMBER:
+			res << std::setprecision (std::numeric_limits<double>::digits10 + 1);
 			res << this->data.number;
 			break;
 
