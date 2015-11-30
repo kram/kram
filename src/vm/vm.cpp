@@ -32,7 +32,7 @@ Value* VM::assign(Instruction* ins, vm::ON on) {
 		this->name_create(ins->name, this->run(ins->right[0]));
 	}
 
-	return new Value(Type::NUL);
+	return this->get_value_null();
 }
 
 Value* VM::set(Instruction* ins, vm::ON on) {
@@ -51,7 +51,7 @@ Value* VM::set(Instruction* ins, vm::ON on) {
 		this->name_update(ins->name, this->run(ins->right[0]));
 	}
 
-	return new Value(Type::NUL);
+	return this->get_value_null();
 }
 
 Value* VM::literal(Instruction* ins) {
@@ -111,7 +111,7 @@ Value* VM::math(Instruction* ins) {
 	std::cout << "math() Does not know how to handle " << left->print() << "\n";
 	exit(0);
 
-	return new Value(Type::NUL);
+	return this->get_value_null();
 }
 
 Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
@@ -180,10 +180,10 @@ Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
 	}
 
 	if (is_bool) {
-		return new Value(Type::BOOL, (res_bool ? 1 : 0));
+		return this->get_value_bool(res_bool);
 	}
 
-	return new Value(Type::NUMBER, res_number);
+	return this->get_value_number(res_number);
 }
 
 Value* VM::if_case(Instruction* ins) {
@@ -214,7 +214,7 @@ Value* VM::if_case(Instruction* ins) {
 	this->env_pop();
 
 	// Return NUL otherwise
-	return new Value(Type::NUL);
+	return this->get_value_null();
 }
 
 Value* VM::loop_while(Instruction* ins) {
@@ -224,12 +224,12 @@ Value* VM::loop_while(Instruction* ins) {
 
 		if (res->type != Type::BOOL) {
 			std::cout << "While-case must evaluate to a BOOL\n";
-			return new Value(Type::NUL);
+			return this->get_value_null();
 		}
 
 		// Not true anymore
 		if (res->getBool() == false) {
-			return new Value(Type::NUL);
+			return this->get_value_null();
 		}
 
 		this->env_push();
@@ -261,7 +261,7 @@ bool VM::function_should_return() {
 }
 
 Value* VM::ignore(Instruction* ins) {
-	return new Value(Type::NUL);
+	return this->get_value_null();
 }
 
 Value* VM::push_class(Instruction* ins) {
@@ -364,7 +364,7 @@ Value* VM::list_range(int start, int end, bool inclusive) {
 	std::vector<Value*> items;
 
 	for (int i = start; i <= end; i++) {
-		items.push_back(new Value(Type::NUMBER, i));
+		items.push_back(this->get_value_number(i));
 	}
 
 	list->push(items);
@@ -516,12 +516,12 @@ Value* VM::run(Instruction* ins, vm::ON on) {
 			break;
 	}
 
-	return new Value(Type::NUL);
+	return this->get_value_null();
 }
 
 Value* VM::run(std::vector<Instruction*> ins) {
 
-	Value* last;
+	Value* last = this->get_value_null();
 
 	for (Instruction* i : ins) {
 
@@ -562,6 +562,8 @@ void VM::boot(std::vector<Instruction*> ins) {
 	reg_class(Math, math);
 
 	this->function_return_stack = std::vector<bool>{false};
+
+	this->init_default_values();
 
 	this->run(ins);
 }
