@@ -2,6 +2,10 @@
 // See the LICENSE file at the top-level directory of this distribution.
 // This file may not be copied, modified, or distributed except according to those terms.
 
+// A rule of thumb: If the mathematical function takes two numbers, such as Math::Pow(2, 5), it should be a static
+// method in Math. If it only is one number, such as 25.Sqrt() or Number::Sqrt(25) it should be in Number.
+// I think that it makes sense?
+
 #include <iostream>
 #include <cmath>
 
@@ -34,10 +38,6 @@ class Number: public Value {
 
 	}
 
-	static Value* pow(Value* self, std::vector<Value*> val) {
-		return new Value(Type::NUMBER, std::pow(val[0]->getNumber(), val[1]->getNumber()));
-	}
-
 	static Value* sqrt(Value* self, std::vector<Value*> val) {
 		return new Value(Type::NUMBER, std::sqrt(val[0]->getNumber()));
 	}
@@ -59,7 +59,6 @@ class Number: public Value {
 			this->add_method("Add", this->add);
 
 			this->add_method("Abs", this->abs);
-			this->add_method("Pow", this->pow);
 			this->add_method("Sqrt", this->sqrt);
 
 			this->add_method("Sin", this->sin);

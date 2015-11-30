@@ -4,18 +4,17 @@
 
 #include "../../value.h"
 
+#include <cmath>
+
 class Math: public Value {
 
-	static Value* kr_abs(Value* self, std::vector<Value*> val) {
-
-		auto num = val[0]->getNumber();
-
-		return new Value(Type::NUMBER, std::abs(num));
+	static Value* pow(Value* self, std::vector<Value*> val) {
+		return new Value(Type::NUMBER, std::pow(val[0]->getNumber(), val[1]->getNumber()));
 	}
 
 	public:
 
 		void init() {
-			this->add_method("Abs", this->kr_abs);
+			this->add_method("Pow", this->pow);
 		}
 };

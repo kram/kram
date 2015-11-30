@@ -13,6 +13,7 @@
 #include "libraries/std/Map.h"
 #include "libraries/std/List.h"
 #include "libraries/std/String.h"
+#include "libraries/std/Math.h"
 
 Value* VM::assign(Instruction* ins, vm::ON on) {
 
@@ -558,6 +559,7 @@ void VM::boot(std::vector<Instruction*> ins) {
 	reg_class(String, str);
 	reg_class(Map, map);
 	reg_class(List, list);
+	reg_class(Math, math);
 
 	this->function_return_stack = std::vector<bool>{false};
 
