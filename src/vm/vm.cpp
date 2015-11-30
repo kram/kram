@@ -538,36 +538,26 @@ Value* VM::run(std::vector<Instruction*> ins) {
 	return last;
 }
 
+// Macro for defining classes easily
+// class_name: Both the class name in this C++ project, and the name of the class in Kram userland
+// var_name: The temporary name used here. This could probably be removed, but. Well.
+#define reg_class(class_name, var_name) auto var_name = new class_name(); \
+	var_name->set_type(Type::REFERENCE); \
+	var_name->init(); \
+	this->environment->set_root(#class_name, var_name);
+
 void VM::boot(std::vector<Instruction*> ins) {
 
 	// Create environment
 	this->environment = new Environment();
 	this->environment->is_root = true;
 
-	IO* io = new IO();
-	io->set_type(Type::REFERENCE);
-	io->init();
-	this->environment->set_root("IO", io);
-
-	Number* number = new Number();
-	number->set_type(Type::REFERENCE);
-	number->init();
-	this->environment->set_root("Number", number);
-
-	String* str = new String();
-	str->set_type(Type::REFERENCE);
-	str->init();
-	this->environment->set_root("String", str);
-
-	Map* map = new Map();
-	map->set_type(Type::REFERENCE);
-	map->init();
-	this->environment->set_root("Map", map);
-
-	List* list = new List();
-	list->set_type(Type::REFERENCE);
-	list->init();
-	this->environment->set_root("List", list);
+	// Register classes to the VM
+	reg_class(IO, io);
+	reg_class(Number, number);
+	reg_class(String, str);
+	reg_class(Map, map);
+	reg_class(List, list);
 
 	this->function_return_stack = std::vector<bool>{false};
 
