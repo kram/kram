@@ -94,6 +94,15 @@ class VM {
 
 	bool function_should_return();
 
+	Value* value_null;
+	Value* value_number [255];
+	Value* value_bool [2];
+
+	void init_default_values();
+	Value* get_value_null();
+	Value* get_value_number(double);
+	Value* get_value_bool(bool);
+
 	public:
 		// Initialize the VM
 		void boot(std::vector<Instruction*>);
