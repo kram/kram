@@ -29,7 +29,17 @@ Value* VM::assign(Instruction* ins, vm::ON on) {
 		Class* cl = static_cast<Class*>(top);
 		cl->set_value(ins->name, this->run(ins->right[0]));
 	} else {
-		this->name_create(ins->name, this->run(ins->right[0]));
+
+		#ifdef KR_DEBUG_ASSIGN
+
+		std::cout << "assign: " << ins->name << " to " << 
+			KR_SNP_GET_STACK(ins->stack_and_pos) << ":" <<
+			KR_SNP_GET_POS(ins->stack_and_pos) <<
+			" -> " << this->env_get_pos(ins->stack_and_pos) << "\n";
+
+		#endif
+
+		this->name_create(this->env_get_pos(ins->stack_and_pos), this->run(ins->right[0]));
 	}
 
 	return this->get_value_null();
@@ -48,7 +58,7 @@ Value* VM::set(Instruction* ins, vm::ON on) {
 		Class* cl = static_cast<Class*>(top);
 		cl->update_value(ins->name, this->run(ins->right[0]));
 	} else {
-		this->name_update(ins->name, this->run(ins->right[0]));
+		this->name_update(this->env_get_pos(ins->stack_and_pos), this->run(ins->right[0]));
 	}
 
 	return this->get_value_null();
@@ -87,7 +97,11 @@ Value* VM::name(Instruction* ins, vm::ON on) {
 	}
 
 	// Check if the value exists on the stack
-	return this->name_get(ins->name);
+	if (KR_SNP_GET_POS(ins->stack_and_pos) == 0) { 
+		return this->name_get_root(ins->name);
+	}
+
+	return this->name_get(this->env_get_pos(ins->stack_and_pos));
 }
 
 Value* VM::math(Instruction* ins) {
@@ -98,7 +112,7 @@ Value* VM::math(Instruction* ins) {
 		std::cout << "math() expects equal types, got " << left->print(true) << " and " << right->print(true) << "\n";
 		exit(0);
 	}
-	
+
 	switch (left->type) {
 		case Type::NUMBER:
 			return this->math_number(ins, left, right);
@@ -188,7 +202,7 @@ Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
 
 Value* VM::if_case(Instruction* ins) {
 
-	this->env_push();
+	this->env_push(KR_SNP_GET_STACK(ins->stack_and_pos));
 
 	Value* res = this->run(ins->center[0]);
 
@@ -232,7 +246,7 @@ Value* VM::loop_while(Instruction* ins) {
 			return this->get_value_null();
 		}
 
-		this->env_push();
+		this->env_push(KR_SNP_GET_STACK(ins->stack_and_pos));
 		this->run(ins->right);
 		this->env_pop();
 	}
@@ -289,6 +303,7 @@ Value* VM::push_class(Instruction* ins) {
 
 Value* VM::function(Instruction* ins) {
 	Function* fn = new Function();
+	fn->stack_num = KR_SNP_GET_STACK(ins->stack_and_pos);
 	fn->set_type(Type::FUNCTION);
 	fn->init();
 	
@@ -388,8 +403,6 @@ Value* VM::create_instance(Instruction* ins) {
 
 Value* VM::call(Instruction* ins, vm::ON on) {
 
-	this->env_push();
-
 	// Get the method name or function declaration
 	Value* fun = this->name(ins->left[0], on);
 
@@ -398,8 +411,11 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 
 	// Function and class methods
 	if (fun->type == Type::FUNCTION) {
+
 		// Parse arguments first
 		auto arguments = this->run_vector(ins->right);
+
+		this->env_push(fun->stack_num);
 
 		// Assign "self" to the parent
 		if (on == vm::ON::PUSHED_CLASS) {
@@ -411,6 +427,9 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 
 	// Pushed classes (the class has to be fetched from the stack)
 	} else if (on == vm::ON::PUSHED_CLASS && fun->type == Type::NAME) {
+
+		this->env_push(0);
+
 		Value* top = this->lib_stack.back();
 
 		switch (top->type) {
@@ -427,6 +446,7 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 
 	// Default action is built in libraries
 	} else {
+		this->env_push(0);
 		res = this->call_library(ins);
 	}
 
@@ -552,6 +572,12 @@ void VM::boot(std::vector<Instruction*> ins) {
 	// Create environment
 	this->environment = new Environment();
 	this->environment->is_root = true;
+
+	this->env_current_stack = 0;
+	this->env_stack_positions.push_back(std::vector<size_t>{0});
+	this->env_stack_history.push_back(0);
+	// this->env_stack_positions[0].push_back(1);
+	// this->env_depth_pos_stack.push_back(1);
 
 	// Register classes to the VM
 	reg_class(IO, io);

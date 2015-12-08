@@ -38,6 +38,8 @@ class Value {
 
 	public:
 
+		size_t stack_num;
+
 		Type type;
 
 		Value();

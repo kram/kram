@@ -3,6 +3,8 @@
 // This file may not be copied, modified, or distributed except according to those terms.
 
 #include "parser.h"
+#include "optimizer/optimizer.h"
+
 #include <iostream>
 
 Parser::Parser(std::vector<lexer::Token*> tokens) {
@@ -50,7 +52,11 @@ Parser::Parser(std::vector<lexer::Token*> tokens) {
 }
 
 std::vector<Instruction*> Parser::run() {
-	return this->read_file();
+	auto res = this->read_file();
+
+	res = Optimizer::variable_alloc(res);
+
+	return res;
 }
 
 std::vector<Instruction*> Parser::read_file() {

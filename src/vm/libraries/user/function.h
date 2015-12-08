@@ -22,13 +22,31 @@ class Function: public Value {
 
 			if (arguments.size() > key) {
 
+				#ifdef KR_DEBUG_ASSIGN
+
+				std::cout << "assign: " << param->name << " to " << 
+					KR_SNP_GET_STACK(param->stack_and_pos) << ":" <<
+					KR_SNP_GET_POS(param->stack_and_pos) <<
+					" -> " << fn->vm->env_get_pos(param->stack_and_pos) << "\n";
+
+				#endif
+
 				// Caller defined value
-				fn->vm->name_create(param->name, arguments[key]);
+				fn->vm->name_create(fn->vm->env_get_pos(param->stack_and_pos), arguments[key]);
 
 			} else if (param->right.size() == 1) {
 
+				#ifdef KR_DEBUG_ASSIGN
+
+				std::cout << "assign: " << param->name << " to " << 
+					KR_SNP_GET_STACK(param->stack_and_pos) << ":" <<
+					KR_SNP_GET_POS(param->stack_and_pos) <<
+					" -> " << fn->vm->env_get_pos(param->stack_and_pos) << "\n";
+
+				#endif
+
 				// Use default value
-				fn->vm->name_create(param->name, fn->vm->run(param->right[0]));
+				fn->vm->name_create(fn->vm->env_get_pos(param->stack_and_pos), fn->vm->run(param->right[0]));
 
 			} else {
 				std::cout << "No value for parameter '" << param->name << "'\n";

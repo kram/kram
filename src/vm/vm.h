@@ -89,8 +89,12 @@ class VM {
 	Value* call_builtin(Instruction*, Value*);
 
 	// Steps in and out of the environment
+	std::vector<std::vector<size_t>> env_stack_positions;
+	std::vector<size_t> env_stack_history;
+	size_t env_current_stack;
+	size_t env_depth_current_max;
 	void env_pop();
-	void env_push();
+	void env_push(size_t);
 
 	bool function_should_return();
 
@@ -116,9 +120,15 @@ class VM {
 		// Set and get values from the environment
 		// See environment
 		void name_create(const std::string&, Value*);
+		void name_create(size_t, Value*);
 		void name_update(const std::string&, Value*);
-		void name_create_root(std::string, Value*);
+		void name_update(size_t, Value*);
 		Value* name_get(const std::string&);
+		Value* name_get(size_t);
+
+		size_t env_get_pos(stack_and_pos);
+
+		void name_create_root(std::string, Value*);
 		Value* name_get_root(const std::string&);
 
 		// Stack for functions, used together with the return keyword

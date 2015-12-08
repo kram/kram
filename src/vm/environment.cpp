@@ -14,12 +14,20 @@ void Environment::set(const std::string &name, Value* val) {
 	(*this->names)[name] = val;
 }
 
+void Environment::set(size_t pos, Value* val) {
+	this->names_arr[pos] = val;
+}
+
 void Environment::set_root(std::string name, Value* val) {
 	if (this->is_root) {
 		this->set(name, val);
 	} else {
 		this->root->set(name, val);
 	}
+}
+
+void Environment::update(size_t pos, Value* val) {
+	this->names_arr[pos] = val;
 }
 
 void Environment::update(const std::string &name, Value* val) {
@@ -36,6 +44,10 @@ void Environment::update(const std::string &name, Value* val) {
 
 	this->parent->update(name, val);
 	return;
+}
+
+Value* Environment::get(size_t pos) {
+	return this->names_arr[pos];
 }
 
 Value* Environment::get(const std::string &name) {
@@ -64,6 +76,8 @@ Environment* Environment::push() {
 	Environment* env = new Environment();
 	env->parent = this;
 
+	env->names_arr = this->names_arr;
+
 	if (this->is_root) {
 		env->root = this;
 	} else {
@@ -78,6 +92,8 @@ Environment* Environment::pop() {
 		std::cout << "Environment: You can not pop the root level!" << "\n";
 		exit(0);
 	}
+
+	this->parent->names_arr = this->names_arr;
 
 	return this->parent;
 }

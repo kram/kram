@@ -8,8 +8,14 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <tuple>
 #include "value.h"
 #include "../lexer/token.h"
+
+typedef std::tuple<size_t, size_t> stack_and_pos;
+
+#define KR_SNP_GET_POS(item) std::get<1> (item)
+#define KR_SNP_GET_STACK(item) std::get<0> (item)
 
 enum class Ins {
 	// name, right
@@ -70,6 +76,8 @@ class Instruction {
 		Value* value;
 		lexer::Type type;
 
+		stack_and_pos stack_and_pos;
+
 		std::vector<Instruction*> left;
 		std::vector<Instruction*> right;
 		std::vector<Instruction*> center;
@@ -103,6 +111,7 @@ class Instruction {
 
 			std::cout << std::string(ident, '\t') << "{\n";
 			std::cout << std::string(ident + 1, '\t') << "instruction: " << i << "\n";
+			std::cout << std::string(ident + 1, '\t') << "position:" << KR_SNP_GET_STACK(this->stack_and_pos) << ":" << KR_SNP_GET_POS(this->stack_and_pos) << "\n";
 
 			if (this->name != "") {
 				std::cout << std::string(ident + 1, '\t') << "name: " << this->name << "\n";
