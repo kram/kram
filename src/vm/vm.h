@@ -127,6 +127,7 @@ class VM {
 		Value* name_get(size_t);
 
 		size_t env_get_pos(stack_and_pos);
+		size_t env_get_pos(size_t, size_t);
 
 		void name_create_root(std::string, Value*);
 		Value* name_get_root(const std::string&);

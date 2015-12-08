@@ -419,7 +419,13 @@ Value* VM::call(Instruction* ins, vm::ON on) {
 
 		// Assign "self" to the parent
 		if (on == vm::ON::PUSHED_CLASS) {
-			this->name_create("self", this->lib_stack.back());
+
+			#ifdef KR_DEBUG_ASSIGN
+				std::cout << "Assignig self -> " << this->env_get_pos(fun->stack_num, 1) << "\n";
+			#endif
+
+			// "self" is automatically assigned to the first position (by optimizer.cpp)
+			this->name_create(this->env_get_pos(fun->stack_num, 1), this->lib_stack.back());
 		}
 
 		// Execute function
@@ -574,10 +580,12 @@ void VM::boot(std::vector<Instruction*> ins) {
 	this->environment->is_root = true;
 
 	this->env_current_stack = 0;
-	this->env_stack_positions.push_back(std::vector<size_t>{0});
+	this->env_stack_positions = std::vector<std::vector<size_t>>{
+		std::vector<size_t>{0},
+		std::vector<size_t>{0},
+		std::vector<size_t>{0},
+	};
 	this->env_stack_history.push_back(0);
-	// this->env_stack_positions[0].push_back(1);
-	// this->env_depth_pos_stack.push_back(1);
 
 	// Register classes to the VM
 	reg_class(IO, io);

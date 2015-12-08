@@ -15,6 +15,9 @@ void Environment::set(const std::string &name, Value* val) {
 }
 
 void Environment::set(size_t pos, Value* val) {
+
+	//std::cout << "Environment::set(" << pos << ", " << val->print(true) << ")\n";
+
 	this->names_arr[pos] = val;
 }
 
