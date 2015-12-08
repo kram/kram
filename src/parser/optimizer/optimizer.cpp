@@ -67,7 +67,8 @@ std::vector<Instruction*> Optimizer::variable_alloc_level(std::vector<Instructio
 
 		if (ins->instruction == Ins::FUNCTION ||
 			ins->instruction == Ins::WHILE ||
-			ins->instruction == Ins::IF)
+			ins->instruction == Ins::IF ||
+			ins->instruction == Ins::DEFINE_CLASS)
 		{
 			this->push();
 			ins->stack_and_pos = stack_and_pos{this->depth, 0};
@@ -87,6 +88,11 @@ std::vector<Instruction*> Optimizer::variable_alloc_level(std::vector<Instructio
 			}
 		}
 
+		if (ins->instruction == Ins::FUNCTION) {
+			this->names_map[this->depth]["self"] = this->next_num[this->depth];
+			++this->next_num[this->depth];
+		}
+
 		if (ins->instruction == Ins::FUNCTION_PARAMETER) {
 			ins->stack_and_pos = stack_and_pos{this->depth, this->next_num[this->depth]};
 
@@ -94,7 +100,7 @@ std::vector<Instruction*> Optimizer::variable_alloc_level(std::vector<Instructio
 			++this->next_num[this->depth];
 		}
 
-		if (ins->instruction == Ins::NAME) {
+		if (ins->instruction == Ins::NAME || ins->instruction == Ins::SET) {
 			ins->stack_and_pos = this->variable_alloc_resolve_name(ins->name);
 
 			if (KR_SNP_GET_POS(ins->stack_and_pos) == 0) {
