@@ -1,0 +1,5 @@
+|             When             | Time |
+|------------------------------|------|
+| Pre GC                       | 0.52 |
+| Delete Type::NAME after used | 0.48 |
+|                              |      |

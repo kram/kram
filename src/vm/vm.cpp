@@ -96,11 +96,7 @@ Value* VM::name(Instruction* ins, vm::ON on) {
 		return new Value(Type::NAME, ins->name);
 	}
 
-	// Check if the value exists on the stack
-	if (KR_SNP_GET_POS(ins->stack_and_pos) == 0) { 
-		return this->name_get_root(ins->name);
-	}
-
+	// Get the name from the stack
 	return this->name_get(this->env_get_pos(ins->stack_and_pos));
 }
 
@@ -332,7 +328,7 @@ Value* VM::define_class(Instruction* ins) {
 	}
 
 	// Set in the global scope
-	this->name_create_root(ins->name, cl);
+	// this->name_create_root(ins->name, cl);
 
 	return cl;
 }
@@ -388,7 +384,10 @@ Value* VM::list_range(int start, int end, bool inclusive) {
 }
 
 Value* VM::create_instance(Instruction* ins) {
-	Value* original = this->name_get(ins->name);
+
+	return this->get_value_null();
+
+	/*Value* original = this->name_get(ins->name);
 
 	// Kram-defined classes
 	if (original->type == Type::CLASS) {
@@ -398,7 +397,7 @@ Value* VM::create_instance(Instruction* ins) {
 	}
 
 	Value* instance = original->exec_method("new", this->run_vector(ins->right));
-	return instance;
+	return instance;*/
 }
 
 Value* VM::call(Instruction* ins, vm::ON on) {
@@ -490,7 +489,9 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 			break;
 	}
 
-	Value* lib = this->name_get(lib_name);
+	return this->get_value_null();
+
+	/*Value* lib = this->name_get(lib_name);
 
 	// Initialize parameter vector with the first value beeing the bultin itself
 	std::vector<Value*> params { builtin_value };
@@ -500,7 +501,7 @@ Value* VM::call_builtin(Instruction* ins, Value* name) {
 	}
 
 	// Call the method
-	return lib->exec_method(name->getString(), params);
+	return lib->exec_method(name->getString(), params);*/
 }
 
 std::vector<Value*> VM::run_vector(std::vector<Instruction*> instructions) {
@@ -568,10 +569,10 @@ Value* VM::run(std::vector<Instruction*> ins) {
 // Macro for defining classes easily
 // class_name: Both the class name in this C++ project, and the name of the class in Kram userland
 // var_name: The temporary name used here. This could probably be removed, but. Well.
-#define reg_class(class_name, var_name) auto var_name = new class_name(); \
+#define reg_class(class_name, var_name, stack_pos) auto var_name = new class_name(); \
 	var_name->set_type(Type::REFERENCE); \
 	var_name->init(); \
-	this->environment->set_root(#class_name, var_name);
+	this->name_create(this->env_get_pos(0, stack_pos), var_name);
 
 void VM::boot(std::vector<Instruction*> ins) {
 
@@ -580,20 +581,21 @@ void VM::boot(std::vector<Instruction*> ins) {
 	this->environment->is_root = true;
 
 	this->env_current_stack = 0;
-	this->env_stack_positions = std::vector<std::vector<size_t>>{
-		std::vector<size_t>{0},
-		std::vector<size_t>{0},
-		std::vector<size_t>{0},
+	this->env_stack_positions = std::vector<std::vector<size_t>*>{
+		new std::vector<size_t>{0},
+		new std::vector<size_t>{0},
+		new std::vector<size_t>{0},
 	};
+
 	this->env_stack_history.push_back(0);
 
 	// Register classes to the VM
-	reg_class(IO, io);
-	reg_class(Number, number);
-	reg_class(String, str);
-	reg_class(Map, map);
-	reg_class(List, list);
-	reg_class(Math, math);
+	reg_class(IO, io, 1);
+	reg_class(Number, number, 2);
+	reg_class(String, str, 3);
+	reg_class(Map, map, 4);
+	reg_class(List, list, 5);
+	reg_class(Math, math, 6);
 
 	this->function_return_stack = std::vector<bool>{false};
 

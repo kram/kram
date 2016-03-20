@@ -1,0 +1,1586 @@
+T: NAME, S: IGNORE, V: foo
+T: OPERATOR, S: :=, V: :=
+T: KEYWORD, S: fn, V: fn
+T: OPERATOR, S: (, V: (
+T: NAME, S: IGNORE, V: input
+T: OPERATOR, S: ), V: )
+T: OPERATOR, S: {, V: {
+T: T_EOL, S: IGNORE, V: 
+T: KEYWORD, S: if, V: if
+T: NAME, S: IGNORE, V: input
+T: OPERATOR, S: >, V: >
+T: NUMBER, S: IGNORE, V: 500
+T: OPERATOR, S: {, V: {
+T: T_EOL, S: IGNORE, V: 
+T: KEYWORD, S: return, V: return
+T: NAME, S: IGNORE, V: input
+T: T_EOL, S: IGNORE, V: 
+T: OPERATOR, S: }, V: }
+T: T_EOL, S: IGNORE, V: 
+T: T_EOL, S: IGNORE, V: 
+T: NAME, S: IGNORE, V: IO
+T: OPERATOR, S: ::, V: ::
+T: NAME, S: IGNORE, V: Println
+T: OPERATOR, S: (, V: (
+T: STRING, S: IGNORE, V: We need to go deeper!
+T: OPERATOR, S: ), V: )
+T: T_EOL, S: IGNORE, V: 
+T: T_EOL, S: IGNORE, V: 
+T: KEYWORD, S: return, V: return
+T: NAME, S: IGNORE, V: foo
+T: OPERATOR, S: (, V: (
+T: NAME, S: IGNORE, V: input
+T: OPERATOR, S: *, V: *
+T: NAME, S: IGNORE, V: input
+T: OPERATOR, S: ), V: )
+T: OPERATOR, S: -, V: -
+T: NAME, S: IGNORE, V: input
+T: T_EOL, S: IGNORE, V: 
+T: OPERATOR, S: }, V: }
+T: T_EOL, S: IGNORE, V: 
+T: T_EOL, S: IGNORE, V: 
+T: NAME, S: IGNORE, V: IO
+T: OPERATOR, S: ::, V: ::
+T: NAME, S: IGNORE, V: Println
+T: OPERATOR, S: (, V: (
+T: NAME, S: IGNORE, V: foo
+T: OPERATOR, S: (, V: (
+T: NUMBER, S: IGNORE, V: 30
+T: OPERATOR, S: ), V: )
+T: OPERATOR, S: ), V: )
+T: T_EOL, S: IGNORE, V: 
+T: T_EOF, S: IGNORE, V: 
+Optimizer::variable_alloc
+Optimizer::Optimizer
+Optimizer::variable_alloc_level
+{
+	instruction: ASSIGN
+	name: foo (0:0)
+	right: [
+	{
+		instruction: FUNCTION
+		left: [
+		{
+			instruction: FUNCTION_PARAMETER
+			name: input (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: IF
+			left: [
+			{
+				instruction: RETURN
+				right: [
+				{
+					instruction: NAME
+					name: input (0:0)
+				}
+				]
+			}
+			]
+			center: [
+			{
+				instruction: MATH
+				type: >
+				left: [
+				{
+					instruction: NAME
+					name: input (0:0)
+				}
+				]
+				right: [
+				{
+					instruction: LITERAL
+					value: 500
+				}
+				]
+			}
+			]
+		}
+		{
+			instruction: PUSH_CLASS
+			left: [
+			{
+				instruction: NAME
+				name: IO (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: CALL
+				left: [
+				{
+					instruction: NAME
+					name: Println (0:0)
+				}
+				]
+				right: [
+				{
+					instruction: LITERAL
+					value: We need to go deeper!
+				}
+				]
+			}
+			]
+		}
+		{
+			instruction: RETURN
+			right: [
+			{
+				instruction: MATH
+				type: -
+				left: [
+				{
+					instruction: CALL
+					left: [
+					{
+						instruction: NAME
+						name: foo (0:0)
+					}
+					]
+					right: [
+					{
+						instruction: MATH
+						type: *
+						left: [
+						{
+							instruction: NAME
+							name: input (0:0)
+						}
+						]
+						right: [
+						{
+							instruction: NAME
+							name: input (0:0)
+						}
+						]
+					}
+					]
+				}
+				]
+				right: [
+				{
+					instruction: NAME
+					name: input (0:0)
+				}
+				]
+			}
+			]
+		}
+		]
+	}
+	]
+}
+Defined foo as 0:1
+Optimizer::variable_alloc_level
+{
+	instruction: FUNCTION
+	left: [
+	{
+		instruction: FUNCTION_PARAMETER
+		name: input (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: IF
+		left: [
+		{
+			instruction: RETURN
+			right: [
+			{
+				instruction: NAME
+				name: input (0:0)
+			}
+			]
+		}
+		]
+		center: [
+		{
+			instruction: MATH
+			type: >
+			left: [
+			{
+				instruction: NAME
+				name: input (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: LITERAL
+				value: 500
+			}
+			]
+		}
+		]
+	}
+	{
+		instruction: PUSH_CLASS
+		left: [
+		{
+			instruction: NAME
+			name: IO (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: CALL
+			left: [
+			{
+				instruction: NAME
+				name: Println (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: LITERAL
+				value: We need to go deeper!
+			}
+			]
+		}
+		]
+	}
+	{
+		instruction: RETURN
+		right: [
+		{
+			instruction: MATH
+			type: -
+			left: [
+			{
+				instruction: CALL
+				left: [
+				{
+					instruction: NAME
+					name: foo (0:0)
+				}
+				]
+				right: [
+				{
+					instruction: MATH
+					type: *
+					left: [
+					{
+						instruction: NAME
+						name: input (0:0)
+					}
+					]
+					right: [
+					{
+						instruction: NAME
+						name: input (0:0)
+					}
+					]
+				}
+				]
+			}
+			]
+			right: [
+			{
+				instruction: NAME
+				name: input (0:0)
+			}
+			]
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: FUNCTION_PARAMETER
+	name: input (0:0)
+}
+{
+	instruction: FUNCTION_PARAMETER
+	name: input (1:1)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: IF
+	left: [
+	{
+		instruction: RETURN
+		right: [
+		{
+			instruction: NAME
+			name: input (0:0)
+		}
+		]
+	}
+	]
+	center: [
+	{
+		instruction: MATH
+		type: >
+		left: [
+		{
+			instruction: NAME
+			name: input (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: LITERAL
+			value: 500
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: RETURN
+	right: [
+	{
+		instruction: NAME
+		name: input (0:0)
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: input (0:0)
+}
+{
+	instruction: NAME
+	name: input (1:1)
+}
+{
+	instruction: RETURN
+	right: [
+	{
+		instruction: NAME
+		name: input (1:1)
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: MATH
+	type: >
+	left: [
+	{
+		instruction: NAME
+		name: input (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: LITERAL
+		value: 500
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: input (0:0)
+}
+{
+	instruction: NAME
+	name: input (1:1)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: LITERAL
+	value: 500
+}
+{
+	instruction: LITERAL
+	value: 500
+}
+{
+	instruction: MATH
+	type: >
+	left: [
+	{
+		instruction: NAME
+		name: input (1:1)
+	}
+	]
+	right: [
+	{
+		instruction: LITERAL
+		value: 500
+	}
+	]
+}
+{
+	instruction: IF
+	left: [
+	{
+		instruction: RETURN
+		right: [
+		{
+			instruction: NAME
+			name: input (1:1)
+		}
+		]
+	}
+	]
+	center: [
+	{
+		instruction: MATH
+		type: >
+		left: [
+		{
+			instruction: NAME
+			name: input (1:1)
+		}
+		]
+		right: [
+		{
+			instruction: LITERAL
+			value: 500
+		}
+		]
+	}
+	]
+}
+{
+	instruction: PUSH_CLASS
+	left: [
+	{
+		instruction: NAME
+		name: IO (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: Println (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: LITERAL
+			value: We need to go deeper!
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: IO (0:0)
+}
+Optimizer could not find name...? IO
+{
+	instruction: NAME
+	name: IO (0:0)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: Println (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: LITERAL
+		value: We need to go deeper!
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: Println (0:0)
+}
+Optimizer could not find name...? Println
+{
+	instruction: NAME
+	name: Println (0:0)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: LITERAL
+	value: We need to go deeper!
+}
+{
+	instruction: LITERAL
+	value: We need to go deeper!
+}
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: Println (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: LITERAL
+		value: We need to go deeper!
+	}
+	]
+}
+{
+	instruction: PUSH_CLASS
+	left: [
+	{
+		instruction: NAME
+		name: IO (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: Println (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: LITERAL
+			value: We need to go deeper!
+		}
+		]
+	}
+	]
+}
+{
+	instruction: RETURN
+	right: [
+	{
+		instruction: MATH
+		type: -
+		left: [
+		{
+			instruction: CALL
+			left: [
+			{
+				instruction: NAME
+				name: foo (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: MATH
+				type: *
+				left: [
+				{
+					instruction: NAME
+					name: input (0:0)
+				}
+				]
+				right: [
+				{
+					instruction: NAME
+					name: input (0:0)
+				}
+				]
+			}
+			]
+		}
+		]
+		right: [
+		{
+			instruction: NAME
+			name: input (0:0)
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: MATH
+	type: -
+	left: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: foo (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: MATH
+			type: *
+			left: [
+			{
+				instruction: NAME
+				name: input (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: NAME
+				name: input (0:0)
+			}
+			]
+		}
+		]
+	}
+	]
+	right: [
+	{
+		instruction: NAME
+		name: input (0:0)
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: foo (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: MATH
+		type: *
+		left: [
+		{
+			instruction: NAME
+			name: input (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: NAME
+			name: input (0:0)
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: foo (0:0)
+}
+{
+	instruction: NAME
+	name: foo (0:1)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: MATH
+	type: *
+	left: [
+	{
+		instruction: NAME
+		name: input (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: NAME
+		name: input (0:0)
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: input (0:0)
+}
+{
+	instruction: NAME
+	name: input (1:1)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: input (0:0)
+}
+{
+	instruction: NAME
+	name: input (1:1)
+}
+{
+	instruction: MATH
+	type: *
+	left: [
+	{
+		instruction: NAME
+		name: input (1:1)
+	}
+	]
+	right: [
+	{
+		instruction: NAME
+		name: input (1:1)
+	}
+	]
+}
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: foo (0:1)
+	}
+	]
+	right: [
+	{
+		instruction: MATH
+		type: *
+		left: [
+		{
+			instruction: NAME
+			name: input (1:1)
+		}
+		]
+		right: [
+		{
+			instruction: NAME
+			name: input (1:1)
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: input (0:0)
+}
+{
+	instruction: NAME
+	name: input (1:1)
+}
+{
+	instruction: MATH
+	type: -
+	left: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: foo (0:1)
+		}
+		]
+		right: [
+		{
+			instruction: MATH
+			type: *
+			left: [
+			{
+				instruction: NAME
+				name: input (1:1)
+			}
+			]
+			right: [
+			{
+				instruction: NAME
+				name: input (1:1)
+			}
+			]
+		}
+		]
+	}
+	]
+	right: [
+	{
+		instruction: NAME
+		name: input (1:1)
+	}
+	]
+}
+{
+	instruction: RETURN
+	right: [
+	{
+		instruction: MATH
+		type: -
+		left: [
+		{
+			instruction: CALL
+			left: [
+			{
+				instruction: NAME
+				name: foo (0:1)
+			}
+			]
+			right: [
+			{
+				instruction: MATH
+				type: *
+				left: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+				right: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+			}
+			]
+		}
+		]
+		right: [
+		{
+			instruction: NAME
+			name: input (1:1)
+		}
+		]
+	}
+	]
+}
+{
+	instruction: FUNCTION
+	left: [
+	{
+		instruction: FUNCTION_PARAMETER
+		name: input (1:1)
+	}
+	]
+	right: [
+	{
+		instruction: IF
+		left: [
+		{
+			instruction: RETURN
+			right: [
+			{
+				instruction: NAME
+				name: input (1:1)
+			}
+			]
+		}
+		]
+		center: [
+		{
+			instruction: MATH
+			type: >
+			left: [
+			{
+				instruction: NAME
+				name: input (1:1)
+			}
+			]
+			right: [
+			{
+				instruction: LITERAL
+				value: 500
+			}
+			]
+		}
+		]
+	}
+	{
+		instruction: PUSH_CLASS
+		left: [
+		{
+			instruction: NAME
+			name: IO (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: CALL
+			left: [
+			{
+				instruction: NAME
+				name: Println (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: LITERAL
+				value: We need to go deeper!
+			}
+			]
+		}
+		]
+	}
+	{
+		instruction: RETURN
+		right: [
+		{
+			instruction: MATH
+			type: -
+			left: [
+			{
+				instruction: CALL
+				left: [
+				{
+					instruction: NAME
+					name: foo (0:1)
+				}
+				]
+				right: [
+				{
+					instruction: MATH
+					type: *
+					left: [
+					{
+						instruction: NAME
+						name: input (1:1)
+					}
+					]
+					right: [
+					{
+						instruction: NAME
+						name: input (1:1)
+					}
+					]
+				}
+				]
+			}
+			]
+			right: [
+			{
+				instruction: NAME
+				name: input (1:1)
+			}
+			]
+		}
+		]
+	}
+	]
+}
+{
+	instruction: ASSIGN
+	name: foo (0:1)
+	right: [
+	{
+		instruction: FUNCTION
+		left: [
+		{
+			instruction: FUNCTION_PARAMETER
+			name: input (1:1)
+		}
+		]
+		right: [
+		{
+			instruction: IF
+			left: [
+			{
+				instruction: RETURN
+				right: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+			}
+			]
+			center: [
+			{
+				instruction: MATH
+				type: >
+				left: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+				right: [
+				{
+					instruction: LITERAL
+					value: 500
+				}
+				]
+			}
+			]
+		}
+		{
+			instruction: PUSH_CLASS
+			left: [
+			{
+				instruction: NAME
+				name: IO (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: CALL
+				left: [
+				{
+					instruction: NAME
+					name: Println (0:0)
+				}
+				]
+				right: [
+				{
+					instruction: LITERAL
+					value: We need to go deeper!
+				}
+				]
+			}
+			]
+		}
+		{
+			instruction: RETURN
+			right: [
+			{
+				instruction: MATH
+				type: -
+				left: [
+				{
+					instruction: CALL
+					left: [
+					{
+						instruction: NAME
+						name: foo (0:1)
+					}
+					]
+					right: [
+					{
+						instruction: MATH
+						type: *
+						left: [
+						{
+							instruction: NAME
+							name: input (1:1)
+						}
+						]
+						right: [
+						{
+							instruction: NAME
+							name: input (1:1)
+						}
+						]
+					}
+					]
+				}
+				]
+				right: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+			}
+			]
+		}
+		]
+	}
+	]
+}
+{
+	instruction: PUSH_CLASS
+	left: [
+	{
+		instruction: NAME
+		name: IO (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: Println (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: CALL
+			left: [
+			{
+				instruction: NAME
+				name: foo (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: LITERAL
+				value: 30
+			}
+			]
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: IO (0:0)
+}
+Optimizer could not find name...? IO
+{
+	instruction: NAME
+	name: IO (0:0)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: Println (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: foo (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: LITERAL
+			value: 30
+		}
+		]
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: Println (0:0)
+}
+Optimizer could not find name...? Println
+{
+	instruction: NAME
+	name: Println (0:0)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: foo (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: LITERAL
+		value: 30
+	}
+	]
+}
+Optimizer::variable_alloc_level
+{
+	instruction: NAME
+	name: foo (0:0)
+}
+{
+	instruction: NAME
+	name: foo (0:1)
+}
+Optimizer::variable_alloc_level
+{
+	instruction: LITERAL
+	value: 30
+}
+{
+	instruction: LITERAL
+	value: 30
+}
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: foo (0:1)
+	}
+	]
+	right: [
+	{
+		instruction: LITERAL
+		value: 30
+	}
+	]
+}
+{
+	instruction: CALL
+	left: [
+	{
+		instruction: NAME
+		name: Println (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: foo (0:1)
+		}
+		]
+		right: [
+		{
+			instruction: LITERAL
+			value: 30
+		}
+		]
+	}
+	]
+}
+{
+	instruction: PUSH_CLASS
+	left: [
+	{
+		instruction: NAME
+		name: IO (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: Println (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: CALL
+			left: [
+			{
+				instruction: NAME
+				name: foo (0:1)
+			}
+			]
+			right: [
+			{
+				instruction: LITERAL
+				value: 30
+			}
+			]
+		}
+		]
+	}
+	]
+}
+Printing ins:
+{
+	instruction: ASSIGN
+	name: foo (0:1)
+	right: [
+	{
+		instruction: FUNCTION
+		left: [
+		{
+			instruction: FUNCTION_PARAMETER
+			name: input (1:1)
+		}
+		]
+		right: [
+		{
+			instruction: IF
+			left: [
+			{
+				instruction: RETURN
+				right: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+			}
+			]
+			center: [
+			{
+				instruction: MATH
+				type: >
+				left: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+				right: [
+				{
+					instruction: LITERAL
+					value: 500
+				}
+				]
+			}
+			]
+		}
+		{
+			instruction: PUSH_CLASS
+			left: [
+			{
+				instruction: NAME
+				name: IO (0:0)
+			}
+			]
+			right: [
+			{
+				instruction: CALL
+				left: [
+				{
+					instruction: NAME
+					name: Println (0:0)
+				}
+				]
+				right: [
+				{
+					instruction: LITERAL
+					value: We need to go deeper!
+				}
+				]
+			}
+			]
+		}
+		{
+			instruction: RETURN
+			right: [
+			{
+				instruction: MATH
+				type: -
+				left: [
+				{
+					instruction: CALL
+					left: [
+					{
+						instruction: NAME
+						name: foo (0:1)
+					}
+					]
+					right: [
+					{
+						instruction: MATH
+						type: *
+						left: [
+						{
+							instruction: NAME
+							name: input (1:1)
+						}
+						]
+						right: [
+						{
+							instruction: NAME
+							name: input (1:1)
+						}
+						]
+					}
+					]
+				}
+				]
+				right: [
+				{
+					instruction: NAME
+					name: input (1:1)
+				}
+				]
+			}
+			]
+		}
+		]
+	}
+	]
+}
+--------
+{
+	instruction: PUSH_CLASS
+	left: [
+	{
+		instruction: NAME
+		name: IO (0:0)
+	}
+	]
+	right: [
+	{
+		instruction: CALL
+		left: [
+		{
+			instruction: NAME
+			name: Println (0:0)
+		}
+		]
+		right: [
+		{
+			instruction: CALL
+			left: [
+			{
+				instruction: NAME
+				name: foo (0:1)
+			}
+			]
+			right: [
+			{
+				instruction: LITERAL
+				value: 30
+			}
+			]
+		}
+		]
+	}
+	]
+}
+--------
+assign: foo to 0:1 -> 1
+name_create: 1
+name_get: IO
+env_push
+this->env_current_stack = 0
+this->env_stack_positions.size() = 1
+print 1
+0: [0,]
+print 1 (done)
+print 2
+0: [0,]
+1: [0,]
+print 2 (done)
+print 3
+0: [0,]
+1: [0,1,]
+print 3 (done)
+env_push (done)
+env_push
+this->env_current_stack = 1
+this->env_stack_positions.size() = 2
+print 1
+0: [0,]
+1: [0,1,]
+print 1 (done)
+print 2
+0: [0,]
+1: [0,1,]
+2: [0,]
+print 2 (done)
+print 3
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+print 3 (done)
+env_push (done)
+get_name: foo from 0:1 -> 1
+name_get: 1
+assign: input to 1:1 -> 2
+name_create: 2
+env_push
+this->env_current_stack = 2
+this->env_stack_positions.size() = 3
+print 1
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+print 1 (done)
+print 2
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,]
+print 2 (done)
+print 3
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,2,]
+print 3 (done)
+env_push (done)
+get_name: input from 1:1 -> 2
+name_get: 2
+env_pop
+name_get: IO
+env_push
+this->env_current_stack = 2
+this->env_stack_positions.size() = 4
+print 1
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,]
+print 1 (done)
+print 2
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,]
+print 2 (done)
+print 3
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,2,]
+print 3 (done)
+env_push (done)
+We need to go deeper!
+env_pop
+env_push
+this->env_current_stack = 2
+this->env_stack_positions.size() = 4
+print 1
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,]
+print 1 (done)
+print 2
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,]
+print 2 (done)
+print 3
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,2,]
+print 3 (done)
+env_push (done)
+get_name: foo from 0:1 -> 1
+name_get: 1
+get_name: input from 1:1 -> 2
+name_get: 2
+get_name: input from 1:1 -> 2
+name_get: 2
+assign: input to 1:1 -> 2
+name_create: 2
+env_push
+this->env_current_stack = 3
+this->env_stack_positions.size() = 4
+print 1
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,2,]
+print 1 (done)
+print 2
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,2,]
+4: [0,]
+print 2 (done)
+print 3
+0: [0,]
+1: [0,1,]
+2: [0,1,]
+3: [0,2,]
+4: [0,2,]
+print 3 (done)
+env_push (done)
+get_name: input from 1:1 -> 2
+name_get: 2
+get_name: input from 1:1 -> 2
+name_get: 2
+env_pop
+env_pop
+get_name: input from 1:1 -> 2
+name_get: 2
+env_pop
+0
+env_pop

@@ -11,6 +11,9 @@
 std::vector<Instruction*> Optimizer::variable_alloc(std::vector<Instruction*> instructions)
 {
 	auto opt = new Optimizer();
+
+	opt->variable_alloc_setup();
+
 	return opt->variable_alloc_level(instructions);
 }
 
@@ -59,6 +62,18 @@ stack_and_pos Optimizer::variable_alloc_resolve_name(std::string name)
 	return stack_and_pos{0, 0};
 }
 
+void Optimizer::variable_alloc_setup()
+{
+	this->names_map[this->depth]["IO"] = 1;
+	this->names_map[this->depth]["Number"] = 2;
+	this->names_map[this->depth]["String"] = 3;
+	this->names_map[this->depth]["Map"] = 4;
+	this->names_map[this->depth]["List"] = 5;
+	this->names_map[this->depth]["Math"] = 6;
+
+	this->next_num[this->depth] = 7;
+}
+
 std::vector<Instruction*> Optimizer::variable_alloc_level(std::vector<Instruction*> instructions)
 {
 	for (Instruction* ins : instructions) {
@@ -75,13 +90,18 @@ std::vector<Instruction*> Optimizer::variable_alloc_level(std::vector<Instructio
 			did_push_stack = true;
 		}
 
+		if (ins->instruction == Ins::DEFINE_CLASS) {
+			this->names_map[0][ins->name] = this->next_num[0];
+			++this->next_num[0];
+		}
+
 		if (ins->instruction == Ins::ASSIGN) {
 			ins->stack_and_pos = this->variable_alloc_resolve_name(ins->name);
 
 			if (KR_SNP_GET_POS(ins->stack_and_pos) == 0) {
 				ins->stack_and_pos = stack_and_pos{this->depth, this->next_num[this->depth]};
 
-				// std::cout << "Defined " << ins->name << " as " << KR_SNP_GET_STACK(ins->stack_and_pos) << ":" << KR_SNP_GET_POS(ins->stack_and_pos) << "\n";
+				std::cout << "Defined " << ins->name << " as " << KR_SNP_GET_STACK(ins->stack_and_pos) << ":" << KR_SNP_GET_POS(ins->stack_and_pos) << "\n";
 
 				this->names_map[this->depth][ins->name] = this->next_num[this->depth];
 				++this->next_num[this->depth];
@@ -100,11 +120,14 @@ std::vector<Instruction*> Optimizer::variable_alloc_level(std::vector<Instructio
 			++this->next_num[this->depth];
 		}
 
-		if (ins->instruction == Ins::NAME || ins->instruction == Ins::SET) {
+		if (ins->instruction == Ins::NAME ||
+			ins->instruction == Ins::SET ||
+			ins->instruction == Ins::CREATE_INSTANCE
+		) {
 			ins->stack_and_pos = this->variable_alloc_resolve_name(ins->name);
 
 			if (KR_SNP_GET_POS(ins->stack_and_pos) == 0) {
-				//std::cout << "Optimizer could not find name...? " << ins->name << "\n";
+				std::cout << "Optimizer could not find name...? " << ins->name << "\n";
 			}
 		}
 

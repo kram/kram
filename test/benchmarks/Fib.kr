@@ -6,4 +6,4 @@ fib := fn(num) {
 	}
 }
 
-IO::Println(fib(28))
+IO::Println(fib(25))

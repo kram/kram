@@ -13,12 +13,7 @@ size_t VM::env_get_pos(stack_and_pos snp)
 
 size_t VM::env_get_pos(size_t stack, size_t pos)
 {
-	return this->env_stack_positions[stack].back() + pos;
-}
-
-void VM::name_create(const std::string& name, Value* val)
-{
-	this->environment->set(name, val);
+	return this->env_stack_positions[stack]->back() + pos;
 }
 
 void VM::name_create(size_t pos, Value* val)
@@ -30,37 +25,9 @@ void VM::name_create(size_t pos, Value* val)
 	this->environment->set(pos, val);
 }
 
-void VM::name_create_root(std::string name, Value* val)
-{
-	this->environment->set_root(name, val);
-}
-
 void VM::name_update(size_t pos, Value* val)
 {
 	this->environment->update(pos, val);
-}
-
-void VM::name_update(const std::string& name, Value* val)
-{
-	// Verify that the variable exists first
-	if (!this->environment->exists(name)) {
-		std::cout << "No such variable, " << name << ", did you mean to use := ?\n";
-		exit(0);
-	}
-
-	Value* previous = this->environment->get(name);
-
-	if (previous->type != val->type) {
-		std::cout << "Can not update (with =) a variable of type " << previous->print(true) << " to " << val->print(true) << "\n";
-		exit(0);
-	}
-
-	this->environment->update(name, val);
-}
-
-Value* VM::name_get(const std::string& name)
-{
-	return this->environment->get(name);
 }
 
 Value* VM::name_get(size_t pos)
@@ -68,16 +35,11 @@ Value* VM::name_get(size_t pos)
 	return this->environment->get(pos);
 }
 
-Value* VM::name_get_root(const std::string& name)
-{
-	return this->environment->get_root(name);
-}
-
 void VM::env_pop()
 {
 	if (this->env_current_stack != 0) {
-		this->env_depth_current_max = this->env_stack_positions[this->env_current_stack].back();
-		this->env_stack_positions[this->env_current_stack].pop_back();
+		this->env_depth_current_max = this->env_stack_positions[this->env_current_stack]->back();
+		this->env_stack_positions[this->env_current_stack]->pop_back();
 	}
 
 	this->env_current_stack = this->env_stack_history.back();
@@ -107,16 +69,15 @@ void VM::env_push(size_t stack_num)
 	this->env_current_stack = stack_num;
 
 	if (stack_num == 0) {
-		this->environment = this->environment->push();
 		return;
 	}
 
 	// Initialize vector if neccesary
 	if (this->env_current_stack - 2 >= this->env_stack_positions.size()) {
-		this->env_stack_positions.push_back(std::vector<size_t>{0});
-		this->env_stack_positions.push_back(std::vector<size_t>{0});
-		this->env_stack_positions.push_back(std::vector<size_t>{0});
+		this->env_stack_positions.push_back(new std::vector<size_t>{0});
+		this->env_stack_positions.push_back(new std::vector<size_t>{0});
+		this->env_stack_positions.push_back(new std::vector<size_t>{0});
 	}
 	
-	this->env_stack_positions[this->env_current_stack].push_back(this->env_depth_current_max);
+	this->env_stack_positions[this->env_current_stack]->push_back(this->env_depth_current_max);
 }

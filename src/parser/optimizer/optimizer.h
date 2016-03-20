@@ -11,6 +11,7 @@ class Optimizer {
 	std::vector<size_t> next_num;
 	std::vector<std::unordered_map<std::string, size_t>> names_map;
 
+	void variable_alloc_setup();
 	std::vector<Instruction*> variable_alloc_level(std::vector<Instruction*>);
 	stack_and_pos variable_alloc_resolve_name(std::string);
 
