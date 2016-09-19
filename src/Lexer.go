@@ -80,6 +80,7 @@ func (lexer *Lexer) Init(source []byte) []Token {
 	lexer.keywords["return"] = true
 	lexer.keywords["for"] = true
 	lexer.keywords["in"] = true
+	lexer.keywords["fn"] = true
 
 	lexer.source = []rune(string(source))
 	lexer.length = len(lexer.source)

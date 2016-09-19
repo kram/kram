@@ -12,10 +12,11 @@ import (
 	"os"
 
 	"github.com/kram/kram/src"
+	"github.com/kram/kram/src/compiler"
 )
 
 // The main function is very simple.
-// 
+//
 // 1. Read the input file
 // 2. Run the lexer
 // 3. Run the parser on the result from the lexer and create an AST
@@ -63,9 +64,10 @@ func main() {
 			fmt.Println("-------------------")
 		}
 
-		var vm = kram.VM{}
+		/*var vm = kram.VM{}
 		vm.Debug = *debug
+		vm.Run(tree)*/
 
-		vm.Run(tree)
+		compiler.Run(tree)
 	}
 }

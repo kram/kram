@@ -156,3 +156,9 @@ type For struct {
 	Each      Node
 	Body      Block
 }
+
+// Defines a new function functions have no names and must be assigned to a variable
+type DefineFunction struct {
+	DefineFunction bool
+	Body           Block
+}
