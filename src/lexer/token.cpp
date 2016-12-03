@@ -128,6 +128,8 @@ Type Token::Trans(std::string from) {
 		opTrans["=="] = Type::OPERATOR_EQEQ;
 		opTrans[">"] = Type::OPERATOR_GT;
 		opTrans[">="] = Type::OPERATOR_GTEQ;
+		opTrans["!="] = Type::OPERATOR_NOT_EQ;
+		opTrans["!"] = Type::OPERATOR_NOT;
 		opTrans["<"] = Type::OPERATOR_LT;
 		opTrans["<="] = Type::OPERATOR_LTEQ;
 		opTrans["&&"] = Type::OPERATOR_DOUBLE_AND;

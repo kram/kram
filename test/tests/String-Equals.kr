@@ -1,3 +1,11 @@
 if "hello" == "hello" {
     IO::Println("hello is hello") // hello is hello
 }
+
+if "hello" != "world" {
+    IO::Println("hello is not world") // hello is not world
+}
+
+if "hello" != "hello" {
+    IO::Println("hello is not hello")
+}

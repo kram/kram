@@ -1,0 +1,11 @@
+if 400 == 400 {
+    IO::Println("400 is 400") // 400 is 400
+}
+
+if 400 != 500 {
+    IO::Println("400 is not 500") // 400 is not 500
+}
+
+if 400 != 400 {
+    IO::Println("400 is not 400")
+}

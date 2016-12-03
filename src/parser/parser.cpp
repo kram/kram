@@ -21,6 +21,7 @@ Parser::Parser(std::vector<lexer::Token*> tokens) {
 	this->comparisions[lexer::Type::OPERATOR_LTEQ] = true;
 	this->comparisions[lexer::Type::OPERATOR_DOUBLE_AND] = true;
 	this->comparisions[lexer::Type::OPERATOR_DOUBLE_OR] = true;
+	this->comparisions[lexer::Type::OPERATOR_NOT_EQ] = true;
 
 	// 123++
 	this->leftOnlyInfix[lexer::Type::OPERATOR_PLUS_PLUS] = true;
@@ -47,6 +48,7 @@ Parser::Parser(std::vector<lexer::Token*> tokens) {
 	this->startOperators[lexer::Type::OPERATOR_EQ] = true;
 	this->startOperators[lexer::Type::OPERATOR_2DOT] = true;
 	this->startOperators[lexer::Type::OPERATOR_3DOT] = true;
+	this->startOperators[lexer::Type::OPERATOR_NOT_EQ] = true;
 }
 
 std::vector<Instruction*> Parser::run() {

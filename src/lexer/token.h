@@ -59,6 +59,7 @@ namespace lexer {
 		OPERATOR_CURLYPAREN_L,  // {
 		OPERATOR_CURLYPAREN_R,  // }
 		OPERATOR_COLON_EQ,      // :=
+		OPERATOR_NOT,           // !
 
 		// Ranges
 		OPERATOR_2DOT,          // ..

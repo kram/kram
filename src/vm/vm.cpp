@@ -202,6 +202,11 @@ Value* VM::math_string(Instruction* ins, Value* left, Value* right) {
 			is_bool = true;
 			break;
 
+		case lexer::Type::OPERATOR_NOT_EQ:
+			res_bool = l != r;
+			is_bool = true;
+			break;
+
 		default:
 			std::cout << "Unknown math_string() operator\n";
 			exit(0);
