@@ -46,6 +46,7 @@ class VM {
 	// math() and math_number() does all mathematical operations
 	Value* math(Instruction*);
 	Value* math_number(Instruction*, Value*, Value*);
+	Value* math_string(Instruction*, Value*, Value*);
 
 	// if_case() takes an expression, if the expression is true the left-side of the instruction is executed, if not the right one is
 	Value* if_case(Instruction*);

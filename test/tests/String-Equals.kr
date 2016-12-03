@@ -1,0 +1,3 @@
+if "hello" == "hello" {
+    IO::Println("hello is hello") // hello is hello
+}

@@ -103,6 +103,9 @@ Value* VM::math(Instruction* ins) {
 		case Type::NUMBER:
 			return this->math_number(ins, left, right);
 			break;
+		case Type::STRING:
+			return this->math_string(ins, left, right);
+			break;
 
 		// Silence the compiler
 		default: break;
@@ -184,6 +187,32 @@ Value* VM::math_number(Instruction* ins, Value* left, Value* right) {
 	}
 
 	return this->get_value_number(res_number);
+}
+
+Value* VM::math_string(Instruction* ins, Value* left, Value* right) {
+
+	bool res_bool = false;
+	bool is_bool = false;
+	std::string l = left->getString();
+	std::string r = right->getString();
+
+	switch (ins->type) {
+		case lexer::Type::OPERATOR_EQEQ:
+			res_bool = l == r;
+			is_bool = true;
+			break;
+
+		default:
+			std::cout << "Unknown math_string() operator\n";
+			exit(0);
+			break;
+	}
+
+	if (is_bool) {
+		return this->get_value_bool(res_bool);
+	}
+
+	return this->get_value_number(0);
 }
 
 Value* VM::if_case(Instruction* ins) {
